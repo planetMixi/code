@@ -1,0 +1,14 @@
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter checkpoints (unnecessary to track)
+.ipynb_checkpoints/
+
+# macOS system file
+.DS_Store
+
+# Local Ollama model folder (not source controlled)
+ollama/

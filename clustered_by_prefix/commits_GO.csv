@@ -1,0 +1,797 @@
+vuln_id,code_diff
+GO-2020-0025,"From 09b5706aa9367972c09144a450bb4523049ee840 Mon Sep 17 00:00:00 2001
+From: Stephane Jolicoeur <sjolicoeur@pivotal.io>
+Date: Wed, 23 May 2018 15:22:29 -0700
+Subject: [PATCH] Refactored the path resolution to use securejoin
+
+[#157757626]
+
+Signed-off-by: Edwin Xie <exie@pivotal.io>
+---
+ extractor/extractor_test.go | 97 +++++++++++++++++++++++++++++++++++++
+ extractor/tgz_extractor.go  |  9 +++-
+ extractor/zip_extractor.go  |  8 +--
+ 3 files changed, 109 insertions(+), 5 deletions(-)
+
+diff --git a/extractor/extractor_test.go b/extractor/extractor_test.go
+index 0e57cea..c4cda6e 100644
+--- a/extractor/extractor_test.go
++++ b/extractor/extractor_test.go
+@@ -120,6 +120,24 @@ var _ = Describe(""Extractor"", func() {
+ 			})
+ 
+ 			It(""extracts the ZIP's files, generating directories, and honoring file permissions and symlinks"", extractionTest)
++
++			Context(""with a bad zip archive"", func() {
++				BeforeEach(func() {
++					test_helper.CreateZipArchive(extractionSrc, []test_helper.ArchiveFile{
++						{
++							Name: ""../some-file"",
++							Body: ""file-in-bad-dir-contents"",
++						},
++					})
++				})
++
++				It(""returns an error"", func() {
++					subdir := filepath.Join(extractionDest, ""subdir"")
++					Expect(os.Mkdir(subdir, 0777)).To(Succeed())
++					err := extractor.Extract(extractionSrc, subdir)
++					Expect(err).To(HaveOccurred())
++				})
++			})
+ 		})
+ 
+ 		Context(""when 'unzip' is not in the PATH"", func() {
+@@ -138,6 +156,27 @@ var _ = Describe(""Extractor"", func() {
+ 			})
+ 
+ 			It(""extracts the ZIP's files, generating directories, and honoring file permissions and symlinks"", extractionTest)
++
++			Context(""with a bad zip archive"", func() {
++				BeforeEach(func() {
++					test_helper.CreateZipArchive(extractionSrc, []test_helper.ArchiveFile{
++						{
++							Name: ""../some-file"",
++							Body: ""file-in-bad-dir-contents"",
++						},
++					})
++				})
++
++				It(""does not insecurely extract the file outside of the provided destination"", func() {
++					subdir := filepath.Join(extractionDest, ""subdir"")
++					Expect(os.Mkdir(subdir, 0777)).To(Succeed())
++					err := extractor.Extract(extractionSrc, subdir)
++					Expect(err).NotTo(HaveOccurred())
++
++					Expect(filepath.Join(extractionDest, ""some-file"")).NotTo(BeAnExistingFile())
++					Expect(filepath.Join(subdir, ""some-file"")).To(BeAnExistingFile())
++				})
++			})
+ 		})
+ 	})
+ 
+@@ -153,6 +192,24 @@ var _ = Describe(""Extractor"", func() {
+ 			})
+ 
+ 			It(""extracts the TGZ's files, generating directories, and honoring file permissions and symlinks"", extractionTest)
++
++			Context(""with a bad tgz archive"", func() {
++				BeforeEach(func() {
++					test_helper.CreateTarGZArchive(extractionSrc, []test_helper.ArchiveFile{
++						{
++							Name: ""../some-file"",
++							Body: ""file-in-bad-dir-contents"",
++						},
++					})
++				})
++
++				It(""returns an error"", func() {
++					subdir := filepath.Join(extractionDest, ""subdir"")
++					Expect(os.Mkdir(subdir, 0777)).To(Succeed())
++					err := extractor.Extract(extractionSrc, subdir)
++					Expect(err).To(HaveOccurred())
++				})
++			})
+ 		})
+ 
+ 		Context(""when 'tar' is not in the PATH"", func() {
+@@ -171,6 +228,26 @@ var _ = Describe(""Extractor"", func() {
+ 			})
+ 
+ 			It(""extracts the TGZ's files, generating directories, and honoring file permissions and symlinks"", extractionTest)
++
++			Context(""with a bad tgz archive"", func() {
++				BeforeEach(func() {
++					test_helper.CreateTarGZArchive(extractionSrc, []test_helper.ArchiveFile{
++						{
++							Name: ""../some-file"",
++							Body: ""file-in-bad-dir-contents"",
++						},
++					})
++				})
++
++				It(""does not insecurely extract the file outside of the provided destination"", func() {
++					subdir := filepath.Join(extractionDest, ""subdir"")
++					Expect(os.Mkdir(subdir, 0777)).To(Succeed())
++					err := extractor.Extract(extractionSrc, subdir)
++					Expect(err).NotTo(HaveOccurred())
++					Expect(filepath.Join(extractionDest, ""some-file"")).NotTo(BeAnExistingFile())
++					Expect(filepath.Join(subdir, ""some-file"")).To(BeAnExistingFile())
++				})
++			})
+ 		})
+ 	})
+ 
+@@ -181,5 +258,25 @@ var _ = Describe(""Extractor"", func() {
+ 		})
+ 
+ 		It(""extracts the TAR's files, generating directories, and honoring file permissions and symlinks"", extractionTest)
++
++		Context(""with a bad tar archive"", func() {
++			BeforeEach(func() {
++				test_helper.CreateTarArchive(extractionSrc, []test_helper.ArchiveFile{
++					{
++						Name: ""../some-file"",
++						Body: ""file-in-bad-dir-contents"",
++					},
++				})
++			})
++
++			It(""does not insecurely extract the file outside of the provided destination"", func() {
++				subdir := filepath.Join(extractionDest, ""subdir"")
++				Expect(os.Mkdir(subdir, 0777)).To(Succeed())
++				err := extractor.Extract(extractionSrc, subdir)
++				Expect(err).NotTo(HaveOccurred())
++				Expect(filepath.Join(extractionDest, ""some-file"")).NotTo(BeAnExistingFile())
++				Expect(filepath.Join(subdir, ""some-file"")).To(BeAnExistingFile())
++			})
++		})
+ 	})
+ })
+diff --git a/extractor/tgz_extractor.go b/extractor/tgz_extractor.go
+index fee53ac..f1a1a70 100644
+--- a/extractor/tgz_extractor.go
++++ b/extractor/tgz_extractor.go
+@@ -8,6 +8,8 @@ import (
+ 	""os""
+ 	""os/exec""
+ 	""path/filepath""
++
++	securejoin ""github.com/cyphar/filepath-securejoin""
+ )
+ 
+ type tgzExtractor struct{}
+@@ -87,14 +89,17 @@ func extractTarArchive(tarReader *tar.Reader, dest string) error {
+ }
+ 
+ func extractTarArchiveFile(header *tar.Header, dest string, input io.Reader) error {
+-	filePath := filepath.Join(dest, header.Name)
++	filePath, err := securejoin.SecureJoin(dest, header.Name)
++	if err != nil {
++		return err
++	}
+ 	fileInfo := header.FileInfo()
+ 
+ 	if fileInfo.IsDir() {
+ 		return os.MkdirAll(filePath, fileInfo.Mode())
+ 	}
+ 
+-	err := os.MkdirAll(filepath.Dir(filePath), 0755)
++	err = os.MkdirAll(filepath.Dir(filePath), 0755)
+ 	if err != nil {
+ 		return err
+ 	}
+diff --git a/extractor/zip_extractor.go b/extractor/zip_extractor.go
+index 927644a..d61005c 100644
+--- a/extractor/zip_extractor.go
++++ b/extractor/zip_extractor.go
+@@ -8,6 +8,8 @@ import (
+ 	""os""
+ 	""os/exec""
+ 	""path/filepath""
++
++	securejoin ""github.com/cyphar/filepath-securejoin""
+ )
+ 
+ type zipExtractor struct{}
+@@ -77,16 +79,16 @@ func extractZip(src, dest string) error {
+ }
+ 
+ func extractZipArchiveFile(file *zip.File, dest string, input io.Reader) error {
+-	filePath := filepath.Join(dest, file.Name)
++	filePath, err := securejoin.SecureJoin(dest, file.Name)
+ 	fileInfo := file.FileInfo()
+ 
+ 	if fileInfo.IsDir() {
+-		err := os.MkdirAll(filePath, fileInfo.Mode())
++		err = os.MkdirAll(filePath, fileInfo.Mode())
+ 		if err != nil {
+ 			return err
+ 		}
+ 	} else {
+-		err := os.MkdirAll(filepath.Dir(filePath), 0755)
++		err = os.MkdirAll(filepath.Dir(filePath), 0755)
+ 		if err != nil {
+ 			return err
+ 		}"
+GO-2021-0081,"From a3d69a4a89244803d2f5350aca6dd0fcbe444551 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Miloslav=20Trma=C4=8D?= <mitr@redhat.com>
+Date: Mon, 15 Jul 2019 16:15:18 +0200
+Subject: [PATCH] Use the same HTTP client for contacting the bearer token
+ server and the registry
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Miloslav Trmač <mitr@redhat.com>
+---
+ docker/docker_client.go | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/docker/docker_client.go b/docker/docker_client.go
+index f0741f0a26..48427f3d37 100644
+--- a/docker/docker_client.go
++++ b/docker/docker_client.go
+@@ -526,11 +526,7 @@ func (c *dockerClient) getBearerToken(ctx context.Context, challenge challenge,
+ 		authReq.SetBasicAuth(c.username, c.password)
+ 	}
+ 	logrus.Debugf(""%s %s"", authReq.Method, authReq.URL.String())
+-	tr := tlsclientconfig.NewTransport()
+-	// TODO(runcom): insecure for now to contact the external token service
+-	tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+-	client := &http.Client{Transport: tr}
+-	res, err := client.Do(authReq)
++	res, err := c.client.Do(authReq)
+ 	if err != nil {
+ 		return nil, err
+ 	}"
+GO-2021-0089,"From 91ac96899e492584984ded0c8f9a08f10b473717 Mon Sep 17 00:00:00 2001
+From: Allen <leloucharcher@163.com>
+Date: Sun, 22 Mar 2020 02:54:10 +0800
+Subject: [PATCH] fix issue 188 (#192)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+**Description**: This pr fix issue #188. If `findKeyStart` meets a `[` or `{`, it should not add i with `blockEnd`’s return value directly because it may return -1 if it did not find the close symbol
+---
+ parser.go      | 10 ++++++++--
+ parser_test.go | 12 ++++++++++++
+ 2 files changed, 20 insertions(+), 2 deletions(-)
+
+diff --git a/parser.go b/parser.go
+index 513125f..2da0323 100644
+--- a/parser.go
++++ b/parser.go
+@@ -98,9 +98,15 @@ func findKeyStart(data []byte, key string) (int, error) {
+ 			}
+ 
+ 		case '[':
+-			i = blockEnd(data[i:], data[i], ']') + i
++			end := blockEnd(data[i:], data[i], ']')
++			if end != -1 {
++				i = i + end
++			}
+ 		case '{':
+-			i = blockEnd(data[i:], data[i], '}') + i
++			end := blockEnd(data[i:], data[i], '}')
++			if end != -1 {
++				i = i + end
++			}
+ 		}
+ 		i++
+ 	}
+diff --git a/parser_test.go b/parser_test.go
+index 18045f1..40685cf 100644
+--- a/parser_test.go
++++ b/parser_test.go
+@@ -185,6 +185,18 @@ var deleteTests = []DeleteTest{
+ 		path: []string{""b""},
+ 		data: `{""a"": ""1"" , ""c"": 3}`,
+ 	},
++	{
++		desc: ""Issue #188: infinite loop in Delete"",
++		json: `^_ï¿½^C^A^@[`,
++		path: []string{""""},
++		data: `^_ï¿½^C^A^@[`,
++	},
++	{
++		desc: ""Issue #188: infinite loop in Delete"",
++		json: `^_ï¿½^C^A^@{`,
++		path: []string{""""},
++		data: `^_ï¿½^C^A^@{`,
++	},
+ }
+ 
+ var setTests = []SetTest{"
+GO-2022-0254,"From 4d4879cafd1b3c906fc184a8c4a357137465128f Mon Sep 17 00:00:00 2001
+From: Martin Holst Swende <martin@swende.se>
+Date: Wed, 18 Aug 2021 13:34:52 +0200
+Subject: [PATCH] core/vm: optimize byte copying
+
+---
+ core/vm/instructions.go | 4 ++++
+ core/vm/interpreter.go  | 2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/core/vm/instructions.go b/core/vm/instructions.go
+index f7ef2f900e20..6c8c6e6e6fa1 100644
+--- a/core/vm/instructions.go
++++ b/core/vm/instructions.go
+@@ -669,6 +669,7 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
+ 	}
+ 	stack.push(&temp)
+ 	if err == nil || err == ErrExecutionReverted {
++		ret = common.CopyBytes(ret)
+ 		scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
+ 	}
+ 	scope.Contract.Gas += returnGas
+@@ -703,6 +704,7 @@ func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([
+ 	}
+ 	stack.push(&temp)
+ 	if err == nil || err == ErrExecutionReverted {
++		ret = common.CopyBytes(ret)
+ 		scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
+ 	}
+ 	scope.Contract.Gas += returnGas
+@@ -730,6 +732,7 @@ func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext
+ 	}
+ 	stack.push(&temp)
+ 	if err == nil || err == ErrExecutionReverted {
++		ret = common.CopyBytes(ret)
+ 		scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
+ 	}
+ 	scope.Contract.Gas += returnGas
+@@ -757,6 +760,7 @@ func opStaticCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext)
+ 	}
+ 	stack.push(&temp)
+ 	if err == nil || err == ErrExecutionReverted {
++		ret = common.CopyBytes(ret)
+ 		scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
+ 	}
+ 	scope.Contract.Gas += returnGas
+diff --git a/core/vm/interpreter.go b/core/vm/interpreter.go
+index 9cf0c4e2c1e0..9fb83799c98c 100644
+--- a/core/vm/interpreter.go
++++ b/core/vm/interpreter.go
+@@ -262,7 +262,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
+ 		// if the operation clears the return data (e.g. it has returning data)
+ 		// set the last return to the result of the operation.
+ 		if operation.returns {
+-			in.returnData = common.CopyBytes(res)
++			in.returnData = res
+ 		}
+ 
+ 		switch {"
+GO-2021-0061,"From bb4e33bf68bf89cad44d386192cbed201f35b241 Mon Sep 17 00:00:00 2001
+From: Gustavo Niemeyer <gustavo@niemeyer.net>
+Date: Mon, 8 Jul 2019 18:37:06 +0100
+Subject: [PATCH] Add logic to catch cases of alias abuse.
+
+Backport of caeefd8.
+---
+ decode.go      | 13 +++++++++++++
+ decode_test.go | 12 ++++++++++++
+ 2 files changed, 25 insertions(+)
+
+diff --git a/decode.go b/decode.go
+index e4e56e28..91679b5b 100644
+--- a/decode.go
++++ b/decode.go
+@@ -229,6 +229,10 @@ type decoder struct {
+ 	mapType reflect.Type
+ 	terrors []string
+ 	strict  bool
++
++	decodeCount int
++	aliasCount  int
++	aliasDepth  int
+ }
+ 
+ var (
+@@ -315,6 +319,13 @@ func (d *decoder) prepare(n *node, out reflect.Value) (newout reflect.Value, unm
+ }
+ 
+ func (d *decoder) unmarshal(n *node, out reflect.Value) (good bool) {
++	d.decodeCount++
++	if d.aliasDepth > 0 {
++		d.aliasCount++
++	}
++	if d.aliasCount > 100 && d.decodeCount > 1000 && float64(d.aliasCount)/float64(d.decodeCount) > 0.99 {
++		failf(""document contains excessive aliasing"")
++	}
+ 	switch n.kind {
+ 	case documentNode:
+ 		return d.document(n, out)
+@@ -353,7 +364,9 @@ func (d *decoder) alias(n *node, out reflect.Value) (good bool) {
+ 		failf(""anchor '%s' value contains itself"", n.value)
+ 	}
+ 	d.aliases[n] = true
++	d.aliasDepth++
+ 	good = d.unmarshal(n.alias, out)
++	d.aliasDepth--
+ 	delete(d.aliases, n)
+ 	return good
+ }
+diff --git a/decode_test.go b/decode_test.go
+index 5feaf601..a60c86bc 100644
+--- a/decode_test.go
++++ b/decode_test.go
+@@ -854,6 +854,18 @@ var unmarshalErrorTests = []struct {
+ 	{""{{.}}"", `yaml: invalid map key: map\[interface\ \{\}\]interface \{\}\{""."":interface \{\}\(nil\)\}`},
+ 	{""b: *a\na: &a {c: 1}"", `yaml: unknown anchor 'a' referenced`},
+ 	{""%TAG !%79! tag:yaml.org,2002:\n---\nv: !%79!int '1'"", ""yaml: did not find expected whitespace""},
++	{
++		""a: &a [00,00,00,00,00,00,00,00,00]\n"" +
++		""b: &b [*a,*a,*a,*a,*a,*a,*a,*a,*a]\n"" +
++		""c: &c [*b,*b,*b,*b,*b,*b,*b,*b,*b]\n"" +
++		""d: &d [*c,*c,*c,*c,*c,*c,*c,*c,*c]\n"" +
++		""e: &e [*d,*d,*d,*d,*d,*d,*d,*d,*d]\n"" +
++		""f: &f [*e,*e,*e,*e,*e,*e,*e,*e,*e]\n"" +
++		""g: &g [*f,*f,*f,*f,*f,*f,*f,*f,*f]\n"" +
++		""h: &h [*g,*g,*g,*g,*g,*g,*g,*g,*g]\n"" +
++		""i: &i [*h,*h,*h,*h,*h,*h,*h,*h,*h]\n"",
++		""yaml: document contains excessive aliasing"",
++	},
+ }
+ 
+ func (s *S) TestUnmarshalErrors(c *C) {"
+GO-2020-0043,"From 4d9ee000c8d2cbcdd8284007c1e0f2da7bc3c7c3 Mon Sep 17 00:00:00 2001
+From: Matt Holt <mholt@users.noreply.github.com>
+Date: Fri, 30 Mar 2018 14:40:04 -0600
+Subject: [PATCH] httpserver: Prevent TLS client authentication bypass in 3
+ ways (#2099)
+
+- Introduce StrictHostMatching mode for sites that require clientauth
+- Error if QUIC is enabled whilst TLS clientauth is configured
+  (Our QUIC implementation does not yet support TLS clientauth, but
+  maybe it will in the future - fixes #2095)
+- Error if one but not all TLS configs for the same hostname have a
+  different ClientAuth CA pool
+---
+ caddyhttp/httpserver/plugin.go     | 22 +++++++++++++++++++---
+ caddyhttp/httpserver/server.go     | 12 ++++++++++++
+ caddyhttp/httpserver/siteconfig.go | 10 ++++++++++
+ caddytls/config.go                 |  8 ++++++++
+ 4 files changed, 49 insertions(+), 3 deletions(-)
+
+diff --git a/caddyhttp/httpserver/plugin.go b/caddyhttp/httpserver/plugin.go
+index ad2d8738861..1508b41ec9c 100644
+--- a/caddyhttp/httpserver/plugin.go
++++ b/caddyhttp/httpserver/plugin.go
+@@ -15,6 +15,7 @@
+ package httpserver
+ 
+ import (
++	""crypto/tls""
+ 	""flag""
+ 	""fmt""
+ 	""log""
+@@ -207,8 +208,13 @@ func (h *httpContext) InspectServerBlocks(sourceFile string, serverBlocks []cadd
+ // MakeServers uses the newly-created siteConfigs to
+ // create and return a list of server instances.
+ func (h *httpContext) MakeServers() ([]caddy.Server, error) {
+-	// make sure TLS is disabled for explicitly-HTTP sites
+-	// (necessary when HTTP address shares a block containing tls)
++	// Iterate each site configuration and make sure that:
++	// 1) TLS is disabled for explicitly-HTTP sites (necessary
++	//    when an HTTP address shares a block containing tls)
++	// 2) if QUIC is enabled, TLS ClientAuth is not, because
++	//    currently, QUIC does not support ClientAuth (TODO:
++	//    revisit this when our QUIC implementation supports it)
++	// 3) if TLS ClientAuth is used, StrictHostMatching is on
+ 	for _, cfg := range h.siteConfigs {
+ 		if !cfg.TLS.Enabled {
+ 			continue
+@@ -230,6 +236,17 @@ func (h *httpContext) MakeServers() ([]caddy.Server, error) {
+ 			// instead of 443 because it doesn't know about TLS.
+ 			cfg.Addr.Port = HTTPSPort
+ 		}
++		if cfg.TLS.ClientAuth != tls.NoClientCert {
++			if QUIC {
++				return nil, fmt.Errorf(""cannot enable TLS client authentication with QUIC, because QUIC does not yet support it"")
++			}
++			// this must be enabled so that a client cannot connect
++			// using SNI for another site on this listener that
++			// does NOT require ClientAuth, and then send HTTP
++			// requests with the Host header of this site which DOES
++			// require client auth, thus bypassing it...
++			cfg.StrictHostMatching = true
++		}
+ 	}
+ 
+ 	// we must map (group) each config to a bind address
+@@ -556,7 +573,6 @@ var directives = []string{
+ 	""minify"",       // github.com/hacdias/caddy-minify
+ 	""ipfilter"",     // github.com/pyed/ipfilter
+ 	""ratelimit"",    // github.com/xuqingfeng/caddy-rate-limit
+-	""search"",       // github.com/pedronasser/caddy-search
+ 	""expires"",      // github.com/epicagency/caddy-expires
+ 	""forwardproxy"", // github.com/caddyserver/forwardproxy
+ 	""basicauth"",
+diff --git a/caddyhttp/httpserver/server.go b/caddyhttp/httpserver/server.go
+index a98a8fdf396..8028fce85d4 100644
+--- a/caddyhttp/httpserver/server.go
++++ b/caddyhttp/httpserver/server.go
+@@ -416,6 +416,18 @@ func (s *Server) serveHTTP(w http.ResponseWriter, r *http.Request) (int, error)
+ 		r.URL = trimPathPrefix(r.URL, pathPrefix)
+ 	}
+ 
++	// enforce strict host matching, which ensures that the SNI
++	// value (if any), matches the Host header; essential for
++	// sites that rely on TLS ClientAuth sharing a port with
++	// sites that do not - if mismatched, close the connection
++	if vhost.StrictHostMatching && r.TLS != nil &&
++		strings.ToLower(r.TLS.ServerName) != strings.ToLower(hostname) {
++		r.Close = true
++		log.Printf(""[ERROR] %s - strict host matching: SNI (%s) and HTTP Host (%s) values differ"",
++			vhost.Addr, r.TLS.ServerName, hostname)
++		return http.StatusForbidden, nil
++	}
++
+ 	return vhost.middlewareChain.ServeHTTP(w, r)
+ }
+ 
+diff --git a/caddyhttp/httpserver/siteconfig.go b/caddyhttp/httpserver/siteconfig.go
+index 1cd9a050469..3b29f911a9d 100644
+--- a/caddyhttp/httpserver/siteconfig.go
++++ b/caddyhttp/httpserver/siteconfig.go
+@@ -36,6 +36,16 @@ type SiteConfig struct {
+ 	// TLS configuration
+ 	TLS *caddytls.Config
+ 
++	// If true, the Host header in the HTTP request must
++	// match the SNI value in the TLS handshake (if any).
++	// This should be enabled whenever a site relies on
++	// TLS client authentication, for example; or any time
++	// you want to enforce that THIS site's TLS config
++	// is used and not the TLS config of any other site
++	// on the same listener. TODO: Check how relevant this
++	// is with TLS 1.3.
++	StrictHostMatching bool
++
+ 	// Uncompiled middleware stack
+ 	middleware []Middleware
+ 
+diff --git a/caddytls/config.go b/caddytls/config.go
+index 808ed5271c7..80f1633f07d 100644
+--- a/caddytls/config.go
++++ b/caddytls/config.go
+@@ -513,6 +513,14 @@ func assertConfigsCompatible(cfg1, cfg2 *Config) error {
+ 	if c1.ClientAuth != c2.ClientAuth {
+ 		return fmt.Errorf(""client authentication policy mismatch"")
+ 	}
++	if c1.ClientAuth != tls.NoClientCert && c2.ClientAuth != tls.NoClientCert && c1.ClientCAs != c2.ClientCAs {
++		// Two hosts defined on the same listener are not compatible if they
++		// have ClientAuth enabled, because there's no guarantee beyond the
++		// hostname which config will be used (because SNI only has server name).
++		// To prevent clients from bypassing authentication, require that
++		// ClientAuth be configured in an unambiguous manner.
++		return fmt.Errorf(""multiple hosts requiring client authentication ambiguously configured"")
++	}
+ 
+ 	return nil
+ }"
+GO-2020-0023,"From eddce2404b8125a1d7858d2457b76f8429dd7137 Mon Sep 17 00:00:00 2001
+From: Vasily Kolobkov <>
+Date: Wed, 19 Apr 2017 12:05:22 +0300
+Subject: [PATCH] Spoil timming side-channel attack when comparing macs
+
+---
+ algorithms.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/algorithms.go b/algorithms.go
+index 9678f6f..b0be337 100644
+--- a/algorithms.go
++++ b/algorithms.go
+@@ -142,7 +142,7 @@ func (a *Algorithm) validateSignature(encoded string) error {
+ 
+ 	b64SignedAttempt := base64.RawURLEncoding.EncodeToString([]byte(signedAttempt))
+ 
+-	if strings.Compare(b64Signature, b64SignedAttempt) != 0 {
++	if !hmac.Equal([]byte(b64Signature), []byte(b64SignedAttempt)) {
+ 		return errors.New(""invalid signature"")
+ 	}"
+GO-2021-0107,"From 5a78f8d5c41ce60dcf9f61aaf47a7a8dc3e0002f Mon Sep 17 00:00:00 2001
+From: Ian Spence <ian@ecnepsnai.com>
+Date: Wed, 30 Dec 2020 15:48:46 -0800
+Subject: [PATCH] Fix: websocket requests were not authenticated
+
+---
+ websocket.go | 24 ++++++++++++++++++++++--
+ 1 file changed, 22 insertions(+), 2 deletions(-)
+
+diff --git a/websocket.go b/websocket.go
+index e78895c..4d8a892 100644
+--- a/websocket.go
++++ b/websocket.go
+@@ -1,6 +1,7 @@
+ package web
+ 
+ import (
++	""encoding/json""
+ 	""net/http""
+ 
+ 	""github.com/gorilla/websocket""
+@@ -24,14 +25,33 @@ var upgrader = websocket.Upgrader{
+ 
+ func (s *Server) socketHandler(endpointHandle SocketHandle, options HandleOptions) httprouter.Handle {
+ 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
++		var userData interface{}
++
++		if options.AuthenticateMethod != nil {
++			userData = options.AuthenticateMethod(r)
++			if isUserdataNil(userData) {
++				if options.UnauthorizedMethod == nil {
++					s.log.Warn(""Rejected authenticated request"")
++					w.Header().Set(""Content-Type"", ""application/json"")
++					w.WriteHeader(http.StatusUnauthorized)
++					json.NewEncoder(w).Encode(Error{401, ""Unauthorized""})
++					return
++				}
++
++				options.UnauthorizedMethod(w, r)
++				return
++			}
++		}
++
+ 		conn, err := upgrader.Upgrade(w, r, nil)
+ 		if err != nil {
+ 			s.log.Error(""Error upgrading client for websocket connection: %s"", err.Error())
+ 			return
+ 		}
+ 		endpointHandle(Request{
+-			Params: ps,
+-			log:    s.log,
++			Params:   ps,
++			UserData: userData,
++			log:      s.log,
+ 		}, WSConn{
+ 			c: conn,
+ 		})"
+GO-2021-0060,"From f2adcc47288aa9402ac19f4932e78068a4a30328 Mon Sep 17 00:00:00 2001
+From: Russell Haering <russellhaering@gmail.com>
+Date: Thu, 10 Dec 2020 22:04:47 -0800
+Subject: [PATCH 1/2] Implement xml-roundtrip-validator
+
+---
+ decode_response.go | 8 ++++++++
+ go.mod             | 1 +
+ go.sum             | 2 ++
+ 3 files changed, 11 insertions(+)
+
+diff --git a/decode_response.go b/decode_response.go
+index e5fb267..29da943 100644
+--- a/decode_response.go
++++ b/decode_response.go
+@@ -28,6 +28,7 @@ import (
+ 	""github.com/russellhaering/gosaml2/types""
+ 	dsig ""github.com/russellhaering/goxmldsig""
+ 	""github.com/russellhaering/goxmldsig/etreeutils""
++	""github.com/mattermost/xml-roundtrip-validator""
+ )
+ 
+ func (sp *SAMLServiceProvider) validationContext() *dsig.ValidationContext {
+@@ -355,9 +356,11 @@ func maybeDeflate(data []byte, decoder func([]byte) error) error {
+ // parseResponse is a helper function that was refactored out so that the XML parsing behavior can be isolated and unit tested
+ func parseResponse(xml []byte) (*etree.Document, *etree.Element, error) {
+ 	var doc *etree.Document
++	var rawXML []byte
+ 
+ 	err := maybeDeflate(xml, func(xml []byte) error {
+ 		doc = etree.NewDocument()
++		rawXML = xml
+ 		return doc.ReadFromBytes(xml)
+ 	})
+ 	if err != nil {
+@@ -369,6 +372,11 @@ func parseResponse(xml []byte) (*etree.Document, *etree.Element, error) {
+ 		return nil, nil, fmt.Errorf(""unable to parse response"")
+ 	}
+ 
++	err = validator.Validate(bytes.NewReader(rawXML))
++	if err != nil {
++		return nil, nil, err
++	}
++
+ 	return doc, el, nil
+ }
+ 
+diff --git a/go.mod b/go.mod
+index 3e6ba32..2b600b1 100644
+--- a/go.mod
++++ b/go.mod
+@@ -5,6 +5,7 @@ go 1.13
+ require (
+ 	github.com/beevik/etree v1.1.0
+ 	github.com/jonboulle/clockwork v0.2.0
++	github.com/mattermost/xml-roundtrip-validator v0.0.0-20201208211235-fe770d50d911
+ 	github.com/russellhaering/goxmldsig v1.1.0
+ 	github.com/stretchr/testify v1.6.1
+ )
+diff --git a/go.sum b/go.sum
+index 14e3821..89b9d23 100644
+--- a/go.sum
++++ b/go.sum
+@@ -4,6 +4,8 @@ github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8
+ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+ github.com/jonboulle/clockwork v0.2.0 h1:J2SLSdy7HgElq8ekSl2Mxh6vrRNFxqbXGenYH2I02Vs=
+ github.com/jonboulle/clockwork v0.2.0/go.mod h1:Pkfl5aHPm1nk2H9h0bjmnJD/BcgbGXUBGnn1kMkgxc8=
++github.com/mattermost/xml-roundtrip-validator v0.0.0-20201208211235-fe770d50d911 h1:erppMjjp69Rertg1zlgRbLJH1u+eCmRPxKjMZ5I8/Ro=
++github.com/mattermost/xml-roundtrip-validator v0.0.0-20201208211235-fe770d50d911/go.mod h1:qccnGMcpgwcNaBnxqpJpWWUiPNr5H3O8eDgGV9gT5To=
+ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
+ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
+ github.com/russellhaering/goxmldsig v1.1.0 h1:lK/zeJie2sqG52ZAlPNn1oBBqsIsEKypUUBGpYYF6lk=
+
+From 0f0fb74d103c2e42a10a5379151619502fecc57b Mon Sep 17 00:00:00 2001
+From: Russell Haering <russellhaering@gmail.com>
+Date: Sun, 13 Dec 2020 19:48:08 -0800
+Subject: [PATCH 2/2] Comment and test roundtrip validation
+
+---
+ decode_response.go      |  5 +++--
+ decode_response_test.go | 10 ++++++++++
+ test_constants.go       | 10 ++++++++++
+ 3 files changed, 23 insertions(+), 2 deletions(-)
+
+diff --git a/decode_response.go b/decode_response.go
+index 29da943..f34259e 100644
+--- a/decode_response.go
++++ b/decode_response.go
+@@ -28,7 +28,7 @@ import (
+ 	""github.com/russellhaering/gosaml2/types""
+ 	dsig ""github.com/russellhaering/goxmldsig""
+ 	""github.com/russellhaering/goxmldsig/etreeutils""
+-	""github.com/mattermost/xml-roundtrip-validator""
++	rtvalidator ""github.com/mattermost/xml-roundtrip-validator""
+ )
+ 
+ func (sp *SAMLServiceProvider) validationContext() *dsig.ValidationContext {
+@@ -372,7 +372,8 @@ func parseResponse(xml []byte) (*etree.Document, *etree.Element, error) {
+ 		return nil, nil, fmt.Errorf(""unable to parse response"")
+ 	}
+ 
+-	err = validator.Validate(bytes.NewReader(rawXML))
++	// Examine the response for attempts to exploit weaknesses in Go's encoding/xml
++	err = rtvalidator.Validate(bytes.NewReader(rawXML))
+ 	if err != nil {
+ 		return nil, nil, err
+ 	}
+diff --git a/decode_response_test.go b/decode_response_test.go
+index 7280eb9..a6ef5e5 100644
+--- a/decode_response_test.go
++++ b/decode_response_test.go
+@@ -131,3 +131,13 @@ func TestCompressedResponse(t *testing.T) {
+ 	_, err = sp.RetrieveAssertionInfo(string(bs))
+ 	require.NoError(t, err, ""Assertion info should be retrieved with no error"")
+ }
++
++func TestDecodeColonsInLocalNames(t *testing.T) {
++	_, _, err := parseResponse([]byte(`<x::Root/>`))
++	require.Error(t, err)
++}
++
++func TestDecodeDoubleColonInjectionAttackResponse(t *testing.T) {
++	_, _, err := parseResponse([]byte(doubleColonAssertionInjectionAttackResponse))
++	require.Error(t, err)
++}
+\ No newline at end of file
+diff --git a/test_constants.go b/test_constants.go
+index d3f793f..4707275 100644
+--- a/test_constants.go
++++ b/test_constants.go
+@@ -406,3 +406,13 @@ DJpRaioUTd2lGh4TLUxAxCxtUk/pascL+3Nn936LFmUCLxaxnbeGzPOXAhscCtU1H0nFsXRnKx5a
+ cPXYSKFZZZktieSkww2Oi8dg2DYaQhGQMSFMVqgVfwEu4bvCRBvdSiNXdWGCZQmFVzBZZ/9rOLzP
+ pvTFTPnpkavJm81FLlUhiE/oFgKlCDLWDknSpXAI0uZGERcwPca6xvIMh86LjQKjbVci9FYDStXC
+ qRnqQ+TccSu/B6uONFsDEngGcXSKfB+a</ds:X509Certificate></ds:X509Data></ds:KeyInfo></ds:Signature><saml2:Subject xmlns:saml2=""urn:oasis:names:tc:SAML:2.0:assertion""><saml2:NameID Format=""urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"">phoebe.simon@scaleft.com<!---->.evil.com</saml2:NameID><saml2:SubjectConfirmation Method=""urn:oasis:names:tc:SAML:2.0:cm:bearer""><saml2:SubjectConfirmationData InResponseTo=""_da213df8-ef95-41d0-b9bf-71d271735cd7"" NotOnOrAfter=""2116-03-28T16:43:18.565Z"" Recipient=""http://localhost:8080/v1/_saml_callback""/></saml2:SubjectConfirmation></saml2:Subject><saml2:Conditions NotBefore=""2016-03-28T16:33:18.565Z"" NotOnOrAfter=""2116-03-28T16:43:18.565Z"" xmlns:saml2=""urn:oasis:names:tc:SAML:2.0:assertion""><saml2:AudienceRestriction><saml2:Audience>123</saml2:Audience></saml2:AudienceRestriction></saml2:Conditions><saml2:AuthnStatement AuthnInstant=""2016-03-28T16:38:18.565Z"" SessionIndex=""_da213df8-ef95-41d0-b9bf-71d271735cd7"" xmlns:saml2=""urn:oasis:names:tc:SAML:2.0:assertion""><saml2:AuthnContext><saml2:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml2:AuthnContextClassRef></saml2:AuthnContext></saml2:AuthnStatement><saml2:AttributeStatement xmlns:saml2=""urn:oasis:names:tc:SAML:2.0:assertion""><saml2:Attribute Name=""FirstName"" NameFormat=""urn:oasis:names:tc:SAML:2.0:attrname-format:unspecified""><saml2:AttributeValue xmlns:xs=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:type=""xs:string"">Phoebe</saml2:AttributeValue></saml2:Attribute><saml2:Attribute Name=""LastName"" NameFormat=""urn:oasis:names:tc:SAML:2.0:attrname-format:unspecified""><saml2:AttributeValue xmlns:xs=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:type=""xs:string"">Simon</saml2:AttributeValue></saml2:Attribute><saml2:Attribute Name=""Email"" NameFormat=""urn:oasis:names:tc:SAML:2.0:attrname-format:unspecified""><saml2:AttributeValue xmlns:xs=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:type=""xs:string"">phoebe.simon@scaleft.com</saml2:AttributeValue></saml2:Attribute><saml2:Attribute Name=""Login"" NameFormat=""urn:oasis:names:tc:SAML:2.0:attrname-format:unspecified""><saml2:AttributeValue xmlns:xs=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:type=""xs:string"">phoebesimon</saml2:AttributeValue></saml2:Attribute></saml2:AttributeStatement></saml2:Assertion></saml2p:Response>`
++
++
++const doubleColonAssertionInjectionAttackResponse = `
++<samlp:Response xmlns:saml=""urn:oasis:names:tc:SAML:2.0:assertion"" xmlns:samlp=""urn:oasis:names:tc:SAML:2.0:protocol"" ID=""R060bff490336a09324ed664f6e8b03fa12dc1994"" Version=""2.0"" IssueInstant=""2017-03-08T07:53:39Z"" Destination=""http://884d40bf.ngrok.io/api/sso/saml2/acs/58af624473d4f375b8e70d81"">
++<saml:Issuer>https://app.onelogin.com/saml/metadata/634027</saml:Issuer>
++<samlp:Status><samlp:StatusCode Value=""urn:oasis:names:tc:SAML:2.0:status:Success""/></samlp:Status>
++<::Assertion xmlns=""urn:oasis:names:tc:SAML:2.0:assertion"" xmlns:saml=""urn:oasis:names:tc:SAML:2.0:assertion"" xmlns:xs=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" Version=""2.0"" ID=""x"" IssueInstant=""2017-03-08T07:53:39Z""><saml:Issuer>https://app.onelogin.com/saml/metadata/634027</saml:Issuer><ds:Signature xmlns:ds=""http://www.w3.org/2000/09/xmldsig#""><ds:SignedInfo><ds:CanonicalizationMethod Algorithm=""http://www.w3.org/2001/10/xml-exc-c14n#""/><ds:SignatureMethod Algorithm=""http://www.w3.org/2000/09/xmldsig#rsa-sha1""/><ds:Reference URI=""#x""><ds:Transforms><ds:Transform Algorithm=""http://www.w3.org/2000/09/xmldsig#enveloped-signature""/><ds:Transform Algorithm=""http://www.w3.org/2001/10/xml-exc-c14n#""/></ds:Transforms><ds:DigestMethod Algorithm=""http://www.w3.org/2000/09/xmldsig#sha1""/><ds:DigestValue>gd5V090n/m4JRrtpo5WgrwPyyy0=</ds:DigestValue></ds:Reference></ds:SignedInfo><ds:SignatureValue></ds:SignatureValue><ds:KeyInfo><ds:X509Data><ds:X509Certificate></ds:X509Certificate></ds:X509Data></ds:KeyInfo></ds:Signature><saml:Subject><saml:NameID Format=""urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"">what@launchdarkly.com</saml:NameID><saml:SubjectConfirmation Method=""urn:oasis:names:tc:SAML:2.0:cm:bearer""><saml:SubjectConfirmationData NotOnOrAfter=""2017-03-08T07:56:39Z"" Recipient=""http://884d40bf.ngrok.io/api/sso/saml2/acs/58af624473d4f375b8e70d81""/></saml:SubjectConfirmation></saml:Subject><saml:Conditions NotBefore=""2017-03-08T07:50:39Z"" NotOnOrAfter=""2017-03-08T07:56:39Z""><saml:AudienceRestriction><saml:Audience>{audience}</saml:Audience></saml:AudienceRestriction></saml:Conditions><saml:AuthnStatement AuthnInstant=""2017-03-08T07:53:38Z"" SessionNotOnOrAfter=""2017-03-09T07:53:39Z"" SessionIndex=""_d5fe4830-e601-0134-4e06-0af7aa36d0f9""><saml:AuthnContext><saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef></saml:AuthnContext></saml:AuthnStatement></::Assertion>
++<saml:Assertion xmlns:saml=""urn:oasis:names:tc:SAML:2.0:assertion"" xmlns:xs=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" Version=""2.0"" ID=""pfx63cf6dc4-c309-ff5e-6049-84c34f0c0061"" IssueInstant=""2017-03-08T07:53:39Z""><saml:Issuer>https://app.onelogin.com/saml/metadata/634027</saml:Issuer><ds:Signature xmlns:ds=""http://www.w3.org/2000/09/xmldsig#""><ds:SignedInfo><ds:CanonicalizationMethod Algorithm=""http://www.w3.org/2001/10/xml-exc-c14n#""/><ds:SignatureMethod Algorithm=""http://www.w3.org/2000/09/xmldsig#rsa-sha1""/><ds:Reference URI=""#pfx63cf6dc4-c309-ff5e-6049-84c34f0c0061""><ds:Transforms><ds:Transform Algorithm=""http://www.w3.org/2000/09/xmldsig#enveloped-signature""/><ds:Transform Algorithm=""http://www.w3.org/2001/10/xml-exc-c14n#""/></ds:Transforms><ds:DigestMethod Algorithm=""http://www.w3.org/2000/09/xmldsig#sha1""/><ds:DigestValue>gd5V090n/m4JRrtpo5WgrwPyyy0=</ds:DigestValue></ds:Reference></ds:SignedInfo><ds:SignatureValue>SLzvdNM+1R1+3XsXpC+/RIvb5L4Lhy7Eb7caPG2CLMPYhzbKLAwIiT7/0fEMO/xL7rdIgEShbcU9iu5PX4hGYBhirsFIZvdHytns5+JKHnlVBmHm4TsSU1z+dGMXBa//L0KFSrvdgBUpsr5vs50SuYnnVp61VN+zCLMqO221CQfP95QyMcSQ+fiyq4GOmWLwQy1m1+NV3U8zlapp6FIH5stW/dp4OqpRdafV96rVwmmR4yeUw7VAzbJuMrPgkXO9nUbHeMUTgQxkQ4ThzG5jt6fT+Ro1NOYS4zpVtzqlQwGzqWxQVRLEqXIf500/Qi0NuFQOW42ZAUiXDgdLENTVGA==</ds:SignatureValue><ds:KeyInfo><ds:X509Data><ds:X509Certificate>MIIEJjCCAw6gAwIBAgIUOHrykO4ce1TbjvGgXXVVnR4NsqMwDQYJKoZIhvcNAQEFBQAwXTELMAkGA1UEBhMCVVMxFTATBgNVBAoMDExhdW5jaERhcmtseTEVMBMGA1UECwwMT25lTG9naW4gSWRQMSAwHgYDVQQDDBdPbmVMb2dpbiBBY2NvdW50IDEwMjEyNzAeFw0xNzAzMDYwMjQ2NTNaFw0yMjAzMDcwMjQ2NTNaMF0xCzAJBgNVBAYTAlVTMRUwEwYDVQQKDAxMYXVuY2hEYXJrbHkxFTATBgNVBAsMDE9uZUxvZ2luIElkUDEgMB4GA1UEAwwXT25lTG9naW4gQWNjb3VudCAxMDIxMjcwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCaJ02AnJe5vq+zzkmrIHhRy8V/UxJogbJGEJW6nqrEmO7Q4sXO7dLIKxGccCEz0KAavGKWzSX9uhVvKpazpD4bW80wPQIgFxN3CjiA3qlYIfhhh4emSZo2AnaTuG4BPVGFNPx0jxXGAhh/3xkpIsqARJFPB6njT2+MwFctm3fockx3Yp4e1xoUD8qQR0f/8oq1LjrYd2Vlckmmw7qrzSqS8POHW/I1jx9Y/vAjTPWDKXmbmLcTe3188PDrthSyoBuaAGBRVTP9WTuYMh4kGvmfX6sNvIDGejUcUCq6IObRr4xLSZiGy5uoyqsQc9agAhQm+26Gpq0R3NSvN91JdbZHAgMBAAGjgd0wgdowDAYDVR0TAQH/BAIwADAdBgNVHQ4EFgQUnbxBsHgNVq3OSXEuG5EkR0Jd1UswgZoGA1UdIwSBkjCBj4AUnbxBsHgNVq3OSXEuG5EkR0Jd1UuhYaRfMF0xCzAJBgNVBAYTAlVTMRUwEwYDVQQKDAxMYXVuY2hEYXJrbHkxFTATBgNVBAsMDE9uZUxvZ2luIElkUDEgMB4GA1UEAwwXT25lTG9naW4gQWNjb3VudCAxMDIxMjeCFDh68pDuHHtU247xoF11VZ0eDbKjMA4GA1UdDwEB/wQEAwIHgDANBgkqhkiG9w0BAQUFAAOCAQEAL/6j2qpMCrnolwKT7mfPEpA6btbtl0R0t6zSwYUVU9T3PK0/P3LKXvbjSySov0E4R9d5qlOcyj5CbYiuqAO2aON3xy82s0dN3FHRiO6kcjoRPwVIIF0S8x7tpzcPKa42zSPfBqMRw4ezUEzTijFriepkSWST1Btr3QeK2Cxhr0fC1xmw/YK82BV0/oVRslGL27ro+v3/dNY0A0r32Xe2+THomrY/YaZaDCPCjHo8dlxrX3D/mPfoiiKSkm2mGagQXT0giTHVo3oIq+u+KdrBcQn65EBcjfFKDIeFCdiVmO0xPl9mmWskVRLy2/wpuDIp6hnAphl9lj5DY48eBsrEXQ==</ds:X509Certificate></ds:X509Data></ds:KeyInfo></ds:Signature><saml:Subject><saml:NameID Format=""urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"">arun@launchdarkly.com</saml:NameID><saml:SubjectConfirmation Method=""urn:oasis:names:tc:SAML:2.0:cm:bearer""><saml:SubjectConfirmationData NotOnOrAfter=""2017-03-08T07:56:39Z"" Recipient=""http://884d40bf.ngrok.io/api/sso/saml2/acs/58af624473d4f375b8e70d81""/></saml:SubjectConfirmation></saml:Subject><saml:Conditions NotBefore=""2017-03-08T07:50:39Z"" NotOnOrAfter=""2017-03-08T07:56:39Z""><saml:AudienceRestriction><saml:Audience>{audience}</saml:Audience></saml:AudienceRestriction></saml:Conditions><saml:AuthnStatement AuthnInstant=""2017-03-08T07:53:38Z"" SessionNotOnOrAfter=""2017-03-09T07:53:39Z"" SessionIndex=""_d5fe4830-e601-0134-4e06-0af7aa36d0f9""><saml:AuthnContext><saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef></saml:AuthnContext></saml:AuthnStatement></saml:Assertion>
++</samlp:Response>
++`
+\ No newline at end of file"

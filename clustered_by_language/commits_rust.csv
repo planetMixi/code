@@ -1,0 +1,2915 @@
+vuln_id,code_diff
+CVE-2021-24117,"From a554b7ae880553db6dde8a387101a093911d5b2a Mon Sep 17 00:00:00 2001
+From: Yu Ding <dingelish@gmail.com>
+Date: Sun, 17 Jan 2021 22:29:18 -0800
+Subject: [PATCH] fix
+
+---
+ Cargo.toml    |  1 +
+ src/decode.rs | 36 ++++++++++++++++++++++++++++++++++++
+ src/lib.rs    | 12 ++++++------
+ src/tables.rs | 48 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 91 insertions(+), 6 deletions(-)
+
+diff --git a/Cargo.toml b/Cargo.toml
+index 30e73eec..4b4385c3 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -25,6 +25,7 @@ structopt = ""0.3""
+ default = [""std""]
+ alloc = []
+ std = []
++slow_but_safe = []
+ 
+ [profile.bench]
+ # Useful for better disassembly when using `perf record` and `perf annotate`
+diff --git a/src/decode.rs b/src/decode.rs
+index 4cc937d5..2762c4cf 100644
+--- a/src/decode.rs
++++ b/src/decode.rs
+@@ -444,6 +444,18 @@ fn write_u64(output: &mut [u8], value: u64) {
+     output[..8].copy_from_slice(&value.to_be_bytes());
+ }
+ 
++#[cfg(feature = ""slow_but_safe"")]
++fn decode_aligned(b64ch: u8, decode_table: &[u8; 256]) -> u8 {
++    let mut result: u8 = 0x00;
++    let mut mask: u8;
++    let idx: [u8;2] = [ b64ch % 64, b64ch % 64 + 64];
++    for i in 0..2  {
++        mask = 0xFF ^ (((idx[i] == b64ch) as i8 - 1) as u8);
++        result = result | (decode_table[idx[i] as usize] & mask);
++    }
++    result
++}
++
+ /// Decode 8 bytes of input into 6 bytes of output. 8 bytes of output will be written, but only the
+ /// first 6 of those contain meaningful data.
+ ///
+@@ -463,13 +475,19 @@ fn decode_chunk(
+ ) -> Result<(), DecodeError> {
+     let mut accum: u64;
+ 
++    #[cfg(not(feature = ""slow_but_safe""))]
+     let morsel = decode_table[input[0] as usize];
++    #[cfg(feature = ""slow_but_safe"")]
++    let morsel = decode_aligned(input[0], decode_table);
+     if morsel == tables::INVALID_VALUE {
+         return Err(DecodeError::InvalidByte(index_at_start_of_input, input[0]));
+     }
+     accum = (morsel as u64) << 58;
+ 
++    #[cfg(not(feature = ""slow_but_safe""))]
+     let morsel = decode_table[input[1] as usize];
++    #[cfg(feature = ""slow_but_safe"")]
++    let morsel = decode_aligned(input[1], decode_table);
+     if morsel == tables::INVALID_VALUE {
+         return Err(DecodeError::InvalidByte(
+             index_at_start_of_input + 1,
+@@ -478,7 +496,10 @@ fn decode_chunk(
+     }
+     accum |= (morsel as u64) << 52;
+ 
++    #[cfg(not(feature = ""slow_but_safe""))]
+     let morsel = decode_table[input[2] as usize];
++    #[cfg(feature = ""slow_but_safe"")]
++    let morsel = decode_aligned(input[2], decode_table);
+     if morsel == tables::INVALID_VALUE {
+         return Err(DecodeError::InvalidByte(
+             index_at_start_of_input + 2,
+@@ -487,7 +508,10 @@ fn decode_chunk(
+     }
+     accum |= (morsel as u64) << 46;
+ 
++    #[cfg(not(feature = ""slow_but_safe""))]
+     let morsel = decode_table[input[3] as usize];
++    #[cfg(feature = ""slow_but_safe"")]
++    let morsel = decode_aligned(input[3], decode_table);
+     if morsel == tables::INVALID_VALUE {
+         return Err(DecodeError::InvalidByte(
+             index_at_start_of_input + 3,
+@@ -496,7 +520,10 @@ fn decode_chunk(
+     }
+     accum |= (morsel as u64) << 40;
+ 
++    #[cfg(not(feature = ""slow_but_safe""))]
+     let morsel = decode_table[input[4] as usize];
++    #[cfg(feature = ""slow_but_safe"")]
++    let morsel = decode_aligned(input[4], decode_table);
+     if morsel == tables::INVALID_VALUE {
+         return Err(DecodeError::InvalidByte(
+             index_at_start_of_input + 4,
+@@ -505,7 +532,10 @@ fn decode_chunk(
+     }
+     accum |= (morsel as u64) << 34;
+ 
++    #[cfg(not(feature = ""slow_but_safe""))]
+     let morsel = decode_table[input[5] as usize];
++    #[cfg(feature = ""slow_but_safe"")]
++    let morsel = decode_aligned(input[5], decode_table);
+     if morsel == tables::INVALID_VALUE {
+         return Err(DecodeError::InvalidByte(
+             index_at_start_of_input + 5,
+@@ -514,7 +544,10 @@ fn decode_chunk(
+     }
+     accum |= (morsel as u64) << 28;
+ 
++    #[cfg(not(feature = ""slow_but_safe""))]
+     let morsel = decode_table[input[6] as usize];
++    #[cfg(feature = ""slow_but_safe"")]
++    let morsel = decode_aligned(input[6], decode_table);
+     if morsel == tables::INVALID_VALUE {
+         return Err(DecodeError::InvalidByte(
+             index_at_start_of_input + 6,
+@@ -523,7 +556,10 @@ fn decode_chunk(
+     }
+     accum |= (morsel as u64) << 22;
+ 
++    #[cfg(not(feature = ""slow_but_safe""))]
+     let morsel = decode_table[input[7] as usize];
++    #[cfg(feature = ""slow_but_safe"")]
++    let morsel = decode_aligned(input[7], decode_table);
+     if morsel == tables::INVALID_VALUE {
+         return Err(DecodeError::InvalidByte(
+             index_at_start_of_input + 7,
+diff --git a/src/lib.rs b/src/lib.rs
+index 6bded160..dbc55a3c 100644
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -138,12 +138,12 @@ impl CharacterSet {
+ 
+     fn decode_table(self) -> &'static [u8; 256] {
+         match self {
+-            CharacterSet::Standard => tables::STANDARD_DECODE,
+-            CharacterSet::UrlSafe => tables::URL_SAFE_DECODE,
+-            CharacterSet::Crypt => tables::CRYPT_DECODE,
+-            CharacterSet::Bcrypt => tables::BCRYPT_DECODE,
+-            CharacterSet::ImapMutf7 => tables::IMAP_MUTF7_DECODE,
+-            CharacterSet::BinHex => tables::BINHEX_DECODE,
++            CharacterSet::Standard => &tables::STANDARD_DECODE_HOLDER.data,
++            CharacterSet::UrlSafe => &tables::URL_SAFE_DECODE_HOLDER.data,
++            CharacterSet::Crypt => &tables::CRYPT_DECODE_HOLDER.data,
++            CharacterSet::Bcrypt => &tables::BCRYPT_DECODE_HOLDER.data,
++            CharacterSet::ImapMutf7 => &tables::IMAP_MUTF7_DECODE_HOLDER.data,
++            CharacterSet::BinHex => &tables::BINHEX_DECODE_HOLDER.data,
+         }
+     }
+ }
+diff --git a/src/tables.rs b/src/tables.rs
+index a45851cd..7921bcd6 100644
+--- a/src/tables.rs
++++ b/src/tables.rs
+@@ -1,3 +1,35 @@
++//#[repr(align(64))]
++//pub struct StructStandardEncode { pub data: [u8; 64] }
++#[repr(align(64))]
++pub struct StructStandardDecode { pub data: [u8; 256] }
++//#[repr(align(64))]
++//pub struct StructUrlSafeEncode { pub data: [u8; 64] }
++#[repr(align(64))]
++pub struct StructUrlSafeDecode { pub data: [u8; 256] }
++//#[repr(align(64))]
++//pub struct StructCryptEncode { pub data: [u8; 64] }
++#[repr(align(64))]
++pub struct StructCryptDecode { pub data: [u8; 256] }
++//#[repr(align(64))]
++//pub struct StructBcryptEncode { pub data: [u8; 64] }
++#[repr(align(64))]
++pub struct StructBcryptDecode { pub data: [u8; 256] }
++//#[repr(align(64))]
++//pub struct StructImapMutf7Encode { pub data: [u8; 64] }
++#[repr(align(64))]
++pub struct StructImapMutf7Decode { pub data: [u8; 256] }
++//#[repr(align(64))]
++//pub struct StructBinhexEncode { pub data: [u8; 64] }
++#[repr(align(64))]
++pub struct StructBinhexDecode { pub data: [u8; 256] }
++
++pub const STANDARD_DECODE_HOLDER: StructStandardDecode = StructStandardDecode { data: *STANDARD_DECODE };
++pub const URL_SAFE_DECODE_HOLDER: StructUrlSafeDecode = StructUrlSafeDecode { data: *URL_SAFE_DECODE };
++pub const CRYPT_DECODE_HOLDER: StructCryptDecode = StructCryptDecode { data: *CRYPT_DECODE };
++pub const BCRYPT_DECODE_HOLDER: StructBcryptDecode = StructBcryptDecode { data: *BCRYPT_DECODE };
++pub const IMAP_MUTF7_DECODE_HOLDER: StructImapMutf7Decode = StructImapMutf7Decode { data: *IMAP_MUTF7_DECODE };
++pub const BINHEX_DECODE_HOLDER: StructBinhexDecode = StructBinhexDecode { data: *BINHEX_DECODE };
++
+ pub const INVALID_VALUE: u8 = 255;
+ #[rustfmt::skip]
+ pub const STANDARD_ENCODE: &[u8; 64] = &[
+@@ -1955,3 +1987,19 @@ pub const BINHEX_DECODE: &[u8; 256] = &[
+     INVALID_VALUE, // input 254 (0xFE)
+     INVALID_VALUE, // input 255 (0xFF)
+ ];
++
++#[test]
++fn alignment_check() {
++    let p: *const u8 = STANDARD_DECODE_HOLDER.data.as_ptr();
++    assert_eq!((p as u64) % 64, 0);
++    let p: *const u8 = URL_SAFE_DECODE_HOLDER.data.as_ptr();
++    assert_eq!((p as u64) % 64, 0);
++    let p: *const u8 = CRYPT_DECODE_HOLDER.data.as_ptr();
++    assert_eq!((p as u64) % 64, 0);
++    let p: *const u8 = BCRYPT_DECODE_HOLDER.data.as_ptr();
++    assert_eq!((p as u64) % 64, 0);
++    let p: *const u8 = IMAP_MUTF7_DECODE_HOLDER.data.as_ptr();
++    assert_eq!((p as u64) % 64, 0);
++    let p: *const u8 = BINHEX_DECODE_HOLDER.data.as_ptr();
++    assert_eq!((p as u64) % 64, 0);
++}"
+GHSA-686f-ch3r-xwmh,"From 6a6c367a0c25f86f998fa315ea90c328f685b194 Mon Sep 17 00:00:00 2001
+From: JOE1994 <joseph942010@gmail.com>
+Date: Sat, 23 Jan 2021 22:29:54 -0500
+Subject: [PATCH] Fix trait bounds in Send/Sync impl: Unordered<T,S> This
+ commit is a follow-up fix for the issue raised in
+ https://github.com/udoprog/unicycle/issues/8#issuecomment-763780334 .
+
+---
+ src/lib.rs | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/lib.rs b/src/lib.rs
+index 0037eaa..6a12303 100644
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -377,8 +377,8 @@ where
+     _marker: marker::PhantomData<S>,
+ }
+ 
+-unsafe impl<T, S> Send for Unordered<T, S> where S: Send + Sentinel {}
+-unsafe impl<T, S> Sync for Unordered<T, S> where S: Sync + Sentinel {}
++unsafe impl<T: Send, S> Send for Unordered<T, S> where S: Sentinel {}
++unsafe impl<T: Sync, S> Sync for Unordered<T, S> where S: Sentinel {}
+ 
+ impl<T, S> Unpin for Unordered<T, S> where S: Sentinel {}"
+GHSA-mc22-5q92-8v85,"From 1a2efcdbe68e5e7fd0a05836ac32d2cde78a0b2e Mon Sep 17 00:00:00 2001
+From: Matthias Wahl <mwahl@wayfair.com>
+Date: Wed, 15 Sep 2021 13:40:23 +0200
+Subject: [PATCH] Remove patch and merge in_place optimizations.
+
+They are too dangerous and can lead to memory unsafety.
+
+Also added proper state handling to script based tests.
+
+Signed-off-by: Matthias Wahl <mwahl@wayfair.com>
+---
+ tests/script.rs                               |   5 +-
+ tests/script_runtime_error.rs                 |   6 +-
+ .../error.txt                                 |   0
+ .../in                                        |   0
+ .../script.tremor                             |   0
+ .../error.txt                                 |   0
+ .../in                                        |   0
+ .../script.tremor                             |   0
+ tests/scripts/merge_assign_target_state/in    |   2 +
+ tests/scripts/merge_assign_target_state/out   |   2 +
+ .../merge_assign_target_state/script.tremor   |   8 ++
+ .../in                                        |   0
+ .../out                                       |   0
+ .../script.tremor                             |   0
+ tremor-script/src/ast.rs                      |   4 -
+ tremor-script/src/ast/base_expr.rs            |   2 -
+ tremor-script/src/ast/raw.rs                  |  48 +++-----
+ tremor-script/src/ast/to_static.rs            |   2 -
+ tremor-script/src/interpreter/expr.rs         | 113 +-----------------
+ 19 files changed, 40 insertions(+), 152 deletions(-)
+ rename tests/script_runtime_errors/{merge_in_place_new_no_object => merge_assign_target_new_no_object}/error.txt (100%)
+ rename tests/script_runtime_errors/{merge_in_place_new_no_object => merge_assign_target_new_no_object}/in (100%)
+ rename tests/script_runtime_errors/{merge_in_place_new_no_object => merge_assign_target_new_no_object}/script.tremor (100%)
+ rename tests/script_runtime_errors/{merge_in_place_target_no_object => merge_assign_target_target_no_object}/error.txt (100%)
+ rename tests/script_runtime_errors/{merge_in_place_target_no_object => merge_assign_target_target_no_object}/in (100%)
+ rename tests/script_runtime_errors/{merge_in_place_target_no_object => merge_assign_target_target_no_object}/script.tremor (100%)
+ create mode 100644 tests/scripts/merge_assign_target_state/in
+ create mode 100644 tests/scripts/merge_assign_target_state/out
+ create mode 100644 tests/scripts/merge_assign_target_state/script.tremor
+ rename tests/scripts/{patch_in_place => patch_assign_target}/in (100%)
+ rename tests/scripts/{patch_in_place => patch_assign_target}/out (100%)
+ rename tests/scripts/{patch_in_place => patch_assign_target}/script.tremor (100%)
+
+diff --git a/tests/script.rs b/tests/script.rs
+index 0e437e73cb..a435cb8de5 100644
+--- a/tests/script.rs
++++ b/tests/script.rs
+@@ -51,6 +51,7 @@ macro_rules! test_cases {
+                 out_json.reverse();
+ 
+                 let mut results = Vec::new();
++                let mut state = Value::null();
+                 for (id, mut json) in in_json.into_iter().enumerate() {
+                     let uri = EventOriginUri{
+                         host: ""test"".into(),
+@@ -62,7 +63,6 @@ macro_rules! test_cases {
+                     };
+                     let context = EventContext::new(id as u64, Some(&uri));
+                     let mut meta = Value::from(Object::default());
+-                    let mut state = Value::null();
+                     match script.run(&context, AggrType::Tick, &mut json, &mut state, &mut meta)? {
+                         Return::Drop => (),
+                         Return::EmitEvent{..} => results.push(json),
+@@ -154,6 +154,7 @@ test_cases!(
+     // TODO
+     // const_in_const_lookup,
+     // INSERT
++    merge_assign_target_state,
+     expr_path,
+     patch_default,
+     patch_default_key,
+@@ -186,7 +187,7 @@ test_cases!(
+     heredoc_quoted_curly,
+     string_interpolation_import,
+     string_interpolation_prefix,
+-    patch_in_place,
++    patch_assign_target,
+     tuple_pattern,
+     pattern_cmp,
+     pass_args,
+diff --git a/tests/script_runtime_error.rs b/tests/script_runtime_error.rs
+index 7989fa39e6..e97ef9add5 100644
+--- a/tests/script_runtime_error.rs
++++ b/tests/script_runtime_error.rs
+@@ -105,10 +105,10 @@ macro_rules! ignore_cases {
+                 file.read_to_string(&mut err)?;
+                 let _err = err.trim();
+ 
++                let mut state = Value::null();
+                 if let Some(mut json) =  in_json.pop() {
+                     let context = EventContext::new(0, None);
+                     let mut meta = Value::object();
+-                    let mut state = Value::null();
+                     let s = script.run(&context, AggrType::Tick, &mut json, &mut state, &mut meta);
+                     if let Err(e) = s {
+                         let mut h = Dumb::new();
+@@ -144,8 +144,8 @@ test_cases!(
+     function_error_n,
+     match_bad_guard_type,
+     match_no_clause_hit,
+-    merge_in_place_new_no_object,
+-    merge_in_place_target_no_object,
++    merge_assign_target_new_no_object,
++    merge_assign_target_target_no_object,
+     merge_new_no_object,
+     merge_target_no_object,
+     missing_local,
+diff --git a/tests/script_runtime_errors/merge_in_place_new_no_object/error.txt b/tests/script_runtime_errors/merge_assign_target_new_no_object/error.txt
+similarity index 100%
+rename from tests/script_runtime_errors/merge_in_place_new_no_object/error.txt
+rename to tests/script_runtime_errors/merge_assign_target_new_no_object/error.txt
+diff --git a/tests/script_runtime_errors/merge_in_place_new_no_object/in b/tests/script_runtime_errors/merge_assign_target_new_no_object/in
+similarity index 100%
+rename from tests/script_runtime_errors/merge_in_place_new_no_object/in
+rename to tests/script_runtime_errors/merge_assign_target_new_no_object/in
+diff --git a/tests/script_runtime_errors/merge_in_place_new_no_object/script.tremor b/tests/script_runtime_errors/merge_assign_target_new_no_object/script.tremor
+similarity index 100%
+rename from tests/script_runtime_errors/merge_in_place_new_no_object/script.tremor
+rename to tests/script_runtime_errors/merge_assign_target_new_no_object/script.tremor
+diff --git a/tests/script_runtime_errors/merge_in_place_target_no_object/error.txt b/tests/script_runtime_errors/merge_assign_target_target_no_object/error.txt
+similarity index 100%
+rename from tests/script_runtime_errors/merge_in_place_target_no_object/error.txt
+rename to tests/script_runtime_errors/merge_assign_target_target_no_object/error.txt
+diff --git a/tests/script_runtime_errors/merge_in_place_target_no_object/in b/tests/script_runtime_errors/merge_assign_target_target_no_object/in
+similarity index 100%
+rename from tests/script_runtime_errors/merge_in_place_target_no_object/in
+rename to tests/script_runtime_errors/merge_assign_target_target_no_object/in
+diff --git a/tests/script_runtime_errors/merge_in_place_target_no_object/script.tremor b/tests/script_runtime_errors/merge_assign_target_target_no_object/script.tremor
+similarity index 100%
+rename from tests/script_runtime_errors/merge_in_place_target_no_object/script.tremor
+rename to tests/script_runtime_errors/merge_assign_target_target_no_object/script.tremor
+diff --git a/tests/scripts/merge_assign_target_state/in b/tests/scripts/merge_assign_target_state/in
+new file mode 100644
+index 0000000000..dc573f65e1
+--- /dev/null
++++ b/tests/scripts/merge_assign_target_state/in
+@@ -0,0 +1,2 @@
++{""foo"": ""bar""}
++{""snot"": ""badger"", ""foo"": ""grmpf""}
+\ No newline at end of file
+diff --git a/tests/scripts/merge_assign_target_state/out b/tests/scripts/merge_assign_target_state/out
+new file mode 100644
+index 0000000000..d6d4097966
+--- /dev/null
++++ b/tests/scripts/merge_assign_target_state/out
+@@ -0,0 +1,2 @@
++{""foo"":""bar""}
++{""foo"":""grmpf"",""snot"":""badger""}
+\ No newline at end of file
+diff --git a/tests/scripts/merge_assign_target_state/script.tremor b/tests/scripts/merge_assign_target_state/script.tremor
+new file mode 100644
+index 0000000000..9d1b25eadf
+--- /dev/null
++++ b/tests/scripts/merge_assign_target_state/script.tremor
+@@ -0,0 +1,8 @@
++# initialize state to record, so we can do the merge
++let state = match state of
++	case null => {}
++	default => state
++end;
++
++let state = merge state of event end;
++emit state
+diff --git a/tests/scripts/patch_in_place/in b/tests/scripts/patch_assign_target/in
+similarity index 100%
+rename from tests/scripts/patch_in_place/in
+rename to tests/scripts/patch_assign_target/in
+diff --git a/tests/scripts/patch_in_place/out b/tests/scripts/patch_assign_target/out
+similarity index 100%
+rename from tests/scripts/patch_in_place/out
+rename to tests/scripts/patch_assign_target/out
+diff --git a/tests/scripts/patch_in_place/script.tremor b/tests/scripts/patch_assign_target/script.tremor
+similarity index 100%
+rename from tests/scripts/patch_in_place/script.tremor
+rename to tests/scripts/patch_assign_target/script.tremor
+diff --git a/tremor-script/src/ast.rs b/tremor-script/src/ast.rs
+index d49fcc447a..0fe7d60da8 100644
+--- a/tremor-script/src/ast.rs
++++ b/tremor-script/src/ast.rs
+@@ -961,10 +961,6 @@ pub enum Expr<'script> {
+     Match(Box<Match<'script, Self>>),
+     /// IfElse style match expression
+     IfElse(Box<IfElse<'script, Self>>),
+-    /// In place patch expression
+-    PatchInPlace(Box<Patch<'script>>),
+-    /// In place merge expression
+-    MergeInPlace(Box<Merge<'script>>),
+     /// Assignment expression
+     Assign {
+         /// Id
+diff --git a/tremor-script/src/ast/base_expr.rs b/tremor-script/src/ast/base_expr.rs
+index 5e2425bab9..237a025eb8 100644
+--- a/tremor-script/src/ast/base_expr.rs
++++ b/tremor-script/src/ast/base_expr.rs
+@@ -248,8 +248,6 @@ impl<'script> BaseExpr for Expr<'script> {
+             Expr::Emit(e) => e.mid(),
+             Expr::Imut(e) => e.mid(),
+             Expr::Match(e) => e.mid(),
+-            Expr::MergeInPlace(e) => e.mid(),
+-            Expr::PatchInPlace(e) => e.mid(),
+             Expr::IfElse(e) => e.mid(),
+         }
+     }
+diff --git a/tremor-script/src/ast/raw.rs b/tremor-script/src/ast/raw.rs
+index a6bf0d3496..f0f9503304 100644
+--- a/tremor-script/src/ast/raw.rs
++++ b/tremor-script/src/ast/raw.rs
+@@ -18,14 +18,14 @@
+ 
+ use crate::{
+     ast::{
+-        base_expr, eq::AstEq, query, upable::Upable, ArrayPattern, ArrayPredicatePattern,
+-        AssignPattern, BinExpr, BinOpKind, Bytes, BytesPart, ClauseGroup, Comprehension,
+-        ComprehensionCase, Costly, DefaultCase, EmitExpr, EventPath, Expr, ExprPath, Expression,
+-        Field, FnDecl, FnDoc, Helper, Ident, IfElse, ImutExpr, ImutExprInt, Invocable, Invoke,
+-        InvokeAggr, InvokeAggrFn, List, Literal, LocalPath, Match, Merge, MetadataPath, ModDoc,
+-        NodeMetas, Patch, PatchOperation, Path, Pattern, PredicateClause, PredicatePattern, Record,
+-        RecordPattern, Recur, ReservedPath, Script, Segment, StatePath, StrLitElement, StringLit,
+-        TestExpr, TuplePattern, UnaryExpr, UnaryOpKind,
++        base_expr, query, upable::Upable, ArrayPattern, ArrayPredicatePattern, AssignPattern,
++        BinExpr, BinOpKind, Bytes, BytesPart, ClauseGroup, Comprehension, ComprehensionCase,
++        Costly, DefaultCase, EmitExpr, EventPath, Expr, ExprPath, Expression, Field, FnDecl, FnDoc,
++        Helper, Ident, IfElse, ImutExpr, ImutExprInt, Invocable, Invoke, InvokeAggr, InvokeAggrFn,
++        List, Literal, LocalPath, Match, Merge, MetadataPath, ModDoc, NodeMetas, Patch,
++        PatchOperation, Path, Pattern, PredicateClause, PredicatePattern, Record, RecordPattern,
++        Recur, ReservedPath, Script, Segment, StatePath, StrLitElement, StringLit, TestExpr,
++        TuplePattern, UnaryExpr, UnaryOpKind,
+     },
+     errors::{
+         err_generic, error_generic, error_missing_effector, error_oops, Error, ErrorKind, Result,
+@@ -646,28 +646,16 @@ impl<'script> Upable<'script> for ExprRaw<'script> {
+                 let path = a.path.up(helper)?;
+                 let mid = helper.add_meta(a.start, a.end);
+                 match a.expr.up(helper)? {
+-                    Expr::Imut(ImutExprInt::Merge(m)) => {
+-                        if path.ast_eq(&m.target) {
+-                            Expr::MergeInPlace(Box::new(*m))
+-                        } else {
+-                            Expr::Assign {
+-                                mid,
+-                                path,
+-                                expr: Box::new(ImutExprInt::Merge(m).into()),
+-                            }
+-                        }
+-                    }
+-                    Expr::Imut(ImutExprInt::Patch(m)) => {
+-                        if path.ast_eq(&m.target) {
+-                            Expr::PatchInPlace(Box::new(*m))
+-                        } else {
+-                            Expr::Assign {
+-                                mid,
+-                                path,
+-                                expr: Box::new(ImutExprInt::Patch(m).into()),
+-                            }
+-                        }
+-                    }
++                    Expr::Imut(ImutExprInt::Merge(m)) => Expr::Assign {
++                        mid,
++                        path,
++                        expr: Box::new(ImutExprInt::Merge(m).into()),
++                    },
++                    Expr::Imut(ImutExprInt::Patch(m)) => Expr::Assign {
++                        mid,
++                        path,
++                        expr: Box::new(ImutExprInt::Patch(m).into()),
++                    },
+                     expr => Expr::Assign {
+                         mid,
+                         path,
+diff --git a/tremor-script/src/ast/to_static.rs b/tremor-script/src/ast/to_static.rs
+index cc3f1803ac..77195e841b 100644
+--- a/tremor-script/src/ast/to_static.rs
++++ b/tremor-script/src/ast/to_static.rs
+@@ -159,8 +159,6 @@ impl<'script> Expr<'script> {
+         match self {
+             Expr::Match(e) => Expr::Match(Box::new(e.into_static())),
+             Expr::IfElse(e) => Expr::IfElse(Box::new(e.into_static())),
+-            Expr::PatchInPlace(e) => Expr::PatchInPlace(Box::new(e.into_static())),
+-            Expr::MergeInPlace(e) => Expr::MergeInPlace(Box::new(e.into_static())),
+             Expr::Assign { mid, path, expr } => Expr::Assign {
+                 mid,
+                 path: path.into_static(),
+diff --git a/tremor-script/src/interpreter/expr.rs b/tremor-script/src/interpreter/expr.rs
+index 40038780c5..fcc86edca8 100644
+--- a/tremor-script/src/interpreter/expr.rs
++++ b/tremor-script/src/interpreter/expr.rs
+@@ -13,24 +13,23 @@
+ // limitations under the License.
+ 
+ use super::{
+-    merge_values, patch_value, resolve, resolve_value, set_local_shadow, test_guard,
+-    test_predicate_expr, Env, ExecOpts, LocalStack, NULL,
++    resolve, resolve_value, set_local_shadow, test_guard, test_predicate_expr, Env, ExecOpts,
++    LocalStack, NULL,
+ };
+ use crate::errors::{
+     error_assign_array, error_assign_to_const, error_bad_key_err, error_invalid_assign_target,
+-    error_need_obj, error_need_obj_err, error_no_clause_hit, Result,
++    error_need_obj_err, error_no_clause_hit, Result,
+ };
+ use crate::prelude::*;
+ use crate::registry::RECUR_PTR;
+ use crate::{
+     ast::{
+         BaseExpr, ClauseGroup, ClausePreCondition, Comprehension, DefaultCase, EmitExpr, EventPath,
+-        Expr, IfElse, ImutExprInt, Match, Merge, Patch, Path, Segment,
++        Expr, IfElse, ImutExprInt, Match, Path, Segment,
+     },
+     errors::error_oops_err,
+ };
+ use crate::{stry, Value};
+-use matches::matches;
+ use std::mem;
+ use std::{
+     borrow::{Borrow, Cow},
+@@ -219,104 +218,6 @@ impl<'script> Expr<'script> {
+         }
+     }
+ 
+-    fn patch_in_place<'run, 'event>(
+-        opts: ExecOpts,
+-        env: &'run Env<'run, 'event>,
+-        event: &'run Value<'event>,
+-        state: &'run Value<'static>,
+-        meta: &'run Value<'event>,
+-        local: &'run LocalStack<'event>,
+-        expr: &'run Patch<'event>,
+-    ) -> Result<Cow<'run, Value<'event>>> {
+-        // This function is called when we encounter code that consumes a value
+-        // to patch it. So the following code:
+-        // ```tremor
+-        // let event = patch event of insert ""key"" => ""value"" end
+-        // ```
+-        // When executed on it's own would clone the event, add a key and
+-        // overwrite original event.
+-        //
+-        // We optimise this as:
+-        // ```
+-        // patch_in_place event of insert ""key"" => ""value"" end
+-        // ```
+-        //
+-        // This code is generated in impl Upable for ExprRaw where the following
+-        // checks are performed:
+-        //
+-        // 1) the patch is on the RHS of an assignment
+-        // 2) the path of the assigned value and the path of the patched
+-        //    expression are identical.
+-        //
+-        // In turn this guarantees (at compile time):
+-        //
+-        // 1) The target (`expr`) is a path lookup
+-        // 2) The target is not a known constant as otherwise the assignment
+-        //    will complan
+-        // 3) this leave the `expr` to be either a local, the event, the state,
+-        //    metadata or a subkey thereof.
+-        //
+-        // And the following guarantees at run time:
+-        //
+-        // 1) the `expr` is an existing key of the mentioned categories,
+-        //    otherwise `expr.target.run` will error.
+-        // 2) `value` will never be owned (however the resolve function is
+-        //    generic so it needs to return a Cow)
+-
+-        let value: Cow<'run, Value<'event>> =
+-            stry!(expr.target.run(opts, env, event, state, meta, local));
+-        debug_assert!(
+-            !matches!(value, Cow::Owned(_)),
+-            ""We should never see a owned value here as patch_in_place is only ever called on existing data in event, state, meta or local""
+-        );
+-        let v: &Value<'event> = value.borrow();
+-        // ALLOW: https://github.com/tremor-rs/tremor-runtime/issues/1032
+-        #[allow(mutable_transmutes, clippy::transmute_ptr_to_ptr)]
+-        // ALLOW: https://github.com/tremor-rs/tremor-runtime/issues/1032
+-        let v: &mut Value<'event> = unsafe { mem::transmute(v) };
+-        stry!(patch_value(opts, env, event, state, meta, local, v, expr));
+-        Ok(value)
+-    }
+-
+-    fn merge_in_place<'run, 'event>(
+-        &'run self,
+-        opts: ExecOpts,
+-        env: &'run Env<'run, 'event>,
+-        event: &'run mut Value<'event>,
+-        state: &'run mut Value<'static>,
+-        meta: &'run mut Value<'event>,
+-        local: &'run mut LocalStack<'event>,
+-        expr: &'run Merge<'event>,
+-    ) -> Result<Cow<'run, Value<'event>>> {
+-        // Please see the soundness reasoning in `patch_in_place` for details
+-        // those functions perform the same function just with slighty different
+-        // operations.
+-        let value_cow: Cow<'run, Value<'event>> =
+-            stry!(expr.target.run(opts, env, event, state, meta, local));
+-        debug_assert!(
+-            !matches!(value_cow, Cow::Owned(_)),
+-            ""We should never see a owned value here as merge_in_place is only ever called on existing data in event, state, meta or local""
+-        );
+-
+-        if value_cow.is_object() {
+-            let value: &Value<'event> = value_cow.borrow();
+-            // ALLOW: https://github.com/tremor-rs/tremor-runtime/issues/1032
+-            #[allow(mutable_transmutes, clippy::transmute_ptr_to_ptr)]
+-            // ALLOW: https://github.com/tremor-rs/tremor-runtime/issues/1032
+-            let value: &mut Value<'event> = unsafe { mem::transmute(value) };
+-            let replacement = stry!(expr.expr.run(opts, env, event, state, meta, local,));
+-
+-            if replacement.is_object() {
+-                stry!(merge_values(self, &expr.expr, value, &replacement));
+-                Ok(value_cow)
+-            } else {
+-                error_need_obj(self, &expr.expr, replacement.value_type(), env.meta)
+-            }
+-        } else {
+-            error_need_obj(self, &expr.target, value_cow.value_type(), env.meta)
+-        }
+-    }
+-
+     // TODO: Quite some overlap with `ImutExprInt::comprehension`
+     fn comprehension<'run, 'event>(
+         &'run self,
+@@ -641,12 +542,6 @@ impl<'script> Expr<'script> {
+             }
+             Expr::Match(ref expr) => self.match_expr(opts, env, event, state, meta, local, expr),
+             Expr::IfElse(ref expr) => self.if_expr(opts, env, event, state, meta, local, expr),
+-            Expr::MergeInPlace(ref expr) => self
+-                .merge_in_place(opts, env, event, state, meta, local, expr)
+-                .map(Cont::Cont),
+-            Expr::PatchInPlace(ref expr) => {
+-                Self::patch_in_place(opts, env, event, state, meta, local, expr).map(Cont::Cont)
+-            }
+             Expr::Comprehension(ref expr) => {
+                 self.comprehension(opts, env, event, state, meta, local, expr)
+             }"
+GHSA-4rjr-3gj2-5crq,"From 9e8782b1bb1104e5399c073b553719c262d4463c Mon Sep 17 00:00:00 2001
+From: Patrick Freed <patrick.freed@mongodb.com>
+Date: Wed, 28 Apr 2021 18:22:40 -0400
+Subject: [PATCH] RUST-591 Use separate ConnectionPoolOptions types for
+ monitoring and internal usage (#326)
+
+---
+ src/cmap/mod.rs       |  2 +-
+ src/cmap/options.rs   | 74 +++++++++++++++++++++++++++----------------
+ src/cmap/test/file.rs |  2 +-
+ src/cmap/test/mod.rs  |  8 ++---
+ src/event/cmap.rs     | 72 +++++++++++++++++++++++++++++++++++++++--
+ 5 files changed, 122 insertions(+), 36 deletions(-)
+
+diff --git a/src/cmap/mod.rs b/src/cmap/mod.rs
+index 5a3466838..07755c5aa 100644
+--- a/src/cmap/mod.rs
++++ b/src/cmap/mod.rs
+@@ -78,7 +78,7 @@ impl ConnectionPool {
+         if let Some(ref handler) = event_handler {
+             handler.handle_pool_created_event(PoolCreatedEvent {
+                 address: address.clone(),
+-                options,
++                options: options.map(|o| o.to_event_options()),
+             });
+         };
+ 
+diff --git a/src/cmap/options.rs b/src/cmap/options.rs
+index 793f905b9..535d55d63 100644
+--- a/src/cmap/options.rs
++++ b/src/cmap/options.rs
+@@ -7,44 +7,43 @@ use typed_builder::TypedBuilder;
+ use crate::{
+     bson_util,
+     client::{auth::Credential, options::ServerApi},
+-    event::cmap::CmapEventHandler,
++    event::cmap::{CmapEventHandler, ConnectionPoolOptions as EventOptions},
+     options::{ClientOptions, DriverInfo, StreamAddress, TlsOptions},
+ };
+ 
+-/// Contains the options for creating a connection pool. While these options are specified at the
+-/// client-level, `ConnectionPoolOptions` is exposed for the purpose of CMAP event handling.
++/// Contains the options for creating a connection pool.
+ #[derive(Clone, Default, Deserialize, TypedBuilder, Derivative)]
+ #[derivative(Debug, PartialEq)]
+ #[builder(field_defaults(default, setter(strip_option)))]
+ #[serde(rename_all = ""camelCase"")]
+-pub struct ConnectionPoolOptions {
++pub(crate) struct ConnectionPoolOptions {
+     /// The application name specified by the user. This is sent to the server as part of the
+     /// handshake that each connection makes when it's created.
+-    pub app_name: Option<String>,
++    pub(crate) app_name: Option<String>,
+ 
+-    /// The connect timeout passed to each underlying TcpStream when attemtping to connect to the
++    /// The connect timeout passed to each underlying TcpStream when attempting to connect to the
+     /// server.
+     #[serde(skip)]
+-    pub connect_timeout: Option<Duration>,
++    pub(crate) connect_timeout: Option<Duration>,
+ 
+     /// The credential to use for authenticating connections in this pool.
+     #[serde(skip)]
+-    pub credential: Option<Credential>,
++    pub(crate) credential: Option<Credential>,
+ 
+     /// Extra information to append to the driver version in the metadata of the handshake with the
+     /// server. This should be used by libraries wrapping the driver, e.g. ODMs.
+     #[serde(skip)]
+-    pub driver_info: Option<DriverInfo>,
++    pub(crate) driver_info: Option<DriverInfo>,
+ 
+     /// Processes all events generated by the pool.
+     #[derivative(Debug = ""ignore"", PartialEq = ""ignore"")]
+     #[serde(skip)]
+-    pub event_handler: Option<Arc<dyn CmapEventHandler>>,
++    pub(crate) event_handler: Option<Arc<dyn CmapEventHandler>>,
+ 
+     /// How often the background thread performs its maintenance (e.g. ensure minPoolSize).
+     #[cfg(test)]
+     #[serde(skip)]
+-    pub maintenance_frequency: Option<Duration>,
++    pub(crate) maintenance_frequency: Option<Duration>,
+ 
+     /// Connections that have been ready for usage in the pool for longer than `max_idle_time` will
+     /// not be used.
+@@ -53,20 +52,20 @@ pub struct ConnectionPoolOptions {
+     #[serde(rename = ""maxIdleTimeMS"")]
+     #[serde(default)]
+     #[serde(deserialize_with = ""bson_util::deserialize_duration_from_u64_millis"")]
+-    pub max_idle_time: Option<Duration>,
++    pub(crate) max_idle_time: Option<Duration>,
+ 
+     /// The maximum number of connections that the pool can have at a given time. This includes
+     /// connections which are currently checked out of the pool.
+     ///
+     /// The default is 100.
+-    pub max_pool_size: Option<u32>,
++    pub(crate) max_pool_size: Option<u32>,
+ 
+     /// The minimum number of connections that the pool can have at a given time. This includes
+     /// connections which are currently checked out of the pool. If fewer than `min_pool_size`
+     /// connections are in the pool, connections will be added to the pool in the background.
+     ///
+     /// The default is that no minimum is enforced
+-    pub min_pool_size: Option<u32>,
++    pub(crate) min_pool_size: Option<u32>,
+ 
+     /// Whether to start the pool as ""ready"" or not.
+     /// For tests only.
+@@ -85,7 +84,7 @@ pub struct ConnectionPoolOptions {
+     ///
+     /// The default is not to use TLS for connections.
+     #[serde(skip)]
+-    pub tls_options: Option<TlsOptions>,
++    pub(crate) tls_options: Option<TlsOptions>,
+ 
+     /// Rather than wait indefinitely for a connection to become available, instead return an error
+     /// after the given duration.
+@@ -94,23 +93,42 @@ pub struct ConnectionPoolOptions {
+     #[serde(rename = ""waitQueueTimeoutMS"")]
+     #[serde(default)]
+     #[serde(deserialize_with = ""bson_util::deserialize_duration_from_u64_millis"")]
+-    pub wait_queue_timeout: Option<Duration>,
++    pub(crate) wait_queue_timeout: Option<Duration>,
+ }
+ 
+ impl ConnectionPoolOptions {
+     pub(crate) fn from_client_options(options: &ClientOptions) -> Self {
+-        let mut pool_options = Self::builder().build();
+-        pool_options.app_name = options.app_name.clone();
+-        pool_options.connect_timeout = options.connect_timeout;
+-        pool_options.credential = options.credential.clone();
+-        pool_options.driver_info = options.driver_info.clone();
+-        pool_options.event_handler = options.cmap_event_handler.clone();
+-        pool_options.max_idle_time = options.max_idle_time;
+-        pool_options.min_pool_size = options.min_pool_size;
+-        pool_options.tls_options = options.tls_options();
+-        pool_options.wait_queue_timeout = options.wait_queue_timeout;
+-
+-        pool_options
++        Self {
++            app_name: options.app_name.clone(),
++            connect_timeout: options.connect_timeout,
++            driver_info: options.driver_info.clone(),
++            max_idle_time: options.max_idle_time,
++            min_pool_size: options.min_pool_size,
++            max_pool_size: options.max_pool_size,
++            server_api: options.server_api.clone(),
++            tls_options: options.tls_options(),
++            wait_queue_timeout: options.wait_queue_timeout,
++            credential: options.credential.clone(),
++            event_handler: options.cmap_event_handler.clone(),
++            #[cfg(test)]
++            maintenance_frequency: None,
++            #[cfg(test)]
++            ready: None,
++        }
++    }
++
++    pub(crate) fn to_event_options(&self) -> EventOptions {
++        EventOptions {
++            app_name: self.app_name.clone(),
++            connect_timeout: self.connect_timeout,
++            driver_info: self.driver_info.clone(),
++            max_idle_time: self.max_idle_time,
++            min_pool_size: self.min_pool_size,
++            max_pool_size: self.max_pool_size,
++            server_api: self.server_api.clone(),
++            tls_options: self.tls_options.clone(),
++            wait_queue_timeout: self.wait_queue_timeout,
++        }
+     }
+ }
+ 
+diff --git a/src/cmap/test/file.rs b/src/cmap/test/file.rs
+index 9b7f31361..70f2a06b9 100644
+--- a/src/cmap/test/file.rs
++++ b/src/cmap/test/file.rs
+@@ -17,7 +17,7 @@ pub struct TestFile {
+     version: u8,
+     style: TestStyle,
+     pub description: String,
+-    pub pool_options: Option<ConnectionPoolOptions>,
++    pub(crate) pool_options: Option<ConnectionPoolOptions>,
+     pub operations: Vec<ThreadedOperation>,
+     pub error: Option<Error>,
+     pub events: Vec<Event>,
+diff --git a/src/cmap/test/mod.rs b/src/cmap/test/mod.rs
+index 3155f23dc..043988780 100644
+--- a/src/cmap/test/mod.rs
++++ b/src/cmap/test/mod.rs
+@@ -12,8 +12,9 @@ use self::{
+ };
+ 
+ use crate::{
+-    cmap::{options::ConnectionPoolOptions, Connection, ConnectionPool},
++    cmap::{Connection, ConnectionPool, ConnectionPoolOptions},
+     error::{Error, Result},
++    event::cmap::ConnectionPoolOptions as EventOptions,
+     options::TlsOptions,
+     runtime::AsyncJoinHandle,
+     sdam::{ServerUpdate, ServerUpdateSender},
+@@ -329,11 +330,10 @@ impl Matchable for TlsOptions {
+     }
+ }
+ 
+-impl Matchable for ConnectionPoolOptions {
+-    fn content_matches(&self, expected: &ConnectionPoolOptions) -> bool {
++impl Matchable for EventOptions {
++    fn content_matches(&self, expected: &EventOptions) -> bool {
+         self.app_name.matches(&expected.app_name)
+             && self.connect_timeout.matches(&expected.connect_timeout)
+-            && self.credential.matches(&expected.credential)
+             && self.max_idle_time.matches(&expected.max_idle_time)
+             && self.max_pool_size.matches(&expected.max_pool_size)
+             && self.min_pool_size.matches(&expected.min_pool_size)
+diff --git a/src/event/cmap.rs b/src/event/cmap.rs
+index 8f88e04da..7b50a5d42 100644
+--- a/src/event/cmap.rs
++++ b/src/event/cmap.rs
+@@ -1,10 +1,14 @@
+ //! Contains the events and functionality for monitoring behavior of the connection pooling of a
+ //! `Client`.
+ 
++use std::time::Duration;
++
+ use serde::Deserialize;
+ 
+-pub use crate::cmap::options::ConnectionPoolOptions;
+-use crate::options::StreamAddress;
++use crate::{
++    client::options::{DriverInfo, ServerApi, TlsOptions},
++    options::StreamAddress,
++};
+ 
+ /// We implement `Deserialize` for all of the event types so that we can more easily parse the CMAP
+ /// spec tests. However, we have no need to parse the address field from the JSON files (if it's
+@@ -31,6 +35,70 @@ pub struct PoolCreatedEvent {
+     pub options: Option<ConnectionPoolOptions>,
+ }
+ 
++/// Contains the options for creating a connection pool. While these options are specified at the
++/// client-level, `ConnectionPoolOptions` is exposed for the purpose of CMAP event handling.
++#[derive(Clone, Default, Deserialize, Debug, PartialEq)]
++#[serde(rename_all = ""camelCase"")]
++#[non_exhaustive]
++pub struct ConnectionPoolOptions {
++    /// The application name specified by the user. This is sent to the server as part of the
++    /// handshake that each connection makes when it's created.
++    pub app_name: Option<String>,
++
++    /// The connect timeout passed to each underlying TcpStream when attempting to connect to the
++    /// server.
++    #[serde(skip)]
++    pub connect_timeout: Option<Duration>,
++
++    /// Extra information to append to the driver version in the metadata of the handshake with the
++    /// server. This should be used by libraries wrapping the driver, e.g. ODMs.
++    #[serde(skip)]
++    pub driver_info: Option<DriverInfo>,
++
++    /// Connections that have been ready for usage in the pool for longer than `max_idle_time` will
++    /// not be used.
++    ///
++    /// The default is that connections will not be closed due to being idle.
++    #[serde(rename = ""maxIdleTimeMS"")]
++    #[serde(default)]
++    #[serde(deserialize_with = ""crate::bson_util::deserialize_duration_from_u64_millis"")]
++    pub max_idle_time: Option<Duration>,
++
++    /// The maximum number of connections that the pool can have at a given time. This includes
++    /// connections which are currently checked out of the pool.
++    ///
++    /// The default is 100.
++    pub max_pool_size: Option<u32>,
++
++    /// The minimum number of connections that the pool can have at a given time. This includes
++    /// connections which are currently checked out of the pool. If fewer than `min_pool_size`
++    /// connections are in the pool, connections will be added to the pool in the background.
++    ///
++    /// The default is that no minimum is enforced
++    pub min_pool_size: Option<u32>,
++
++    /// The declared API version
++    ///
++    /// The default value is to have no declared API version
++    pub(crate) server_api: Option<ServerApi>,
++
++    /// The options specifying how a TLS connection should be configured. If `tls_options` is
++    /// `None`, then TLS will not be used for the connections.
++    ///
++    /// The default is not to use TLS for connections.
++    #[serde(skip)]
++    pub tls_options: Option<TlsOptions>,
++
++    /// Rather than wait indefinitely for a connection to become available, instead return an error
++    /// after the given duration.
++    ///
++    /// The default is to block indefinitely until a connection becomes available.
++    #[serde(rename = ""waitQueueTimeoutMS"")]
++    #[serde(default)]
++    #[serde(deserialize_with = ""crate::bson_util::deserialize_duration_from_u64_millis"")]
++    pub wait_queue_timeout: Option<Duration>,
++}
++
+ /// Event emitted when a connection pool becomes ready.
+ #[derive(Clone, Debug, Deserialize, PartialEq)]
+ #[non_exhaustive]"
+GHSA-p24j-h477-76q3,"From bf2b2df9c9e218e35e5a38ce3d03cffb7c363956 Mon Sep 17 00:00:00 2001
+From: David Peter <mail@david-peter.de>
+Date: Mon, 12 Jul 2021 20:03:31 +0200
+Subject: [PATCH] Fix for Windows: do not run binaries from CWD
+
+This fixes a bug on Windows where `Command::new` would also run
+executables from the current working directory, possibly resulting in
+accidental runs of programs called `less`.
+---
+ Cargo.lock    | 29 +++++++++++++++++++++++++++++
+ Cargo.toml    |  1 +
+ src/less.rs   |  4 +++-
+ src/output.rs |  9 ++++++++-
+ 4 files changed, 41 insertions(+), 2 deletions(-)
+
+diff --git a/Cargo.lock b/Cargo.lock
+index a6d2d33f03..6170e94cfe 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -1,5 +1,7 @@
+ # This file is automatically @generated by Cargo.
+ # It is not intended for manual editing.
++version = 3
++
+ [[package]]
+ name = ""adler""
+ version = ""1.0.2""
+@@ -97,6 +99,7 @@ dependencies = [
+  ""error-chain"",
+  ""git2"",
+  ""globset"",
++ ""grep-cli"",
+  ""lazy_static"",
+  ""nix"",
+  ""path_abs"",
+@@ -487,6 +490,23 @@ dependencies = [
+  ""regex"",
+ ]
+ 
++[[package]]
++name = ""grep-cli""
++version = ""0.1.6""
++source = ""registry+https://github.com/rust-lang/crates.io-index""
++checksum = ""2dd110c34bb4460d0de5062413b773e385cbf8a85a63fc535590110a09e79e8a""
++dependencies = [
++ ""atty"",
++ ""bstr"",
++ ""globset"",
++ ""lazy_static"",
++ ""log"",
++ ""regex"",
++ ""same-file"",
++ ""termcolor"",
++ ""winapi-util"",
++]
++
+ [[package]]
+ name = ""hashbrown""
+ version = ""0.9.1""
+@@ -1143,6 +1163,15 @@ dependencies = [
+  ""winapi"",
+ ]
+ 
++[[package]]
++name = ""termcolor""
++version = ""1.1.2""
++source = ""registry+https://github.com/rust-lang/crates.io-index""
++checksum = ""2dfed899f0eb03f32ee8c6a0aabdb8a7949659e3466561fc0adf54e26d88c5f4""
++dependencies = [
++ ""winapi-util"",
++]
++
+ [[package]]
+ name = ""terminal_size""
+ version = ""0.1.16""
+diff --git a/Cargo.toml b/Cargo.toml
+index 42a9f50f32..e9b99b688f 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -51,6 +51,7 @@ path_abs = { version = ""0.5"", default-features = false }
+ clircle = ""0.3""
+ bugreport = ""0.4""
+ dirs-next = { version = ""2.0.0"", optional = true }
++grep-cli = ""0.1.6""
+ 
+ [dependencies.git2]
+ version = ""0.13""
+diff --git a/src/less.rs b/src/less.rs
+index f1adca81a3..2575fe1818 100644
+--- a/src/less.rs
++++ b/src/less.rs
+@@ -4,7 +4,9 @@ use std::ffi::OsStr;
+ use std::process::Command;
+ 
+ pub fn retrieve_less_version(less_path: &dyn AsRef<OsStr>) -> Option<usize> {
+-    let cmd = Command::new(less_path).arg(""--version"").output().ok()?;
++    let resolved_path = grep_cli::resolve_binary(less_path.as_ref()).ok()?;
++
++    let cmd = Command::new(resolved_path).arg(""--version"").output().ok()?;
+     parse_less_version(&cmd.stdout)
+ }
+ 
+diff --git a/src/output.rs b/src/output.rs
+index 4aff768681..8bc2da0c74 100644
+--- a/src/output.rs
++++ b/src/output.rs
+@@ -63,7 +63,14 @@ impl OutputType {
+             return Err(ErrorKind::InvalidPagerValueBat.into());
+         }
+ 
+-        let mut p = Command::new(&pager.bin);
++        let resolved_path = match grep_cli::resolve_binary(&pager.bin) {
++            Ok(path) => path,
++            Err(_) => {
++                return Ok(OutputType::stdout());
++            }
++        };
++
++        let mut p = Command::new(resolved_path);
+         let args = pager.args;
+ 
+         if pager.kind == PagerKind::Less {"
+GHSA-3227-r97m-8j95,"From da7904c04f82e1cb43cc42eaf6a1dba072b5c921 Mon Sep 17 00:00:00 2001
+From: Connor Slade <connor@connorcode.com>
+Date: Sun, 10 Apr 2022 00:08:18 -0400
+Subject: [PATCH] =?UTF-8?q?=F0=9F=8E=97=20Fix=20Path=20Traversal=20Exploit?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ Changelog.md                   |  2 +-
+ lib/extensions/serve_static.rs | 10 +++++++++-
+ 2 files changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/Changelog.md b/Changelog.md
+index 03cb0fc..7e93a5c 100644
+--- a/Changelog.md
++++ b/Changelog.md
+@@ -4,7 +4,7 @@
+ - Remove Test Example
+ - Add Paste Bin App Example
+ - Add SocketHandler struct to hold socket ineracting functions
+-
++- Fix Path Traversal Exploit O_O
+ 
+ # 1.0.0!
+ 
+diff --git a/lib/extensions/serve_static.rs b/lib/extensions/serve_static.rs
+index f070e82..a17ba2e 100644
+--- a/lib/extensions/serve_static.rs
++++ b/lib/extensions/serve_static.rs
+@@ -320,7 +320,7 @@ impl ServeStatic {
+ fn process_req(req: Request, cell: &RwLock<ServeStatic>) -> (Response, bool) {
+     let this = cell.read().unwrap();
+ 
+-    let mut path = format!(""{}{}"", this.data_dir, req.path.replace(""/.."", """"));
++    let mut path = safe_path(req.path.to_owned());
+ 
+     // Add Index.html if path ends with /
+     if path.ends_with('/') {
+@@ -364,6 +364,14 @@ fn get_type(path: &str, types: &[(String, String)]) -> String {
+     ""application/octet-stream"".to_owned()
+ }
+ 
++#[inline]
++fn safe_path(mut path: String) -> String {
++    while path.contains(""/.."") {
++        path = path.replace(""/.."", """");
++    }
++    path
++}
++
+ /// Common MIME Types
+ ///
+ /// Used by Servestatic Extentions"
+GHSA-28ph-f7gx-fqj8,"From 3c6b57fe1b2cc87e7ebecde43dd836ffb1c4ea5c Mon Sep 17 00:00:00 2001
+From: Thom Chiovoloni <tchiovoloni@mozilla.com>
+Date: Tue, 14 Apr 2020 07:09:50 -0700
+Subject: [PATCH] Fix vtab::Module lifetime
+
+---
+ src/vtab/array.rs  |  10 +---
+ src/vtab/csvtab.rs |   8 +--
+ src/vtab/mod.rs    | 143 ++++++++++++++++++++++++---------------------
+ src/vtab/series.rs |  10 +---
+ tests/vtab.rs      |   6 +-
+ 5 files changed, 87 insertions(+), 90 deletions(-)
+
+diff --git a/src/vtab/array.rs b/src/vtab/array.rs
+index 38efe9640..645ab60c8 100644
+--- a/src/vtab/array.rs
++++ b/src/vtab/array.rs
+@@ -33,8 +33,8 @@ use std::rc::Rc;
+ use crate::ffi;
+ use crate::types::{ToSql, ToSqlOutput, Value};
+ use crate::vtab::{
+-    eponymous_only_module, Context, IndexConstraintOp, IndexInfo, Module, VTab, VTabConnection,
+-    VTabCursor, Values,
++    eponymous_only_module, Context, IndexConstraintOp, IndexInfo, VTab, VTabConnection, VTabCursor,
++    Values,
+ };
+ use crate::{Connection, Result};
+ 
+@@ -57,11 +57,7 @@ impl ToSql for Array {
+ /// `feature = ""array""` Register the ""rarray"" module.
+ pub fn load_module(conn: &Connection) -> Result<()> {
+     let aux: Option<()> = None;
+-    conn.create_module(""rarray"", &ARRAY_MODULE, aux)
+-}
+-
+-lazy_static::lazy_static! {
+-    static ref ARRAY_MODULE: Module<ArrayTab> = eponymous_only_module::<ArrayTab>(1);
++    conn.create_module(""rarray"", eponymous_only_module::<ArrayTab>(), aux)
+ }
+ 
+ // Column numbers
+diff --git a/src/vtab/csvtab.rs b/src/vtab/csvtab.rs
+index 658dbf8d4..77570aeff 100644
+--- a/src/vtab/csvtab.rs
++++ b/src/vtab/csvtab.rs
+@@ -30,7 +30,7 @@ use crate::ffi;
+ use crate::types::Null;
+ use crate::vtab::{
+     dequote, escape_double_quote, parse_boolean, read_only_module, Context, CreateVTab, IndexInfo,
+-    Module, VTab, VTabConnection, VTabCursor, Values,
++    VTab, VTabConnection, VTabCursor, Values,
+ };
+ use crate::{Connection, Error, Result};
+ 
+@@ -47,11 +47,7 @@ use crate::{Connection, Error, Result};
+ /// ```
+ pub fn load_module(conn: &Connection) -> Result<()> {
+     let aux: Option<()> = None;
+-    conn.create_module(""csv"", &CSV_MODULE, aux)
+-}
+-
+-lazy_static::lazy_static! {
+-    static ref CSV_MODULE: Module<CSVTab> = read_only_module::<CSVTab>(1);
++    conn.create_module(""csv"", read_only_module::<CSVTab>(), aux)
+ }
+ 
+ /// An instance of the CSV virtual table
+diff --git a/src/vtab/mod.rs b/src/vtab/mod.rs
+index fdbede583..e9b2b10db 100644
+--- a/src/vtab/mod.rs
++++ b/src/vtab/mod.rs
+@@ -60,7 +60,7 @@ use crate::{str_to_cstring, Connection, Error, InnerConnection, Result};
+ /// `feature = ""vtab""` Virtual table module
+ ///
+ /// (See [SQLite doc](https://sqlite.org/c3ref/module.html))
+-#[repr(C)]
++#[repr(transparent)]
+ pub struct Module<T: VTab> {
+     base: ffi::sqlite3_module,
+     phantom: PhantomData<T>,
+@@ -69,47 +69,55 @@ pub struct Module<T: VTab> {
+ unsafe impl<T: VTab> Send for Module<T> {}
+ unsafe impl<T: VTab> Sync for Module<T> {}
+ 
+-// Used as a trailing initializer for sqlite3_module -- this way we avoid having
+-// the build fail if buildtime_bindgen is on
+-fn zeroed_module() -> ffi::sqlite3_module {
+-    // This is safe, as bindgen-generated structs are allowed to be zeroed.
+-    unsafe { std::mem::MaybeUninit::zeroed().assume_init() }
++union ModuleZeroHack {
++    bytes: [u8; std::mem::size_of::<ffi::sqlite3_module>()],
++    module: ffi::sqlite3_module,
+ }
+ 
++// Used as a trailing initializer for sqlite3_module -- this way we avoid having
++// the build fail if buildtime_bindgen is on. This is safe, as bindgen-generated
++// structs are allowed to be zeroed.
++const ZERO_MODULE: ffi::sqlite3_module = unsafe {
++    ModuleZeroHack {
++        bytes: [0u8; std::mem::size_of::<ffi::sqlite3_module>()],
++    }
++    .module
++};
++
+ /// `feature = ""vtab""` Create a read-only virtual table implementation.
+ ///
+ /// Step 2 of [Creating New Virtual Table Implementations](https://sqlite.org/vtab.html#creating_new_virtual_table_implementations).
+-pub fn read_only_module<T: CreateVTab>(version: c_int) -> Module<T> {
++pub fn read_only_module<T: CreateVTab>() -> &'static Module<T> {
+     // The xConnect and xCreate methods do the same thing, but they must be
+     // different so that the virtual table is not an eponymous virtual table.
+-    let ffi_module = ffi::sqlite3_module {
+-        iVersion: version,
+-        xCreate: Some(rust_create::<T>),
+-        xConnect: Some(rust_connect::<T>),
+-        xBestIndex: Some(rust_best_index::<T>),
+-        xDisconnect: Some(rust_disconnect::<T>),
+-        xDestroy: Some(rust_destroy::<T>),
+-        xOpen: Some(rust_open::<T>),
+-        xClose: Some(rust_close::<T::Cursor>),
+-        xFilter: Some(rust_filter::<T::Cursor>),
+-        xNext: Some(rust_next::<T::Cursor>),
+-        xEof: Some(rust_eof::<T::Cursor>),
+-        xColumn: Some(rust_column::<T::Cursor>),
+-        xRowid: Some(rust_rowid::<T::Cursor>),
+-        xUpdate: None,
+-        xBegin: None,
+-        xSync: None,
+-        xCommit: None,
+-        xRollback: None,
+-        xFindFunction: None,
+-        xRename: None,
+-        xSavepoint: None,
+-        xRelease: None,
+-        xRollbackTo: None,
+-        ..zeroed_module()
+-    };
+-    Module {
+-        base: ffi_module,
++    &Module {
++        base: ffi::sqlite3_module {
++            // We don't use V3
++            iVersion: 2, // We don't use V2 or V3 features in read_only_module types
++            xCreate: Some(rust_create::<T>),
++            xConnect: Some(rust_connect::<T>),
++            xBestIndex: Some(rust_best_index::<T>),
++            xDisconnect: Some(rust_disconnect::<T>),
++            xDestroy: Some(rust_destroy::<T>),
++            xOpen: Some(rust_open::<T>),
++            xClose: Some(rust_close::<T::Cursor>),
++            xFilter: Some(rust_filter::<T::Cursor>),
++            xNext: Some(rust_next::<T::Cursor>),
++            xEof: Some(rust_eof::<T::Cursor>),
++            xColumn: Some(rust_column::<T::Cursor>),
++            xRowid: Some(rust_rowid::<T::Cursor>),
++            xUpdate: None,
++            xBegin: None,
++            xSync: None,
++            xCommit: None,
++            xRollback: None,
++            xFindFunction: None,
++            xRename: None,
++            xSavepoint: None,
++            xRelease: None,
++            xRollbackTo: None,
++            ..ZERO_MODULE
++        },
+         phantom: PhantomData::<T>,
+     }
+ }
+@@ -117,38 +125,38 @@ pub fn read_only_module<T: CreateVTab>(version: c_int) -> Module<T> {
+ /// `feature = ""vtab""` Create an eponymous only virtual table implementation.
+ ///
+ /// Step 2 of [Creating New Virtual Table Implementations](https://sqlite.org/vtab.html#creating_new_virtual_table_implementations).
+-pub fn eponymous_only_module<T: VTab>(version: c_int) -> Module<T> {
++pub fn eponymous_only_module<T: VTab>() -> &'static Module<T> {
+     // A virtual table is eponymous if its xCreate method is the exact same function
+     // as the xConnect method For eponymous-only virtual tables, the xCreate
+     // method is NULL
+-    let ffi_module = ffi::sqlite3_module {
+-        iVersion: version,
+-        xCreate: None,
+-        xConnect: Some(rust_connect::<T>),
+-        xBestIndex: Some(rust_best_index::<T>),
+-        xDisconnect: Some(rust_disconnect::<T>),
+-        xDestroy: None,
+-        xOpen: Some(rust_open::<T>),
+-        xClose: Some(rust_close::<T::Cursor>),
+-        xFilter: Some(rust_filter::<T::Cursor>),
+-        xNext: Some(rust_next::<T::Cursor>),
+-        xEof: Some(rust_eof::<T::Cursor>),
+-        xColumn: Some(rust_column::<T::Cursor>),
+-        xRowid: Some(rust_rowid::<T::Cursor>),
+-        xUpdate: None,
+-        xBegin: None,
+-        xSync: None,
+-        xCommit: None,
+-        xRollback: None,
+-        xFindFunction: None,
+-        xRename: None,
+-        xSavepoint: None,
+-        xRelease: None,
+-        xRollbackTo: None,
+-        ..zeroed_module()
+-    };
+-    Module {
+-        base: ffi_module,
++    &Module {
++        base: ffi::sqlite3_module {
++            // We don't use V3
++            iVersion: 2,
++            xCreate: None,
++            xConnect: Some(rust_connect::<T>),
++            xBestIndex: Some(rust_best_index::<T>),
++            xDisconnect: Some(rust_disconnect::<T>),
++            xDestroy: None,
++            xOpen: Some(rust_open::<T>),
++            xClose: Some(rust_close::<T::Cursor>),
++            xFilter: Some(rust_filter::<T::Cursor>),
++            xNext: Some(rust_next::<T::Cursor>),
++            xEof: Some(rust_eof::<T::Cursor>),
++            xColumn: Some(rust_column::<T::Cursor>),
++            xRowid: Some(rust_rowid::<T::Cursor>),
++            xUpdate: None,
++            xBegin: None,
++            xSync: None,
++            xCommit: None,
++            xRollback: None,
++            xFindFunction: None,
++            xRename: None,
++            xSavepoint: None,
++            xRelease: None,
++            xRollbackTo: None,
++            ..ZERO_MODULE
++        },
+         phantom: PhantomData::<T>,
+     }
+ }
+@@ -583,11 +591,12 @@ impl<'a> Iterator for ValueIter<'a> {
+ impl Connection {
+     /// `feature = ""vtab""` Register a virtual table implementation.
+     ///
+-    /// Step 3 of [Creating New Virtual Table Implementations](https://sqlite.org/vtab.html#creating_new_virtual_table_implementations).
++    /// Step 3 of [Creating New Virtual Table
++    /// Implementations](https://sqlite.org/vtab.html#creating_new_virtual_table_implementations).
+     pub fn create_module<T: VTab>(
+         &self,
+         module_name: &str,
+-        module: &Module<T>,
++        module: &'static Module<T>,
+         aux: Option<T::Aux>,
+     ) -> Result<()> {
+         self.db.borrow_mut().create_module(module_name, module, aux)
+@@ -598,7 +607,7 @@ impl InnerConnection {
+     fn create_module<T: VTab>(
+         &mut self,
+         module_name: &str,
+-        module: &Module<T>,
++        module: &'static Module<T>,
+         aux: Option<T::Aux>,
+     ) -> Result<()> {
+         let c_name = str_to_cstring(module_name)?;
+diff --git a/src/vtab/series.rs b/src/vtab/series.rs
+index 46eb28f76..3f4f08137 100644
+--- a/src/vtab/series.rs
++++ b/src/vtab/series.rs
+@@ -9,19 +9,15 @@ use std::os::raw::c_int;
+ use crate::ffi;
+ use crate::types::Type;
+ use crate::vtab::{
+-    eponymous_only_module, Context, IndexConstraintOp, IndexInfo, Module, VTab, VTabConnection,
+-    VTabCursor, Values,
++    eponymous_only_module, Context, IndexConstraintOp, IndexInfo, VTab, VTabConnection, VTabCursor,
++    Values,
+ };
+ use crate::{Connection, Result};
+ 
+ /// `feature = ""series""` Register the ""generate_series"" module.
+ pub fn load_module(conn: &Connection) -> Result<()> {
+     let aux: Option<()> = None;
+-    conn.create_module(""generate_series"", &SERIES_MODULE, aux)
+-}
+-
+-lazy_static::lazy_static! {
+-    static ref SERIES_MODULE: Module<SeriesTab> = eponymous_only_module::<SeriesTab>(1);
++    conn.create_module(""generate_series"", eponymous_only_module::<SeriesTab>(), aux)
+ }
+ 
+ // Column numbers
+diff --git a/tests/vtab.rs b/tests/vtab.rs
+index 55069b7a9..d42bac6b8 100644
+--- a/tests/vtab.rs
++++ b/tests/vtab.rs
+@@ -11,7 +11,7 @@ fn test_dummy_module() {
+     use rusqlite::{version_number, Connection, Result};
+     use std::os::raw::c_int;
+ 
+-    let module = eponymous_only_module::<DummyTab>(1);
++    let module = eponymous_only_module::<DummyTab>();
+ 
+     #[repr(C)]
+     struct DummyTab {
+@@ -19,7 +19,7 @@ fn test_dummy_module() {
+         base: sqlite3_vtab,
+     }
+ 
+-    impl VTab for DummyTab {
++    unsafe impl VTab for DummyTab {
+         type Aux = ();
+         type Cursor = DummyTabCursor;
+ 
+@@ -53,7 +53,7 @@ fn test_dummy_module() {
+         row_id: i64,
+     }
+ 
+-    impl VTabCursor for DummyTabCursor {
++    unsafe impl VTabCursor for DummyTabCursor {
+         fn filter(
+             &mut self,
+             _idx_num: c_int,"
+GHSA-jjx5-3f36-6927,"From 3c607a003e03b773108401d109167d1840487dce Mon Sep 17 00:00:00 2001
+From: wtfsck <wtfsck@protonmail.com>
+Date: Wed, 3 Mar 2021 18:59:51 +0100
+Subject: [PATCH] Update comments, field types, add max-read-size const, etc
+
+---
+ src/rust/iced-x86/src/decoder.rs              | 189 ++++++++++--------
+ .../iced-x86/src/decoder/handlers_legacy.rs   |   8 +-
+ src/rust/iced-x86/src/encoder.rs              |   5 +
+ 3 files changed, 115 insertions(+), 87 deletions(-)
+
+diff --git a/src/rust/iced-x86/src/decoder.rs b/src/rust/iced-x86/src/decoder.rs
+index b7fc92ad9..fcd7d8e6d 100644
+--- a/src/rust/iced-x86/src/decoder.rs
++++ b/src/rust/iced-x86/src/decoder.rs
+@@ -281,21 +281,25 @@ impl StateFlags {
+ }
+ // GENERATOR-END: StateFlags
+ 
+-#[rustfmt::skip] // It tried its best but failed
+ macro_rules! mk_read_value {
+-	($slf:ident, $ty:ty, $from_le:path) => {
+-		const SIZE: usize = mem::size_of::<$ty>();
+-		#[allow(trivial_casts)]
+-		unsafe {
+-			let data_ptr = $slf.data_ptr;
+-			if data_ptr.add(SIZE - 1) < $slf.max_data_ptr {
+-				let result = $from_le(ptr::read_unaligned(data_ptr as *const $ty)) as usize;
+-				$slf.data_ptr = data_ptr.add(SIZE);
+-				result
+-			} else {
+-				$slf.state.flags |= StateFlags::IS_INVALID | StateFlags::NO_MORE_BYTES;
+-				0
+-			}
++	($slf:ident, $mem_ty:ty, $from_le:path) => {
++		const SIZE: usize = mem::size_of::<$mem_ty>();
++		const_assert!(SIZE >= 1);
++		const_assert!(SIZE <= Decoder::MAX_READ_SIZE);
++		let data_ptr = $slf.data_ptr;
++		// This doesn't overflow data_ptr (verified in ctor since SIZE <= MAX_READ_SIZE)
++		if data_ptr + SIZE - 1 < $slf.max_data_ptr {
++			// SAFETY:
++			// - cast: It's OK to cast to an unaligned `*const uXX` since we call read_unaligned()
++			// - ptr::read_unaligned: ptr is readable and data (u8 slice) is initialized
++			let result = $from_le(unsafe { ptr::read_unaligned(data_ptr as *const $mem_ty) }) as usize;
++			// - data_ptr + SIZE doesn't overflow (verified in ctor since SIZE <= MAX_READ_SIZE)
++			// - data_ptr + SIZE <= self.max_data_ptr (see `if` check above)
++			$slf.data_ptr = data_ptr + SIZE;
++			result
++		} else {
++			$slf.state.flags |= StateFlags::IS_INVALID | StateFlags::NO_MORE_BYTES;
++			0
+ 		}
+ 	};
+ }
+@@ -347,19 +351,34 @@ impl State {
+ #[allow(missing_debug_implementations)]
+ #[allow(dead_code)]
+ pub struct Decoder<'a> {
++	// Current RIP value
+ 	ip: u64,
+ 
+-	displ_index: usize,
+-	prefixes: &'static [u32],
++	// One of {&PREFIXES1632, &PREFIXES64} depending on bitness
++	prefixes: *const u32,
++	// Input data provided by the user. When there's no more bytes left to read we'll return a NoMoreBytes error
+ 	data: &'a [u8],
+-	data_ptr: *const u8,
++	// Next bytes to read if there's enough bytes left to read.
++	// This can be 1 byte past the last byte of `data`.
++	// Invariant: data.as_ptr() <= data_ptr <= max_data_ptr <= data.as_ptr() + data.len() == data_ptr_end
++	// Invariant: {data_ptr,max_data_ptr,data_ptr_end}.add(max(MAX_READ_SIZE, MAX_INSTRUCTION_LENGTH)) doesn't overflow
++	data_ptr: usize,
++	// This is `data.as_ptr() + data.len()` (1 byte past the last valid byte).
+ 	// This is guaranteed to be >= data_ptr (see the ctor), in other words, it can't overflow to 0
+-	data_ptr_end: *const u8,
+-	// Equals to cmp::min(self.data_ptr.add(IcedConstants::MAX_INSTRUCTION_LENGTH as isize), self.data_ptr_end)
++	// Invariant: data.as_ptr() <= data_ptr <= max_data_ptr <= data.as_ptr() + data.len() == data_ptr_end
++	// Invariant: {data_ptr,max_data_ptr,data_ptr_end}.add(max(MAX_READ_SIZE, MAX_INSTRUCTION_LENGTH)) doesn't overflow
++	data_ptr_end: usize,
++	// Set to cmp::min(self.data_ptr + IcedConstants::MAX_INSTRUCTION_LENGTH, self.data_ptr_end)
+ 	// and is guaranteed to not overflow
+-	max_data_ptr: *const u8,
+-	instr_start_data_ptr: *const u8,
+-	// These are verified to have exactly 0x100 elements, and they're static, so we don't need fat pointers.
++	// Initialized in decode() to at most 15 bytes after data_ptr so read_uXX() fails quickly after at most 15 read bytes
++	// (1MB prefixes won't cause it to read 1MB prefixes, it will stop after at most 15).
++	// Invariant: data.as_ptr() <= data_ptr <= max_data_ptr <= data.as_ptr() + data.len() == data_ptr_end
++	// Invariant: {data_ptr,max_data_ptr,data_ptr_end}.add(max(MAX_READ_SIZE, MAX_INSTRUCTION_LENGTH)) doesn't overflow
++	max_data_ptr: usize,
++	// Initialized to start of data (data_ptr) when decode() is called. Used to calculate current IP/offset (when decoding) if needed.
++	instr_start_data_ptr: usize,
++
++	// These are verified to have exactly 0x100 elements, and they're static, so we don't need fat pointers (slices).
+ 	handlers_xx: *const &'static OpCodeHandler,
+ 	#[cfg(not(feature = ""no_vex""))]
+ 	handlers_vex_0fxx: *const &'static OpCodeHandler,
+@@ -397,6 +416,7 @@ pub struct Decoder<'a> {
+ 	handlers_xop9: (),
+ 	#[cfg(feature = ""no_xop"")]
+ 	handlers_xopa: (),
++
+ 	state: State,
+ 	// DecoderOptions
+ 	options: u32,
+@@ -413,9 +433,13 @@ pub struct Decoder<'a> {
+ 	default_inverted_address_size: OpSize,
+ 	is64_mode: bool,
+ 	default_code_size: CodeSize,
++	// Offset of displacement in the instruction. Only used by get_constant_offsets() to return the offset of the displ
++	displ_index: u8,
+ }
+ 
+ impl<'a> Decoder<'a> {
++	const MAX_READ_SIZE: usize = 4;
++
+ 	/// Creates a decoder
+ 	///
+ 	/// # Panics
+@@ -728,16 +752,13 @@ impl<'a> Decoder<'a> {
+ 			debug_assert_eq!(handlers.len(), 0x100);
+ 			handlers.as_ptr()
+ 		}
+-		// SAFETY: creating a reference 1 byte past the last valid byte is safe as long as we don't dereference it
+-		let data_ptr_end: *const u8 = unsafe { data.get_unchecked(data.len()) };
+-		if data_ptr_end < data.as_ptr() || {
+-			// Verify that max_data_ptr can never overflow and that data_ptr.add(N) can't overflow
+-			if let Some(index) = data.len().checked_add(IcedConstants::MAX_INSTRUCTION_LENGTH + 4) {
+-				data.as_ptr().wrapping_add(index) < data.as_ptr()
+-			} else {
+-				// Fail
+-				true
+-			}
++		let data_ptr_end = data.as_ptr() as usize + data.len();
++		if data_ptr_end < data.as_ptr() as usize || {
++			// Verify that max_data_ptr can never overflow and that data_ptr.add(N) can't overflow.
++			// Both of them can equal data_ptr_end (1 byte past the last valid byte).
++			// When reading a u8/u16/u32..., we calculate data_ptr.add({1,2,4,...MAX_READ_SIZE}) so it must not overflow.
++			// In decode(), we calculate data_ptr.add(MAX_INSTRUCTION_LENGTH) so it must not overflow.
++			data_ptr_end.wrapping_add(cmp::max(IcedConstants::MAX_INSTRUCTION_LENGTH, Decoder::MAX_READ_SIZE)) < data.as_ptr() as usize
+ 		} {
+ 			return Err(IcedError::new(""Invalid slice""));
+ 		}
+@@ -782,15 +803,15 @@ impl<'a> Decoder<'a> {
+ 		#[cfg(feature = ""no_xop"")]
+ 		let handlers_xopa = ();
+ 
++		debug_assert_eq!(prefixes.len() * mem::size_of_val(&prefixes[0]) * 8, 256);
+ 		Ok(Decoder {
+ 			ip,
+-			displ_index: 0,
+-			prefixes,
++			prefixes: prefixes.as_ptr(),
+ 			data,
+-			data_ptr: data.as_ptr(),
++			data_ptr: data.as_ptr() as usize,
+ 			data_ptr_end,
+-			max_data_ptr: data.as_ptr(),
+-			instr_start_data_ptr: data.as_ptr(),
++			max_data_ptr: data.as_ptr() as usize,
++			instr_start_data_ptr: data.as_ptr() as usize,
+ 			handlers_xx: get_handlers(&tables.handlers_xx),
+ 			handlers_vex_0fxx,
+ 			handlers_vex_0f38xx,
+@@ -806,13 +827,14 @@ impl<'a> Decoder<'a> {
+ 			invalid_check_mask: if (options & DecoderOptions::NO_INVALID_CHECK) == 0 { u32::MAX } else { 0 },
+ 			is64_mode_and_w: if is64_mode { StateFlags::W } else { 0 },
+ 			reg15_mask: if is64_mode { 0xF } else { 0x7 },
+-			default_code_size,
++			bitness,
+ 			default_operand_size,
+-			default_inverted_operand_size,
+ 			default_address_size,
++			default_inverted_operand_size,
+ 			default_inverted_address_size,
+ 			is64_mode,
+-			bitness,
++			default_code_size,
++			displ_index: 0,
+ 		})
+ 	}
+ 
+@@ -866,7 +888,7 @@ impl<'a> Decoder<'a> {
+ 	#[must_use]
+ 	#[inline]
+ 	pub fn position(&self) -> usize {
+-		self.data_ptr as usize - self.data.as_ptr() as usize
++		self.data_ptr - self.data.as_ptr() as usize
+ 	}
+ 
+ 	/// Sets the current data position, which is the index into the data passed to the constructor.
+@@ -961,10 +983,9 @@ impl<'a> Decoder<'a> {
+ 		if new_pos > self.data.len() {
+ 			Err(IcedError::new(""Invalid position""))
+ 		} else {
+-			// SAFETY:
+ 			// - We verified the new offset above.
+ 			// - Referencing 1 byte past the last valid byte is safe as long as we don't dereference it.
+-			self.data_ptr = unsafe { self.data.get_unchecked(new_pos) };
++			self.data_ptr = self.data.as_ptr() as usize + new_pos;
+ 			Ok(())
+ 		}
+ 	}
+@@ -1200,7 +1221,8 @@ impl<'a> Decoder<'a> {
+ 		let data_ptr = self.data_ptr;
+ 		self.instr_start_data_ptr = data_ptr;
+ 		// The ctor has verified that the two expressions used in min() don't overflow and are >= data_ptr.
+-		self.max_data_ptr = cmp::min(data_ptr.add(IcedConstants::MAX_INSTRUCTION_LENGTH), self.data_ptr_end);
++		// The calculated usize is a valid pointer in `self.data` slice or at most 1 byte past the last valid byte.
++		self.max_data_ptr = cmp::min(data_ptr + IcedConstants::MAX_INSTRUCTION_LENGTH, self.data_ptr_end);
+ 
+ 		let mut default_ds_segment = Register::DS;
+ 		let mut rex_prefix: usize = 0;
+@@ -1208,7 +1230,7 @@ impl<'a> Decoder<'a> {
+ 		loop {
+ 			b = self.read_u8();
+ 			// SAFETY: `prefixes` is 256 bits in size (8 u32s) and `0<=b<=0xFF`, so this is safe
+-			if (((*self.prefixes.get_unchecked(b / 32)) >> (b & 31)) & 1) == 0 {
++			if (((*self.prefixes.add(b / 32)) >> (b & 31)) & 1) == 0 {
+ 				break;
+ 			}
+ 
+@@ -1329,11 +1351,12 @@ impl<'a> Decoder<'a> {
+ 
+ 				if (flags & StateFlags::NO_MORE_BYTES) != 0 {
+ 					debug_assert_eq!(data_ptr, self.instr_start_data_ptr);
+-					let max_len = self.data_ptr_end as usize - data_ptr as usize;
++					let max_len = self.data_ptr_end - data_ptr;
+ 					// If max-instr-len bytes is available, it's never no-more-bytes, and always invalid-instr
+ 					if max_len >= IcedConstants::MAX_INSTRUCTION_LENGTH {
+ 						flags &= !StateFlags::NO_MORE_BYTES;
+ 					}
++					// max_data_ptr is in self.data slice or at most 1 byte past the last valid byte
+ 					self.data_ptr = self.max_data_ptr;
+ 				}
+ 
+@@ -1353,16 +1376,16 @@ impl<'a> Decoder<'a> {
+ 	#[inline]
+ 	fn current_ip32(&self) -> u32 {
+ 		debug_assert!(self.instr_start_data_ptr <= self.data_ptr);
+-		debug_assert!(self.data_ptr as usize - self.instr_start_data_ptr as usize <= IcedConstants::MAX_INSTRUCTION_LENGTH);
+-		((self.data_ptr as usize - self.instr_start_data_ptr as usize) as u32).wrapping_add(self.ip as u32)
++		debug_assert!(self.data_ptr - self.instr_start_data_ptr <= IcedConstants::MAX_INSTRUCTION_LENGTH);
++		((self.data_ptr - self.instr_start_data_ptr) as u32).wrapping_add(self.ip as u32)
+ 	}
+ 
+ 	#[must_use]
+ 	#[inline]
+ 	fn current_ip64(&self) -> u64 {
+ 		debug_assert!(self.instr_start_data_ptr <= self.data_ptr);
+-		debug_assert!(self.data_ptr as usize - self.instr_start_data_ptr as usize <= IcedConstants::MAX_INSTRUCTION_LENGTH);
+-		((self.data_ptr as usize - self.instr_start_data_ptr as usize) as u64).wrapping_add(self.ip)
++		debug_assert!(self.data_ptr - self.instr_start_data_ptr <= IcedConstants::MAX_INSTRUCTION_LENGTH);
++		((self.data_ptr - self.instr_start_data_ptr) as u64).wrapping_add(self.ip)
+ 	}
+ 
+ 	// It's not possible to use 'as u32' on the left side in a match arm
+@@ -1807,7 +1830,7 @@ impl<'a> Decoder<'a> {
+ 			0 => {
+ 				if self.state.rm == 6 {
+ 					super::instruction_internal::internal_set_memory_displ_size(instruction, 2);
+-					self.displ_index = self.data_ptr as usize;
++					self.displ_index = self.data_ptr as u8;
+ 					super::instruction_internal::internal_set_memory_displacement64_lo(instruction, self.read_u16() as u32);
+ 					base_reg = Register::None;
+ 					debug_assert_eq!(index_reg, Register::None);
+@@ -1815,7 +1838,7 @@ impl<'a> Decoder<'a> {
+ 			}
+ 			1 => {
+ 				super::instruction_internal::internal_set_memory_displ_size(instruction, 1);
+-				self.displ_index = self.data_ptr as usize;
++				self.displ_index = self.data_ptr as u8;
+ 				let b = self.read_u8();
+ 				if tuple_type == TupleType::N1 {
+ 					super::instruction_internal::internal_set_memory_displacement64_lo(instruction, b as i8 as u16 as u32);
+@@ -1829,7 +1852,7 @@ impl<'a> Decoder<'a> {
+ 			_ => {
+ 				debug_assert_eq!(self.state.mod_, 2);
+ 				super::instruction_internal::internal_set_memory_displ_size(instruction, 2);
+-				self.displ_index = self.data_ptr as usize;
++				self.displ_index = self.data_ptr as u8;
+ 				super::instruction_internal::internal_set_memory_displacement64_lo(instruction, self.read_u16() as u32);
+ 			}
+ 		}
+@@ -1861,7 +1884,7 @@ impl<'a> Decoder<'a> {
+ 					displ = 0;
+ 				}
+ 				5 => {
+-					self.displ_index = self.data_ptr as usize;
++					self.displ_index = self.data_ptr as u8;
+ 					let d = self.read_u32();
+ 					if self.is64_mode {
+ 						self.state.flags |= StateFlags::IP_REL;
+@@ -1900,12 +1923,12 @@ impl<'a> Decoder<'a> {
+ 				if self.state.rm == 4 {
+ 					sib = b as u32;
+ 					displ_size_scale = 1;
+-					self.displ_index = self.data_ptr as usize;
++					self.displ_index = self.data_ptr as u8;
+ 					displ = self.read_u8() as i8 as u32;
+ 				} else {
+ 					debug_assert!(self.state.rm <= 7 && self.state.rm != 4);
+ 					super::instruction_internal::internal_set_memory_displ_size(instruction, 1);
+-					self.displ_index = self.data_ptr as usize - 1;
++					self.displ_index = self.data_ptr.wrapping_sub(1) as u8;
+ 					if self.state.address_size == OpSize::Size64 {
+ 						instruction.set_memory_displacement64(b as i8 as u64);
+ 						super::instruction_internal::internal_set_memory_base_u32(
+@@ -1927,11 +1950,11 @@ impl<'a> Decoder<'a> {
+ 				if self.state.rm == 4 {
+ 					sib = self.read_u8() as u32;
+ 					displ_size_scale = if self.state.address_size == OpSize::Size64 { 4 } else { 3 };
+-					self.displ_index = self.data_ptr as usize;
++					self.displ_index = self.data_ptr as u8;
+ 					displ = self.read_u32() as u32;
+ 				} else {
+ 					debug_assert!(self.state.rm <= 7 && self.state.rm != 4);
+-					self.displ_index = self.data_ptr as usize;
++					self.displ_index = self.data_ptr as u8;
+ 					let d = self.read_u32();
+ 					if self.state.address_size == OpSize::Size64 {
+ 						instruction.set_memory_displacement64(d as i32 as u64);
+@@ -1963,7 +1986,7 @@ impl<'a> Decoder<'a> {
+ 		}
+ 
+ 		if base == 5 && self.state.mod_ == 0 {
+-			self.displ_index = self.data_ptr as usize;
++			self.displ_index = self.data_ptr as u8;
+ 			let d = self.read_u32();
+ 			if self.state.address_size == OpSize::Size64 {
+ 				instruction.set_memory_displacement64(d as i32 as u64);
+@@ -2002,7 +2025,7 @@ impl<'a> Decoder<'a> {
+ 					displ = 0;
+ 				}
+ 				5 => {
+-					self.displ_index = self.data_ptr as usize;
++					self.displ_index = self.data_ptr as u8;
+ 					let d = self.read_u32();
+ 					if self.state.address_size == OpSize::Size64 {
+ 						instruction.set_memory_displacement64(d as i32 as u64);
+@@ -2035,7 +2058,7 @@ impl<'a> Decoder<'a> {
+ 				if self.state.rm == 4 {
+ 					sib = b as u32;
+ 					displ_size_scale = 1;
+-					self.displ_index = self.data_ptr as usize;
++					self.displ_index = self.data_ptr as u8;
+ 					let b = self.read_u8();
+ 					if tuple_type == TupleType::N1 {
+ 						displ = b as i8 as u32;
+@@ -2045,7 +2068,7 @@ impl<'a> Decoder<'a> {
+ 				} else {
+ 					debug_assert!(self.state.rm <= 7 && self.state.rm != 4);
+ 					super::instruction_internal::internal_set_memory_displ_size(instruction, 1);
+-					self.displ_index = self.data_ptr as usize - 1;
++					self.displ_index = self.data_ptr.wrapping_sub(1) as u8;
+ 					if self.state.address_size == OpSize::Size64 {
+ 						if tuple_type == TupleType::N1 {
+ 							instruction.set_memory_displacement64(b as i8 as u64);
+@@ -2074,11 +2097,11 @@ impl<'a> Decoder<'a> {
+ 				if self.state.rm == 4 {
+ 					sib = self.read_u8() as u32;
+ 					displ_size_scale = if self.state.address_size == OpSize::Size64 { 4 } else { 3 };
+-					self.displ_index = self.data_ptr as usize;
++					self.displ_index = self.data_ptr as u8;
+ 					displ = self.read_u32() as u32;
+ 				} else {
+ 					debug_assert!(self.state.rm <= 7 && self.state.rm != 4);
+-					self.displ_index = self.data_ptr as usize;
++					self.displ_index = self.data_ptr as u8;
+ 					let d = self.read_u32();
+ 					if self.state.address_size == OpSize::Size64 {
+ 						instruction.set_memory_displacement64(d as i32 as u64);
+@@ -2112,7 +2135,7 @@ impl<'a> Decoder<'a> {
+ 		}
+ 
+ 		if base == 5 && self.state.mod_ == 0 {
+-			self.displ_index = self.data_ptr as usize;
++			self.displ_index = self.data_ptr as u8;
+ 			let d = self.read_u32();
+ 			if self.state.address_size == OpSize::Size64 {
+ 				instruction.set_memory_displacement64(d as i32 as u64);
+@@ -2179,7 +2202,7 @@ impl<'a> Decoder<'a> {
+ 
+ 		let displ_size = instruction.memory_displ_size();
+ 		if displ_size != 0 {
+-			constant_offsets.displacement_offset = (self.displ_index - self.instr_start_data_ptr as usize) as u8;
++			constant_offsets.displacement_offset = self.displ_index.wrapping_sub(self.instr_start_data_ptr as u8);
+ 			if displ_size == 8 && (self.state.flags & StateFlags::ADDR64) == 0 {
+ 				constant_offsets.displacement_size = 4;
+ 			} else {
+@@ -2192,49 +2215,49 @@ impl<'a> Decoder<'a> {
+ 			for i in (0..instruction.op_count()).rev() {
+ 				match instruction.try_op_kind(i).unwrap_or(OpKind::Register) {
+ 					OpKind::Immediate8 | OpKind::Immediate8to16 | OpKind::Immediate8to32 | OpKind::Immediate8to64 => {
+-						constant_offsets.immediate_offset = (instruction.len() - extra_imm_sub - 1) as u8;
++						constant_offsets.immediate_offset = instruction.len().wrapping_sub(extra_imm_sub).wrapping_sub(1) as u8;
+ 						constant_offsets.immediate_size = 1;
+ 						break;
+ 					}
+ 
+ 					OpKind::Immediate16 => {
+-						constant_offsets.immediate_offset = (instruction.len() - extra_imm_sub - 2) as u8;
++						constant_offsets.immediate_offset = instruction.len().wrapping_sub(extra_imm_sub).wrapping_sub(2) as u8;
+ 						constant_offsets.immediate_size = 2;
+ 						break;
+ 					}
+ 
+ 					OpKind::Immediate32 | OpKind::Immediate32to64 => {
+-						constant_offsets.immediate_offset = (instruction.len() - extra_imm_sub - 4) as u8;
++						constant_offsets.immediate_offset = instruction.len().wrapping_sub(extra_imm_sub).wrapping_sub(4) as u8;
+ 						constant_offsets.immediate_size = 4;
+ 						break;
+ 					}
+ 
+ 					OpKind::Immediate64 => {
+-						constant_offsets.immediate_offset = (instruction.len() - extra_imm_sub - 8) as u8;
++						constant_offsets.immediate_offset = instruction.len().wrapping_sub(extra_imm_sub).wrapping_sub(8) as u8;
+ 						constant_offsets.immediate_size = 8;
+ 						break;
+ 					}
+ 
+ 					OpKind::Immediate8_2nd => {
+-						constant_offsets.immediate_offset2 = (instruction.len() - 1) as u8;
++						constant_offsets.immediate_offset2 = instruction.len().wrapping_sub(1) as u8;
+ 						constant_offsets.immediate_size2 = 1;
+ 						extra_imm_sub = 1;
+ 					}
+ 
+ 					OpKind::NearBranch16 => {
+ 						if (self.state.flags & StateFlags::BRANCH_IMM8) != 0 {
+-							constant_offsets.immediate_offset = (instruction.len() - 1) as u8;
++							constant_offsets.immediate_offset = instruction.len().wrapping_sub(1) as u8;
+ 							constant_offsets.immediate_size = 1;
+ 						} else if (self.state.flags & StateFlags::XBEGIN) == 0 {
+-							constant_offsets.immediate_offset = (instruction.len() - 2) as u8;
++							constant_offsets.immediate_offset = instruction.len().wrapping_sub(2) as u8;
+ 							constant_offsets.immediate_size = 2;
+ 						} else {
+ 							debug_assert!((self.state.flags & StateFlags::XBEGIN) != 0);
+ 							if self.state.operand_size != OpSize::Size16 {
+-								constant_offsets.immediate_offset = (instruction.len() - 4) as u8;
++								constant_offsets.immediate_offset = instruction.len().wrapping_sub(4) as u8;
+ 								constant_offsets.immediate_size = 4;
+ 							} else {
+-								constant_offsets.immediate_offset = (instruction.len() - 2) as u8;
++								constant_offsets.immediate_offset = instruction.len().wrapping_sub(2) as u8;
+ 								constant_offsets.immediate_size = 2;
+ 							}
+ 						}
+@@ -2242,34 +2265,34 @@ impl<'a> Decoder<'a> {
+ 
+ 					OpKind::NearBranch32 | OpKind::NearBranch64 => {
+ 						if (self.state.flags & StateFlags::BRANCH_IMM8) != 0 {
+-							constant_offsets.immediate_offset = (instruction.len() - 1) as u8;
++							constant_offsets.immediate_offset = instruction.len().wrapping_sub(1) as u8;
+ 							constant_offsets.immediate_size = 1;
+ 						} else if (self.state.flags & StateFlags::XBEGIN) == 0 {
+-							constant_offsets.immediate_offset = (instruction.len() - 4) as u8;
++							constant_offsets.immediate_offset = instruction.len().wrapping_sub(4) as u8;
+ 							constant_offsets.immediate_size = 4;
+ 						} else {
+ 							debug_assert!((self.state.flags & StateFlags::XBEGIN) != 0);
+ 							if self.state.operand_size != OpSize::Size16 {
+-								constant_offsets.immediate_offset = (instruction.len() - 4) as u8;
++								constant_offsets.immediate_offset = instruction.len().wrapping_sub(4) as u8;
+ 								constant_offsets.immediate_size = 4;
+ 							} else {
+-								constant_offsets.immediate_offset = (instruction.len() - 2) as u8;
++								constant_offsets.immediate_offset = instruction.len().wrapping_sub(2) as u8;
+ 								constant_offsets.immediate_size = 2;
+ 							}
+ 						}
+ 					}
+ 
+ 					OpKind::FarBranch16 => {
+-						constant_offsets.immediate_offset = (instruction.len() - (2 + 2)) as u8;
++						constant_offsets.immediate_offset = instruction.len().wrapping_sub(2 + 2) as u8;
+ 						constant_offsets.immediate_size = 2;
+-						constant_offsets.immediate_offset2 = (instruction.len() - 2) as u8;
++						constant_offsets.immediate_offset2 = instruction.len().wrapping_sub(2) as u8;
+ 						constant_offsets.immediate_size2 = 2;
+ 					}
+ 
+ 					OpKind::FarBranch32 => {
+-						constant_offsets.immediate_offset = (instruction.len() - (4 + 2)) as u8;
++						constant_offsets.immediate_offset = instruction.len().wrapping_sub(4 + 2) as u8;
+ 						constant_offsets.immediate_size = 4;
+-						constant_offsets.immediate_offset2 = (instruction.len() - 2) as u8;
++						constant_offsets.immediate_offset2 = instruction.len().wrapping_sub(2) as u8;
+ 						constant_offsets.immediate_size2 = 2;
+ 					}
+ 
+diff --git a/src/rust/iced-x86/src/decoder/handlers_legacy.rs b/src/rust/iced-x86/src/decoder/handlers_legacy.rs
+index 504ea7884..6bc65f353 100644
+--- a/src/rust/iced-x86/src/decoder/handlers_legacy.rs
++++ b/src/rust/iced-x86/src/decoder/handlers_legacy.rs
+@@ -4013,7 +4013,7 @@ impl OpCodeHandler_Reg_Ob {
+ 		const_assert_eq!(OpKind::Register as u32, 0);
+ 		//super::instruction_internal::internal_set_op0_kind(instruction, OpKind::Register);
+ 		super::instruction_internal::internal_set_op0_register(instruction, this.reg);
+-		decoder.displ_index = decoder.data_ptr as usize;
++		decoder.displ_index = decoder.data_ptr as u8;
+ 		if decoder.state.address_size == OpSize::Size64 {
+ 			super::instruction_internal::internal_set_memory_displ_size(instruction, 4);
+ 			decoder.state.flags |= StateFlags::ADDR64;
+@@ -4059,7 +4059,7 @@ impl OpCodeHandler_Ob_Reg {
+ 		let this = unsafe { &*(self_ptr as *const Self) };
+ 		debug_assert_eq!(decoder.state.encoding(), EncodingKind::Legacy);
+ 		super::instruction_internal::internal_set_code_u32(instruction, this.code);
+-		decoder.displ_index = decoder.data_ptr as usize;
++		decoder.displ_index = decoder.data_ptr as u8;
+ 		if decoder.state.address_size == OpSize::Size64 {
+ 			super::instruction_internal::internal_set_memory_displ_size(instruction, 4);
+ 			decoder.state.flags |= StateFlags::ADDR64;
+@@ -4108,7 +4108,7 @@ impl OpCodeHandler_Reg_Ov {
+ 	fn decode(self_ptr: *const OpCodeHandler, decoder: &mut Decoder<'_>, instruction: &mut Instruction) {
+ 		let this = unsafe { &*(self_ptr as *const Self) };
+ 		debug_assert_eq!(decoder.state.encoding(), EncodingKind::Legacy);
+-		decoder.displ_index = decoder.data_ptr as usize;
++		decoder.displ_index = decoder.data_ptr as u8;
+ 		if decoder.state.address_size == OpSize::Size64 {
+ 			super::instruction_internal::internal_set_memory_displ_size(instruction, 4);
+ 			decoder.state.flags |= StateFlags::ADDR64;
+@@ -4170,7 +4170,7 @@ impl OpCodeHandler_Ov_Reg {
+ 	fn decode(self_ptr: *const OpCodeHandler, decoder: &mut Decoder<'_>, instruction: &mut Instruction) {
+ 		let this = unsafe { &*(self_ptr as *const Self) };
+ 		debug_assert_eq!(decoder.state.encoding(), EncodingKind::Legacy);
+-		decoder.displ_index = decoder.data_ptr as usize;
++		decoder.displ_index = decoder.data_ptr as u8;
+ 		if decoder.state.address_size == OpSize::Size64 {
+ 			super::instruction_internal::internal_set_memory_displ_size(instruction, 4);
+ 			decoder.state.flags |= StateFlags::ADDR64;
+diff --git a/src/rust/iced-x86/src/encoder.rs b/src/rust/iced-x86/src/encoder.rs
+index 22ed8f13f..1ddab16c1 100644
+--- a/src/rust/iced-x86/src/encoder.rs
++++ b/src/rust/iced-x86/src/encoder.rs
+@@ -1092,6 +1092,11 @@ impl Encoder {
+ 		if seg != Register::None {
+ 			static SEGMENT_OVERRIDES: [u8; 6] = [0x26, 0x2E, 0x36, 0x3E, 0x64, 0x65];
+ 			debug_assert!((seg as usize).wrapping_sub(Register::ES as usize) < SEGMENT_OVERRIDES.len());
++			const_assert_eq!(Register::ES as u32 + 1, Register::CS as u32);
++			const_assert_eq!(Register::ES as u32 + 2, Register::SS as u32);
++			const_assert_eq!(Register::ES as u32 + 3, Register::DS as u32);
++			const_assert_eq!(Register::ES as u32 + 4, Register::FS as u32);
++			const_assert_eq!(Register::ES as u32 + 5, Register::GS as u32);
+ 			// SAFETY: there are exactly 6 segment registers, which equals SEGMENT_OVERRIDES.len().
+ 			// The segment reg enum values are consecutive: ES,CS,SS,DS,FS,GS
+ 			self.write_byte_internal(unsafe { *SEGMENT_OVERRIDES.get_unchecked((seg as usize).wrapping_sub(Register::ES as usize)) } as u32);"
+GHSA-gq4h-f254-7cw9,"From a986a9335d591fa5c826157d1674d47aa525357f Mon Sep 17 00:00:00 2001
+From: JOE1994 <joseph942010@gmail.com>
+Date: Sat, 23 Jan 2021 23:07:17 -0500
+Subject: [PATCH] 'T: Send' to prevent misuse
+
+---
+ src/lib.rs | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/lib.rs b/src/lib.rs
+index 2c600b7..f35c7f0 100644
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -50,7 +50,7 @@ pub struct ReadTicket<T> {
+     data: Arc<UnsafeCell<T>>,
+ }
+ 
+-unsafe impl<T> Send for ReadTicket<T> {}
++unsafe impl<T: Send> Send for ReadTicket<T> {}
+ 
+ #[cfg(not(feature = ""futures""))]
+ impl<T> ReadTicket<T> {
+@@ -112,7 +112,7 @@ pub struct WriteTicket<T> {
+     data: Arc<UnsafeCell<T>>,
+ }
+ 
+-unsafe impl<T> Send for WriteTicket<T> {}
++unsafe impl<T: Send> Send for WriteTicket<T> {}
+ 
+ #[cfg(not(feature = ""futures""))]
+ impl<T> WriteTicket<T> {"
+GHSA-qc36-q22q-cjw3,"From 8bfc20506cc5e098fe6eb3d1cafe3bea791215ce Mon Sep 17 00:00:00 2001
+From: Alexis Mousset <contact@amousset.me>
+Date: Sat, 22 May 2021 19:58:27 +0200
+Subject: [PATCH] fix(transport-smtp): Fix transparency codec - 0.9.x (#628)
+
+Co-authored-by: Paolo Barbolini <paolo@paolo565.org>
+---
+ lettre/src/smtp/client/mod.rs | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/lettre/src/smtp/client/mod.rs b/lettre/src/smtp/client/mod.rs
+index e91c1a9cb..0c88c3f24 100644
+--- a/lettre/src/smtp/client/mod.rs
++++ b/lettre/src/smtp/client/mod.rs
+@@ -51,7 +51,15 @@ impl ClientCodec {
+                     match self.escape_count {
+                         0 => self.escape_count = if *byte == b'\r' { 1 } else { 0 },
+                         1 => self.escape_count = if *byte == b'\n' { 2 } else { 0 },
+-                        2 => self.escape_count = if *byte == b'.' { 3 } else { 0 },
++                        2 => {
++                            self.escape_count = if *byte == b'.' {
++                                3
++                            } else if *byte == b'\r' {
++                                1
++                            } else {
++                                0
++                            }
++                        }
+                         _ => unreachable!(),
+                     }
+                     if self.escape_count == 3 {
+@@ -286,6 +294,7 @@ mod test {
+         let mut buf: Vec<u8> = vec![];
+ 
+         assert!(codec.encode(b""test\r\n"", &mut buf).is_ok());
++        assert!(codec.encode(b""test\r\n\r\n"", &mut buf).is_ok());
+         assert!(codec.encode(b"".\r\n"", &mut buf).is_ok());
+         assert!(codec.encode(b""\r\ntest"", &mut buf).is_ok());
+         assert!(codec.encode(b""te\r\n.\r\nst"", &mut buf).is_ok());
+@@ -296,7 +305,7 @@ mod test {
+         assert!(codec.encode(b""test"", &mut buf).is_ok());
+         assert_eq!(
+             String::from_utf8(buf).unwrap(),
+-            ""test\r\n..\r\n\r\ntestte\r\n..\r\nsttesttest.test\n.test\ntest""
++            ""test\r\ntest\r\n\r\n..\r\n\r\ntestte\r\n..\r\nsttesttest.test\n.test\ntest""
+         );
+     }"
+GHSA-83gg-pwxf-jr89,"From 01940637dd8f3bfeeee3faf9639fa9ae52f19f4d Mon Sep 17 00:00:00 2001
+From: Konrad Borowski <konrad@borowski.pw>
+Date: Thu, 7 May 2020 18:33:20 +0200
+Subject: [PATCH] Always call methods on references in a macro
+
+The macro scope cannot be trusted to not contain trait implementations
+which try to break this crate. To avoid this, explicitly reference
+variables on which methods are called.
+---
+ src/lib.rs    |  6 +++---
+ tests/test.rs | 13 +++++++++++++
+ 2 files changed, 16 insertions(+), 3 deletions(-)
+
+diff --git a/src/lib.rs b/src/lib.rs
+index 84be9b3..b3bfdd2 100644
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -79,7 +79,7 @@ macro_rules! array {
+         #[allow(unsafe_code)]
+         fn create_arr<T>(mut callback: impl FnMut(usize) -> T) -> [T; COUNT] {
+             let mut arr = $crate::__core::mem::MaybeUninit::uninit();
+-            let mut vec = $crate::__ArrayVec::<T>::new(arr.as_mut_ptr() as *mut T);
++            let mut vec = $crate::__ArrayVec::<T>::new((&mut arr).as_mut_ptr() as *mut T);
+             unsafe {
+                 // Loop invariant: vec[..vec.length] is valid
+                 for i in 0..COUNT {
+@@ -90,8 +90,8 @@ macro_rules! array {
+                     //
+                     // The value is set before writing the value to avoid need to perform
+                     // addition by 1.
+-                    *vec.length() = i;
+-                    $crate::__core::ptr::write(vec.start().add(i), callback(i));
++                    *(&mut vec).length() = i;
++                    $crate::__core::ptr::write((&vec).start().add(i), callback(i));
+                 }
+                 // Loop escaped without panicking, avoid dropping elements.
+                 $crate::__core::mem::forget(vec);
+diff --git a/tests/test.rs b/tests/test.rs
+index 38187a0..01fbed5 100644
+--- a/tests/test.rs
++++ b/tests/test.rs
+@@ -108,3 +108,16 @@ fn array_of_void_panic_safety() {
+     }
+     internal(|| -> ! { panic!() });
+ }
++
++#[test]
++fn malicious_length() {
++    trait Evil {
++        fn length(&self) -> *mut usize;
++    }
++    impl<T> Evil for T {
++        fn length(&self) -> *mut usize {
++            42 as *mut usize
++        }
++    }
++    assert_eq!(array![1; 3], [1, 1, 1]);
++}"
+GHSA-qrjv-rf5q-qpxc,"From cbf6e9983e839d2ecad86de8cd1b3f20ed43390b Mon Sep 17 00:00:00 2001
+From: Vitaly _Vi Shukela <vi0oss@gmail.com>
+Date: Sun, 24 Jul 2022 01:50:07 +0200
+Subject: [PATCH] Implement dataframe and message size limits
+
+---
+ src/receiver.rs                 | 45 +++++++++++++++++++++++++++++++--
+ websocket-base/src/dataframe.rs | 19 ++++++++++++++
+ 2 files changed, 62 insertions(+), 2 deletions(-)
+
+diff --git a/src/receiver.rs b/src/receiver.rs
+index f74153c69b..9ab5593281 100644
+--- a/src/receiver.rs
++++ b/src/receiver.rs
+@@ -14,6 +14,10 @@ use crate::ws;
+ use crate::ws::receiver::Receiver as ReceiverTrait;
+ use crate::ws::receiver::{DataFrameIterator, MessageIterator};
+ 
++const DEFAULT_MAX_DATAFRAME_SIZE : usize = 1024*1024*100;
++const DEFAULT_MAX_MESSAGE_SIZE : usize = 1024*1024*200;
++const MAX_DATAFRAMES_IN_ONE_MESSAGE: usize = 1024*1024;
++
+ /// This reader bundles an existing stream with a parsing algorithm.
+ /// It is used by the client in its `.split()` function as the reading component.
+ pub struct Reader<R>
+@@ -74,14 +78,33 @@ where
+ pub struct Receiver {
+ 	buffer: Vec<DataFrame>,
+ 	mask: bool,
++	// u32s instead uf usizes to economize used memory by this struct
++	max_dataframe_size: u32,
++	max_message_size: u32,
+ }
+ 
+ impl Receiver {
+ 	/// Create a new Receiver using the specified Reader.
++	/// 
++	/// Uses built-in limits for dataframe and message sizes. 
+ 	pub fn new(mask: bool) -> Receiver {
++		Receiver::new_with_limits(mask, DEFAULT_MAX_DATAFRAME_SIZE, DEFAULT_MAX_MESSAGE_SIZE)
++	}
++
++	/// Create a new Receiver using the specified Reader, with configurable limits
++	/// 
++	/// Sizes should not be larger than `u32::MAX`.
++	/// 
++	/// Note that `max_message_size` denotes message size where no new dataframes would be read,
++	/// so actual maximum message size is larger.
++	pub fn new_with_limits(mask: bool, max_dataframe_size: usize, max_message_size: usize) -> Receiver {
++		let max_dataframe_size: u32 = max_dataframe_size.min(u32::MAX as usize) as u32;
++		let max_message_size: u32 = max_message_size.min(u32::MAX as usize) as u32;
+ 		Receiver {
+ 			buffer: Vec::new(),
+ 			mask,
++			max_dataframe_size,
++			max_message_size,
+ 		}
+ 	}
+ }
+@@ -96,7 +119,7 @@ impl ws::Receiver for Receiver {
+ 	where
+ 		R: Read,
+ 	{
+-		DataFrame::read_dataframe(reader, self.mask)
++		DataFrame::read_dataframe_with_limit(reader, self.mask, self.max_dataframe_size as usize)
+ 	}
+ 
+ 	/// Returns the data frames that constitute one message.
+@@ -104,6 +127,7 @@ impl ws::Receiver for Receiver {
+ 	where
+ 		R: Read,
+ 	{
++		let mut current_message_length : usize = self.buffer.iter().map(|x|x.data.len()).sum();
+ 		let mut finished = if self.buffer.is_empty() {
+ 			let first = self.recv_dataframe(reader)?;
+ 
+@@ -114,6 +138,7 @@ impl ws::Receiver for Receiver {
+ 			}
+ 
+ 			let finished = first.finished;
++			current_message_length += first.data.len();
+ 			self.buffer.push(first);
+ 			finished
+ 		} else {
+@@ -126,7 +151,10 @@ impl ws::Receiver for Receiver {
+ 
+ 			match next.opcode as u8 {
+ 				// Continuation opcode
+-				0 => self.buffer.push(next),
++				0 => {
++					current_message_length += next.data.len();
++					self.buffer.push(next)
++				}
+ 				// Control frame
+ 				8..=15 => {
+ 					return Ok(vec![next]);
+@@ -138,6 +166,19 @@ impl ws::Receiver for Receiver {
+ 					));
+ 				}
+ 			}
++
++			if !finished {
++				if self.buffer.len() >= MAX_DATAFRAMES_IN_ONE_MESSAGE {
++					return Err(WebSocketError::ProtocolError(
++						""Exceeded count of data frames in one WebSocket message"",
++					));
++				}
++				if current_message_length >= self.max_message_size as usize {
++					return Err(WebSocketError::ProtocolError(
++						""Exceeded maximum WebSocket message size"",
++					));
++				}
++			}
+ 		}
+ 
+ 		Ok(::std::mem::replace(&mut self.buffer, Vec::new()))
+diff --git a/websocket-base/src/dataframe.rs b/websocket-base/src/dataframe.rs
+index c25221c922..eb3d2e4643 100644
+--- a/websocket-base/src/dataframe.rs
++++ b/websocket-base/src/dataframe.rs
+@@ -96,6 +96,25 @@ impl DataFrame {
+ 
+ 		DataFrame::read_dataframe_body(header, data, should_be_masked)
+ 	}
++
++	/// Reads a DataFrame from a Reader, or error out if header declares exceeding limit you specify
++	pub fn read_dataframe_with_limit<R>(reader: &mut R, should_be_masked: bool, limit: usize) -> WebSocketResult<Self>
++	where
++		R: Read,
++	{
++		let header = dfh::read_header(reader)?;
++
++		if header.len > limit as u64 {
++			return Err(io::Error::new(io::ErrorKind::InvalidData, ""exceeded DataFrame length limit"").into());
++		}
++		let mut data: Vec<u8> = Vec::with_capacity(header.len as usize);
++		let read = reader.take(header.len).read_to_end(&mut data)?;
++		if (read as u64) < header.len {
++			return Err(io::Error::new(io::ErrorKind::UnexpectedEof, ""incomplete payload"").into());
++		}
++
++		DataFrame::read_dataframe_body(header, data, should_be_masked)
++	}
+ }
+ 
+ impl DataFrameable for DataFrame {"
+CVE-2022-21658,"From 32ed6e599bb4722efefd78bbc9cd7ec4613cb946 Mon Sep 17 00:00:00 2001
+From: Hans Kratz <hans@appfour.com>
+Date: Mon, 17 Jan 2022 09:45:46 +0100
+Subject: [PATCH] Fix CVE-2022-21658 for UNIX-like
+
+---
+ library/std/src/fs/tests.rs      |  70 ++++++++
+ library/std/src/sys/unix/fs.rs   | 279 +++++++++++++++++++++++++++++--
+ library/std/src/sys/unix/weak.rs |   5 +-
+ 3 files changed, 342 insertions(+), 12 deletions(-)
+
+diff --git a/library/std/src/fs/tests.rs b/library/std/src/fs/tests.rs
+index 9a8f1e44f1f1..4d1959258beb 100644
+--- a/library/std/src/fs/tests.rs
++++ b/library/std/src/fs/tests.rs
+@@ -4,8 +4,10 @@ use crate::fs::{self, File, OpenOptions};
+ use crate::io::{ErrorKind, SeekFrom};
+ use crate::path::Path;
+ use crate::str;
++use crate::sync::Arc;
+ use crate::sys_common::io::test::{tmpdir, TempDir};
+ use crate::thread;
++use crate::time::{Duration, Instant};
+ 
+ use rand::{rngs::StdRng, RngCore, SeedableRng};
+ 
+@@ -602,6 +604,21 @@ fn recursive_rmdir_of_symlink() {
+     assert!(canary.exists());
+ }
+ 
++#[test]
++fn recursive_rmdir_of_file_fails() {
++    // test we do not delete a directly specified file.
++    let tmpdir = tmpdir();
++    let canary = tmpdir.join(""do_not_delete"");
++    check!(check!(File::create(&canary)).write(b""foo""));
++    let result = fs::remove_dir_all(&canary);
++    #[cfg(unix)]
++    error!(result, ""Not a directory"");
++    #[cfg(windows)]
++    error!(result, 267); // ERROR_DIRECTORY - The directory name is invalid.
++    assert!(result.is_err());
++    assert!(canary.exists());
++}
++
+ #[test]
+ // only Windows makes a distinction between file and directory symlinks.
+ #[cfg(windows)]
+@@ -621,6 +638,59 @@ fn recursive_rmdir_of_file_symlink() {
+     }
+ }
+ 
++#[test]
++#[ignore] // takes too much time
++fn recursive_rmdir_toctou() {
++    // Test for time-of-check to time-of-use issues.
++    //
++    // Scenario:
++    // The attacker wants to get directory contents deleted, to which he does not have access.
++    // He has a way to get a privileged Rust binary call `std::fs::remove_dir_all()` on a
++    // directory he controls, e.g. in his home directory.
++    //
++    // The POC sets up the `attack_dest/attack_file` which the attacker wants to have deleted.
++    // The attacker repeatedly creates a directory and replaces it with a symlink from
++    // `victim_del` to `attack_dest` while the victim code calls `std::fs::remove_dir_all()`
++    // on `victim_del`. After a few seconds the attack has succeeded and
++    // `attack_dest/attack_file` is deleted.
++    let tmpdir = tmpdir();
++    let victim_del_path = tmpdir.join(""victim_del"");
++    let victim_del_path_clone = victim_del_path.clone();
++
++    // setup dest
++    let attack_dest_dir = tmpdir.join(""attack_dest"");
++    let attack_dest_dir = attack_dest_dir.as_path();
++    fs::create_dir(attack_dest_dir).unwrap();
++    let attack_dest_file = tmpdir.join(""attack_dest/attack_file"");
++    File::create(&attack_dest_file).unwrap();
++
++    let drop_canary_arc = Arc::new(());
++    let drop_canary_weak = Arc::downgrade(&drop_canary_arc);
++
++    eprintln!(""x: {:?}"", &victim_del_path);
++
++    // victim just continuously removes `victim_del`
++    thread::spawn(move || {
++        while drop_canary_weak.upgrade().is_some() {
++            let _ = fs::remove_dir_all(&victim_del_path_clone);
++        }
++    });
++
++    // attacker (could of course be in a separate process)
++    let start_time = Instant::now();
++    while Instant::now().duration_since(start_time) < Duration::from_secs(1000) {
++        if !attack_dest_file.exists() {
++            panic!(
++                ""Victim deleted symlinked file outside of victim_del. Attack succeeded in {:?}."",
++                Instant::now().duration_since(start_time)
++            );
++        }
++        let _ = fs::create_dir(&victim_del_path);
++        let _ = fs::remove_dir(&victim_del_path);
++        let _ = symlink_dir(attack_dest_dir, &victim_del_path);
++    }
++}
++
+ #[test]
+ fn unicode_path_is_dir() {
+     assert!(Path::new(""."").is_dir());
+diff --git a/library/std/src/sys/unix/fs.rs b/library/std/src/sys/unix/fs.rs
+index a4fff9b2e647..a150d1a9aacc 100644
+--- a/library/std/src/sys/unix/fs.rs
++++ b/library/std/src/sys/unix/fs.rs
+@@ -64,7 +64,7 @@ use libc::{
+     dirent64, fstat64, ftruncate64, lseek64, lstat64, off64_t, open64, readdir64_r, stat64,
+ };
+ 
+-pub use crate::sys_common::fs::{remove_dir_all, try_exists};
++pub use crate::sys_common::fs::try_exists;
+ 
+ pub struct File(FileDesc);
+ 
+@@ -228,7 +228,7 @@ pub struct DirEntry {
+         target_os = ""fuchsia"",
+         target_os = ""redox""
+     ))]
+-    name: Box<[u8]>,
++    name: CString,
+ }
+ 
+ #[derive(Clone, Debug)]
+@@ -455,8 +455,6 @@ impl Iterator for ReadDir {
+         target_os = ""illumos""
+     ))]
+     fn next(&mut self) -> Option<io::Result<DirEntry>> {
+-        use crate::slice;
+-
+         unsafe {
+             loop {
+                 // Although readdir_r(3) would be a correct function to use here because
+@@ -474,14 +472,10 @@ impl Iterator for ReadDir {
+                     };
+                 }
+ 
+-                let name = (*entry_ptr).d_name.as_ptr();
+-                let namelen = libc::strlen(name) as usize;
+-
+                 let ret = DirEntry {
+                     entry: *entry_ptr,
+-                    name: slice::from_raw_parts(name as *const u8, namelen as usize)
+-                        .to_owned()
+-                        .into_boxed_slice(),
++                    // d_name is guaranteed to be null-terminated.
++                    name: CStr::from_ptr((*entry_ptr).d_name.as_ptr()).to_owned(),
+                     dir: Arc::clone(&self.inner),
+                 };
+                 if ret.name_bytes() != b""."" && ret.name_bytes() != b"".."" {
+@@ -664,7 +658,26 @@ impl DirEntry {
+         target_os = ""redox""
+     ))]
+     fn name_bytes(&self) -> &[u8] {
+-        &*self.name
++        self.name.as_bytes()
++    }
++
++    #[cfg(not(any(
++        target_os = ""solaris"",
++        target_os = ""illumos"",
++        target_os = ""fuchsia"",
++        target_os = ""redox""
++    )))]
++    fn name_cstr(&self) -> &CStr {
++        unsafe { CStr::from_ptr(self.entry.d_name.as_ptr()) }
++    }
++    #[cfg(any(
++        target_os = ""solaris"",
++        target_os = ""illumos"",
++        target_os = ""fuchsia"",
++        target_os = ""redox""
++    ))]
++    fn name_cstr(&self) -> &CStr {
++        &self.name
+     }
+ 
+     pub fn file_name_os_str(&self) -> &OsStr {
+@@ -1439,3 +1452,247 @@ pub fn chroot(dir: &Path) -> io::Result<()> {
+     cvt(unsafe { libc::chroot(dir.as_ptr()) })?;
+     Ok(())
+ }
++
++pub use remove_dir_impl::remove_dir_all;
++
++// Fallback for REDOX
++#[cfg(target_os = ""redox"")]
++mod remove_dir_impl {
++    pub use crate::sys_common::fs::remove_dir_all;
++}
++
++// Dynamically choose implementation Macos x86-64: modern for 10.10+, fallback for older versions
++#[cfg(all(target_os = ""macos"", target_arch = ""x86_64""))]
++mod remove_dir_impl {
++    use super::{cstr, lstat, Dir, InnerReadDir, ReadDir};
++    use crate::ffi::CStr;
++    use crate::io;
++    use crate::os::unix::io::{AsRawFd, FromRawFd, IntoRawFd};
++    use crate::os::unix::prelude::{OwnedFd, RawFd};
++    use crate::path::{Path, PathBuf};
++    use crate::sync::Arc;
++    use crate::sys::weak::weak;
++    use crate::sys::{cvt, cvt_r};
++    use libc::{c_char, c_int, DIR};
++
++    pub fn openat_nofollow_dironly(parent_fd: Option<RawFd>, p: &CStr) -> io::Result<OwnedFd> {
++        weak!(fn openat(c_int, *const c_char, c_int) -> c_int);
++        let fd = cvt_r(|| unsafe {
++            openat.get().unwrap()(
++                parent_fd.unwrap_or(libc::AT_FDCWD),
++                p.as_ptr(),
++                libc::O_CLOEXEC | libc::O_RDONLY | libc::O_NOFOLLOW | libc::O_DIRECTORY,
++            )
++        })?;
++        Ok(unsafe { OwnedFd::from_raw_fd(fd) })
++    }
++
++    fn fdreaddir(dir_fd: OwnedFd) -> io::Result<(ReadDir, RawFd)> {
++        weak!(fn fdopendir(c_int) -> *mut DIR, ""fdopendir$INODE64"");
++        let ptr = unsafe { fdopendir.get().unwrap()(dir_fd.as_raw_fd()) };
++        if ptr.is_null() {
++            return Err(io::Error::last_os_error());
++        }
++        let dirp = Dir(ptr);
++        // file descriptor is automatically closed by libc::closedir() now, so give up ownership
++        let new_parent_fd = dir_fd.into_raw_fd();
++        // a valid root is not needed because we do not call any functions involving the full path
++        // of the DirEntrys.
++        let dummy_root = PathBuf::new();
++        Ok((
++            ReadDir {
++                inner: Arc::new(InnerReadDir { dirp, root: dummy_root }),
++                end_of_stream: false,
++            },
++            new_parent_fd,
++        ))
++    }
++
++    fn remove_dir_all_recursive(parent_fd: Option<RawFd>, p: &Path) -> io::Result<()> {
++        weak!(fn unlinkat(c_int, *const c_char, c_int) -> c_int);
++
++        let pcstr = cstr(p)?;
++
++        // entry is expected to be a directory, open as such
++        let fd = openat_nofollow_dironly(parent_fd, &pcstr)?;
++
++        // open the directory passing ownership of the fd
++        let (dir, fd) = fdreaddir(fd)?;
++        for child in dir {
++            let child = child?;
++            match child.entry.d_type {
++                libc::DT_DIR => {
++                    remove_dir_all_recursive(Some(fd), Path::new(&child.file_name()))?;
++                }
++                libc::DT_UNKNOWN => {
++                    match cvt(unsafe { unlinkat.get().unwrap()(fd, child.name_cstr().as_ptr(), 0) })
++                    {
++                        // type unknown - try to unlink
++                        Err(err) if err.raw_os_error() == Some(libc::EPERM) => {
++                            // if the file is a directory unlink fails with EPERM
++                            remove_dir_all_recursive(Some(fd), Path::new(&child.file_name()))?;
++                        }
++                        result => {
++                            result?;
++                        }
++                    }
++                }
++                _ => {
++                    // not a directory -> unlink
++                    cvt(unsafe { unlinkat.get().unwrap()(fd, child.name_cstr().as_ptr(), 0) })?;
++                }
++            }
++        }
++
++        // unlink the directory after removing its contents
++        cvt(unsafe {
++            unlinkat.get().unwrap()(
++                parent_fd.unwrap_or(libc::AT_FDCWD),
++                pcstr.as_ptr(),
++                libc::AT_REMOVEDIR,
++            )
++        })?;
++        Ok(())
++    }
++
++    fn remove_dir_all_modern(p: &Path) -> io::Result<()> {
++        // We cannot just call remove_dir_all_recursive() here because that would not delete a passed
++        // symlink. No need to worry about races, because remove_dir_all_recursive() does not recurse
++        // into symlinks.
++        let attr = lstat(p)?;
++        if attr.file_type().is_symlink() {
++            crate::fs::remove_file(p)
++        } else {
++            remove_dir_all_recursive(None, p)
++        }
++    }
++
++    pub fn remove_dir_all(p: &Path) -> io::Result<()> {
++        weak!(fn openat(c_int, *const c_char, c_int) -> c_int);
++        if openat.get().is_some() {
++            // openat() is available with macOS 10.10+, just like unlinkat() and fdopendir()
++            remove_dir_all_modern(p)
++        } else {
++            // fall back to classic implementation
++            crate::sys_common::fs::remove_dir_all(p)
++        }
++    }
++}
++
++// Modern implementation using openat(), unlinkat() and fdopendir()
++#[cfg(not(any(all(target_os = ""macos"", target_arch = ""x86_64""), target_os = ""redox"")))]
++mod remove_dir_impl {
++    use super::{cstr, lstat, Dir, InnerReadDir, ReadDir};
++    use crate::ffi::CStr;
++    use crate::io;
++    use crate::os::unix::io::{AsRawFd, FromRawFd, IntoRawFd};
++    use crate::os::unix::prelude::{OwnedFd, RawFd};
++    use crate::path::{Path, PathBuf};
++    use crate::sync::Arc;
++    use crate::sys::{cvt, cvt_r};
++    use libc::{fdopendir, openat, unlinkat};
++
++    pub fn openat_nofollow_dironly(parent_fd: Option<RawFd>, p: &CStr) -> io::Result<OwnedFd> {
++        let fd = cvt_r(|| unsafe {
++            openat(
++                parent_fd.unwrap_or(libc::AT_FDCWD),
++                p.as_ptr(),
++                libc::O_CLOEXEC | libc::O_RDONLY | libc::O_NOFOLLOW | libc::O_DIRECTORY,
++            )
++        })?;
++        Ok(unsafe { OwnedFd::from_raw_fd(fd) })
++    }
++
++    fn fdreaddir(dir_fd: OwnedFd) -> io::Result<(ReadDir, RawFd)> {
++        let ptr = unsafe { fdopendir(dir_fd.as_raw_fd()) };
++        if ptr.is_null() {
++            return Err(io::Error::last_os_error());
++        }
++        let dirp = Dir(ptr);
++        // file descriptor is automatically closed by libc::closedir() now, so give up ownership
++        let new_parent_fd = dir_fd.into_raw_fd();
++        // a valid root is not needed because we do not call any functions involving the full path
++        // of the DirEntrys.
++        let dummy_root = PathBuf::new();
++        Ok((
++            ReadDir {
++                inner: Arc::new(InnerReadDir { dirp, root: dummy_root }),
++                #[cfg(not(any(
++                    target_os = ""solaris"",
++                    target_os = ""illumos"",
++                    target_os = ""fuchsia"",
++                    target_os = ""redox"",
++                )))]
++                end_of_stream: false,
++            },
++            new_parent_fd,
++        ))
++    }
++
++    fn remove_dir_all_recursive(parent_fd: Option<RawFd>, p: &Path) -> io::Result<()> {
++        let pcstr = cstr(p)?;
++
++        // entry is expected to be a directory, open as such
++        let fd = openat_nofollow_dironly(parent_fd, &pcstr)?;
++
++        // open the directory passing ownership of the fd
++        let (dir, fd) = fdreaddir(fd)?;
++        for child in dir {
++            let child = child?;
++            let child_is_dir = if cfg!(any(
++                target_os = ""solaris"",
++                target_os = ""illumos"",
++                target_os = ""haiku"",
++                target_os = ""vxworks""
++            )) {
++                // no d_type in dirent
++                None
++            } else {
++                match child.entry.d_type {
++                    libc::DT_UNKNOWN => None,
++                    libc::DT_DIR => Some(true),
++                    _ => Some(false),
++                }
++            };
++            match child_is_dir {
++                Some(true) => {
++                    remove_dir_all_recursive(Some(fd), Path::new(&child.file_name()))?;
++                }
++                Some(false) => {
++                    cvt(unsafe { unlinkat(fd, child.name_cstr().as_ptr(), 0) })?;
++                }
++                None => match cvt(unsafe { unlinkat(fd, child.name_cstr().as_ptr(), 0) }) {
++                    // type unknown - try to unlink
++                    Err(err)
++                        if err.raw_os_error() == Some(libc::EISDIR)
++                            || err.raw_os_error() == Some(libc::EPERM) =>
++                    {
++                        // if the file is a directory unlink fails with EISDIR on Linux and EPERM everyhwere else
++                        remove_dir_all_recursive(Some(fd), Path::new(&child.file_name()))?;
++                    }
++                    result => {
++                        result?;
++                    }
++                },
++            }
++        }
++
++        // unlink the directory after removing its contents
++        cvt(unsafe {
++            unlinkat(parent_fd.unwrap_or(libc::AT_FDCWD), pcstr.as_ptr(), libc::AT_REMOVEDIR)
++        })?;
++        Ok(())
++    }
++
++    pub fn remove_dir_all(p: &Path) -> io::Result<()> {
++        // We cannot just call remove_dir_all_recursive() here because that would not delete a passed
++        // symlink. No need to worry about races, because remove_dir_all_recursive() does not recurse
++        // into symlinks.
++        let attr = lstat(p)?;
++        if attr.file_type().is_symlink() {
++            crate::fs::remove_file(p)
++        } else {
++            remove_dir_all_recursive(None, p)
++        }
++    }
++}
+diff --git a/library/std/src/sys/unix/weak.rs b/library/std/src/sys/unix/weak.rs
+index ba432ec54941..83ff78fa7a21 100644
+--- a/library/std/src/sys/unix/weak.rs
++++ b/library/std/src/sys/unix/weak.rs
+@@ -28,9 +28,12 @@ use crate::sync::atomic::{self, AtomicUsize, Ordering};
+ 
+ pub(crate) macro weak {
+     (fn $name:ident($($t:ty),*) -> $ret:ty) => (
++        weak!(fn $name($($t),*) -> $ret, stringify!($name));
++    ),
++    (fn $name:ident($($t:ty),*) -> $ret:ty, $sym:expr) => (
+         #[allow(non_upper_case_globals)]
+         static $name: crate::sys::weak::Weak<unsafe extern ""C"" fn($($t),*) -> $ret> =
+-            crate::sys::weak::Weak::new(concat!(stringify!($name), '\0'));
++            crate::sys::weak::Weak::new(concat!($sym, '\0'));
+     )
+ }"
+GHSA-p4jg-pccf-h82c,"From e661a4940df78fbb7b52c622ac4ae6a3a7f7d8aa Mon Sep 17 00:00:00 2001
+From: Shinyzenith <aakashsensharma@gmail.com>
+Date: Fri, 25 Mar 2022 20:55:28 +0530
+Subject: [PATCH] [patch] CVE-2022-27815
+
+---
+ Makefile      | 3 +++
+ src/daemon.rs | 5 +++--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index d77329d..74e7d22 100644
+--- a/Makefile
++++ b/Makefile
+@@ -21,6 +21,9 @@ install:
+ 	@mkdir -p $(TARGET_DIR)
+ 	@mkdir -p $(POLKIT_DIR)
+ 	@mkdir -p /etc/$(DAEMON_BINARY)
++	@mkdir -p /etc/$(DAEMON_BINARY)/runtime
++	@sudo chown root:root /etc/$(DAEMON_BINARY)/runtime
++	@sudo chmod 700 /etc/$(DAEMON_BINARY)/runtime
+ 	@touch /etc/$(DAEMON_BINARY)/$(DAEMON_BINARY)rc
+ 	@cp ./bin/$(DAEMON_BINARY) $(TARGET_DIR)
+ 	@cp ./bin/$(SERVER_BINARY) $(TARGET_DIR)
+diff --git a/src/daemon.rs b/src/daemon.rs
+index 6b1d07d..ff396c0 100644
+--- a/src/daemon.rs
++++ b/src/daemon.rs
+@@ -39,6 +39,7 @@ impl KeyboardState {
+ #[tokio::main]
+ async fn main() -> Result<(), Box<dyn std::error::Error>> {
+     let args = set_command_line_args().get_matches();
++    let invoking_uid = env::var(""PKEXEC_UID"").unwrap().parse::<u32>().unwrap();
+     env::set_var(""RUST_LOG"", ""swhkd=warn"");
+ 
+     if args.is_present(""debug"") {
+@@ -48,7 +49,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
+     env_logger::init();
+     log::trace!(""Logger initialized."");
+ 
+-    let pidfile: String = String::from(""/tmp/swhkd.pid"");
++    let pidfile: String = String::from(format!(""/etc/swhkd/runtime/swhkd_{}.pid"", invoking_uid));
+     if Path::new(&pidfile).exists() {
+         log::trace!(""Reading {} file and checking for running instances."", pidfile);
+         let swhkd_pid = match fs::read_to_string(&pidfile) {
+@@ -85,7 +86,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
+     }
+ 
+     let load_config = || {
+-        seteuid(env::var(""PKEXEC_UID"").unwrap().parse::<u32>().unwrap()); // Dropping privileges to invoking user.
++        seteuid(invoking_uid); // Dropping privileges to invoking user.
+         let config_file_path: std::path::PathBuf = if args.is_present(""config"") {
+             Path::new(args.value_of(""config"").unwrap()).to_path_buf()
+         } else {"
+GHSA-hf79-8hjp-rrvq,"From 7c7757c772fb709c61b1442bcc1e1fbee97bf4a8 Mon Sep 17 00:00:00 2001
+From: Pat Hickey <phickey@fastly.com>
+Date: Mon, 29 Nov 2021 15:00:02 -0800
+Subject: [PATCH] Merge pull request from GHSA-hf79-8hjp-rrvq
+
+* Use manual drop
+
+* Add some comments to `ManuallyDrop` usage
+
+* rustfmt
+
+Co-authored-by: Aaron Turon <aturon@fastly.com>
+Co-authored-by: Alex Crichton <alex@alexcrichton.com>
+---
+ .../lucet-runtime-internals/src/instance.rs   | 39 ++++++++++++-------
+ 1 file changed, 26 insertions(+), 13 deletions(-)
+
+diff --git a/lucet-runtime/lucet-runtime-internals/src/instance.rs b/lucet-runtime/lucet-runtime-internals/src/instance.rs
+index b45e6265..1252a426 100644
+--- a/lucet-runtime/lucet-runtime-internals/src/instance.rs
++++ b/lucet-runtime/lucet-runtime-internals/src/instance.rs
+@@ -14,7 +14,6 @@ use crate::error::Error;
+ #[cfg(feature = ""concurrent_testpoints"")]
+ use crate::lock_testpoints::LockTestpoints;
+ use crate::module::{self, FunctionHandle, Global, GlobalValue, Module, TrapCode};
+-use crate::region::RegionInternal;
+ use crate::sysdeps::HOST_PAGE_SIZE_EXPECTED;
+ use crate::val::{UntypedRetVal, Val};
+ use crate::vmctx::Vmctx;
+@@ -27,6 +26,7 @@ use std::cell::{BorrowError, BorrowMutError, Ref, RefCell, RefMut, UnsafeCell};
+ use std::convert::TryFrom;
+ use std::marker::PhantomData;
+ use std::mem;
++use std::mem::ManuallyDrop;
+ use std::ops::{Deref, DerefMut};
+ use std::ptr::{self, NonNull};
+ use std::sync::Arc;
+@@ -147,20 +147,29 @@ impl Drop for InstanceHandle {
+             unsafe {
+                 let inst = self.inst.as_mut();
+ 
+-                // Grab a handle to the region to ensure it outlives `inst`.
++                // The `inst.alloc` field manages the memory of the instance
++                // itself. Note, though, that this field is in a `ManuallyDrop`
++                // so it won't get dropped automatically in `drop_in_place`.
++                // This is the point where we take over that precise drop.
+                 //
+-                // This ensures that the region won't be dropped by `inst` being
+-                // dropped, which could result in `inst` being unmapped by the
+-                // Region *during* drop of the Instance's fields.
+-                let region: Arc<dyn RegionInternal> = inst.alloc().region.clone();
++                // By using `take` here we're basically calling `ptr::read`
++                // which ""duplicates"" the `alloc` since the `alloc` local
++                // variable here is the exact same as `inst.alloc`. All we do
++                // with `inst`, though, is call `drop_in_place`, which
++                // invalidates every other field in `inst`.
++                let alloc: Alloc = ManuallyDrop::take(&mut inst.alloc);
+ 
+                 // drop the actual instance
+                 std::ptr::drop_in_place(inst);
+ 
+-                // and now we can drop what may be the last Arc<Region>. If it is
+-                // it can safely do what it needs with memory; we're not running
+-                // destructors on it anymore.
+-                mem::drop(region);
++                // Now that we're 100% done with the instance, destructors and
++                // all, we can release the memory of the instance back to the
++                // original allocator from whence it came (be it mmap or uffd
++                // based). This will run the ""official"" destructor for `Alloc`
++                // which internally does the release. Note that after this
++                // operation the `inst` pointer is invalid and can no longer be
++                // used.
++                drop(alloc);
+             }
+         }
+     }
+@@ -233,8 +242,12 @@ pub struct Instance {
+     /// Conditionally-present helpers to force permutations of possible races in testing.
+     pub lock_testpoints: Arc<LockTestpoints>,
+ 
+-    /// The memory allocated for this instance
+-    alloc: Alloc,
++    /// The memory allocated for this instance.
++    ///
++    /// Note that this is in a `ManuallyDrop` because this manages the memory of
++    /// this `Instance` itself. To have precise control over this memory we
++    /// handle this in `Drop for InstanceHandle`.
++    alloc: ManuallyDrop<Alloc>,
+ 
+     /// Handler run for signals that do not arise from a known WebAssembly trap, or that involve
+     /// memory outside of the current instance.
+@@ -1055,7 +1068,7 @@ impl Instance {
+             kill_state,
+             #[cfg(feature = ""concurrent_testpoints"")]
+             lock_testpoints,
+-            alloc,
++            alloc: ManuallyDrop::new(alloc),
+             fatal_handler: default_fatal_handler,
+             c_fatal_handler: None,
+             signal_handler: Box::new(signal_handler_none) as Box<SignalHandler>,"

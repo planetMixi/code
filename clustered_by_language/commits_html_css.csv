@@ -1,0 +1,1671 @@
+vuln_id,code_diff
+CVE-2020-19626,"From 76a2168b6a5e30144f5c06da4ff264f4eca577ff Mon Sep 17 00:00:00 2001
+From: Brad Bell <brad@pixelandtonic.com>
+Date: Thu, 27 Jun 2019 09:41:17 -0700
+Subject: [PATCH] Fixed an XSS vulnerability.
+
+---
+ CHANGELOG-v3.md                            | 5 +++++
+ src/templates/settings/sections/_edit.html | 2 +-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/CHANGELOG-v3.md b/CHANGELOG-v3.md
+index 56d5fb19e7a..78aaaafc862 100644
+--- a/CHANGELOG-v3.md
++++ b/CHANGELOG-v3.md
+@@ -1,5 +1,10 @@
+ # Release Notes for Craft CMS 3.x
+ 
++## Unreleased
++
++### Security
++- Fixed an XSS vulnerability.
++
+ ## 3.1.32.1 - 2019-06-25
+ 
+ ### Fixed
+diff --git a/src/templates/settings/sections/_edit.html b/src/templates/settings/sections/_edit.html
+index e7f0c12c4e4..e28fdb1ec34 100644
+--- a/src/templates/settings/sections/_edit.html
++++ b/src/templates/settings/sections/_edit.html
+@@ -68,7 +68,7 @@
+         {% endif %}
+         {% set siteRows = siteRows|merge({
+             (site.handle): {
+-                heading: site.name|t('site'),
++                heading: site.name|t('site')|e,
+                 enabled: include('_includes/forms/lightswitch', {
+                     name: 'sites['~site.handle~'][enabled]',
+                     on: brandNewSection or siteSettings,"
+GHSA-p48w-vf3c-rqjx,"From de3a568fc311d6712d9339643e51e8627c80530b Mon Sep 17 00:00:00 2001
+From: Oliver Hader <oliver@typo3.org>
+Date: Mon, 11 Jan 2021 11:31:52 +0100
+Subject: [PATCH] [SECURITY] Ensure content element subheader is HTML encoded
+
+---
+ .../ContentElements/Carousel/Item/CallToAction.html    |  4 ++--
+ .../Partials/ContentElements/Carousel/Item/Header.html |  4 ++--
+ .../Partials/ContentElements/Carousel/Item/Text.html   |  4 ++--
+ .../ContentElements/Carousel/Item/TextAndImage.html    |  4 ++--
+ .../Partials/ContentElements/Header/SubHeader.html     | 10 +++++-----
+ 5 files changed, 13 insertions(+), 13 deletions(-)
+
+diff --git a/Resources/Private/Partials/ContentElements/Carousel/Item/CallToAction.html b/Resources/Private/Partials/ContentElements/Carousel/Item/CallToAction.html
+index e39c91fdc..864839e02 100644
+--- a/Resources/Private/Partials/ContentElements/Carousel/Item/CallToAction.html
++++ b/Resources/Private/Partials/ContentElements/Carousel/Item/CallToAction.html
+@@ -4,9 +4,9 @@
+             <f:if condition=""{item.data.nav_title}"">
+                 <div>{item.data.nav_title}</div>
+             </f:if>
+-            <h{item.data.header_layout} class=""carousel-item-header{f:if(condition: item.data.header_class, then: ' {item.data.header_class}')}{f:if(condition: item.data.header_position, then: ' text-{item.data.header_position}')}""><f:format.htmlentitiesDecode>{item.data.header}</f:format.htmlentitiesDecode></h{item.data.header_layout}>
++            <h{item.data.header_layout} class=""carousel-item-header{f:if(condition: item.data.header_class, then: ' {item.data.header_class}')}{f:if(condition: item.data.header_position, then: ' text-{item.data.header_position}')}""><f:format.htmlspecialchars doubleEncode=""false"">{item.data.header}</f:format.htmlspecialchars></h{item.data.header_layout}>
+             <f:if condition=""{item.data.subheader}"">
+-                <h{item.data.subheader_layout} class=""carousel-item-subheader{f:if(condition: item.data.subheader_class, then: ' {item.data.subheader_class}')}{f:if(condition: item.data.header_position, then: ' text-{item.data.header_position}')}""><f:format.htmlentitiesDecode>{item.data.subheader}</f:format.htmlentitiesDecode></h{item.data.subheader_layout}>
++                <h{item.data.subheader_layout} class=""carousel-item-subheader{f:if(condition: item.data.subheader_class, then: ' {item.data.subheader_class}')}{f:if(condition: item.data.header_position, then: ' text-{item.data.header_position}')}""><f:format.htmlspecialchars doubleEncode=""false"">{item.data.subheader}</f:format.htmlspecialchars></h{item.data.subheader_layout}>
+             </f:if>
+             <f:if condition=""{item.data.bodytext}"">
+                 <div class=""carousel-item-bodytext"">
+diff --git a/Resources/Private/Partials/ContentElements/Carousel/Item/Header.html b/Resources/Private/Partials/ContentElements/Carousel/Item/Header.html
+index 8101e17e3..4a06e1dea 100644
+--- a/Resources/Private/Partials/ContentElements/Carousel/Item/Header.html
++++ b/Resources/Private/Partials/ContentElements/Carousel/Item/Header.html
+@@ -3,9 +3,9 @@
+     <div class=""valign"" {f:if(condition: item.data.text_color,then:'style=""color: {item.data.text_color};""')}>
+         <div class=""vcontainer"">
+             <div class=""carousel-text-inner"">
+-                <h{item.data.header_layout} class=""carousel-header awesome{f:if(condition: item.data.header_class, then: ' {item.data.header_class}')}{f:if(condition: item.data.header_position, then: ' text-{item.data.header_position}')}""><f:format.htmlentitiesDecode>{item.data.header}</f:format.htmlentitiesDecode></h{item.data.header_layout}>
++                <h{item.data.header_layout} class=""carousel-header awesome{f:if(condition: item.data.header_class, then: ' {item.data.header_class}')}{f:if(condition: item.data.header_position, then: ' text-{item.data.header_position}')}""><f:format.htmlspecialchars doubleEncode=""false"">{item.data.header}</f:format.htmlspecialchars></h{item.data.header_layout}>
+                 <f:if condition=""{item.data.subheader}"">
+-                    <h{item.data.subheader_layout} class=""carousel-subheader awesome{f:if(condition: item.data.subheader_class, then: ' {item.data.subheader_class}')}{f:if(condition: item.data.header_position, then: ' text-{item.data.header_position}')}""><f:format.htmlentitiesDecode>{item.data.subheader}</f:format.htmlentitiesDecode></h{item.data.subheader_layout}>
++                    <h{item.data.subheader_layout} class=""carousel-subheader awesome{f:if(condition: item.data.subheader_class, then: ' {item.data.subheader_class}')}{f:if(condition: item.data.header_position, then: ' text-{item.data.header_position}')}""><f:format.htmlspecialchars doubleEncode=""false"">{item.data.subheader}</f:format.htmlspecialchars></h{item.data.subheader_layout}>
+                 </f:if>
+             </div>
+         </div>
+diff --git a/Resources/Private/Partials/ContentElements/Carousel/Item/Text.html b/Resources/Private/Partials/ContentElements/Carousel/Item/Text.html
+index 648bcb646..238a2f205 100644
+--- a/Resources/Private/Partials/ContentElements/Carousel/Item/Text.html
++++ b/Resources/Private/Partials/ContentElements/Carousel/Item/Text.html
+@@ -4,9 +4,9 @@
+             <f:if condition=""{item.data.nav_title}"">
+                 <div>{item.data.nav_title}</div>
+             </f:if>
+-            <h{item.data.header_layout} class=""carousel-item-header{f:if(condition: item.data.header_class, then: ' {item.data.header_class}')}{f:if(condition: item.data.header_position, then: ' text-{item.data.header_position}')}""><f:format.htmlentitiesDecode>{item.data.header}</f:format.htmlentitiesDecode></h{item.data.header_layout}>
++            <h{item.data.header_layout} class=""carousel-item-header{f:if(condition: item.data.header_class, then: ' {item.data.header_class}')}{f:if(condition: item.data.header_position, then: ' text-{item.data.header_position}')}""><f:format.htmlspecialchars doubleEncode=""false"">{item.data.header}</f:format.htmlspecialchars></h{item.data.header_layout}>
+             <f:if condition=""{item.data.subheader}"">
+-                <h{item.data.subheader_layout} class=""carousel-item-subheader{f:if(condition: item.data.subheader_class, then: ' {item.data.subheader_class}')}{f:if(condition: item.data.header_position, then: ' text-{item.data.header_position}')}""><f:format.htmlentitiesDecode>{item.data.subheader}</f:format.htmlentitiesDecode></h{item.data.subheader_layout}>
++                <h{item.data.subheader_layout} class=""carousel-item-subheader{f:if(condition: item.data.subheader_class, then: ' {item.data.subheader_class}')}{f:if(condition: item.data.header_position, then: ' text-{item.data.header_position}')}""><f:format.htmlspecialchars doubleEncode=""false"">{item.data.subheader}</f:format.htmlspecialchars></h{item.data.subheader_layout}>
+             </f:if>
+             <f:if condition=""{item.data.bodytext}"">
+                 <div class=""carousel-item-bodytext"">
+diff --git a/Resources/Private/Partials/ContentElements/Carousel/Item/TextAndImage.html b/Resources/Private/Partials/ContentElements/Carousel/Item/TextAndImage.html
+index b942c2dfa..4e0a1af12 100644
+--- a/Resources/Private/Partials/ContentElements/Carousel/Item/TextAndImage.html
++++ b/Resources/Private/Partials/ContentElements/Carousel/Item/TextAndImage.html
+@@ -2,9 +2,9 @@
+ <f:link.typolink parameter=""{item.data.link}"" additionalAttributes=""{draggable:'false'}"">
+     <div class=""valign"">
+         <div class=""carousel-text vcontainer"" {f:if(condition: item.data.text_color,then: 'style=""color: {item.data.text_color};""')}>
+-            <h{item.data.header_layout} class=""carousel-header{f:if(condition: item.data.header_class, then: ' {item.data.header_class}')}{f:if(condition: item.data.header_position, then: ' text-{item.data.header_position}')}""><f:format.htmlentitiesDecode>{item.data.header}</f:format.htmlentitiesDecode></h{item.data.header_layout}>
++        <h{item.data.header_layout} class=""carousel-header{f:if(condition: item.data.header_class, then: ' {item.data.header_class}')}{f:if(condition: item.data.header_position, then: ' text-{item.data.header_position}')}""><f:format.htmlspecialchars doubleEncode=""false"">{item.data.header}</f:format.htmlspecialchars></h{item.data.header_layout}>
+             <f:if condition=""{item.data.subheader}"">
+-                <h{item.data.subheader_layout} class=""carousel-subheader{f:if(condition: item.data.subheader_class, then: ' {item.data.subheader_class}')}{f:if(condition: item.data.header_position, then: ' text-{item.data.header_position}')}""><f:format.htmlentitiesDecode>{item.data.subheader}</f:format.htmlentitiesDecode></h{item.data.subheader_layout}>
++                <h{item.data.subheader_layout} class=""carousel-subheader{f:if(condition: item.data.subheader_class, then: ' {item.data.subheader_class}')}{f:if(condition: item.data.header_position, then: ' text-{item.data.header_position}')}""><f:format.htmlspecialchars doubleEncode=""false"">{item.data.subheader}</f:format.htmlspecialchars></h{item.data.subheader_layout}>
+             </f:if>
+             <f:format.html>{item.data.bodytext}</f:format.html>
+         </div>
+diff --git a/Resources/Private/Partials/ContentElements/Header/SubHeader.html b/Resources/Private/Partials/ContentElements/Header/SubHeader.html
+index 6e9c97fe8..4e0c3a28a 100644
+--- a/Resources/Private/Partials/ContentElements/Header/SubHeader.html
++++ b/Resources/Private/Partials/ContentElements/Header/SubHeader.html
+@@ -3,27 +3,27 @@
+     <f:switch expression=""{layout}"">
+         <f:case value=""1"">
+             <h2 class=""{class} {positionClass}"">
+-                <span><f:format.htmlentitiesDecode>{subheader}</f:format.htmlentitiesDecode></span>
++                <span><f:format.htmlspecialchars doubleEncode=""false"">{subheader}</f:format.htmlspecialchars></span>
+             </h2>
+         </f:case>
+         <f:case value=""2"">
+             <h3 class=""{class} {positionClass}"">
+-                <span><f:format.htmlentitiesDecode>{subheader}</f:format.htmlentitiesDecode></span>
++                <span><f:format.htmlspecialchars doubleEncode=""false"">{subheader}</f:format.htmlspecialchars></span>
+             </h3>
+         </f:case>
+         <f:case value=""3"">
+             <h4 class=""{class} {positionClass}"">
+-                <span><f:format.htmlentitiesDecode>{subheader}</f:format.htmlentitiesDecode></span>
++                <span><f:format.htmlspecialchars doubleEncode=""false"">{subheader}</f:format.htmlspecialchars></span>
+             </h4>
+         </f:case>
+         <f:case value=""4"">
+             <h5 class=""{class} {positionClass}"">
+-                <span><f:format.htmlentitiesDecode>{subheader}</f:format.htmlentitiesDecode></span>
++                <span><f:format.htmlspecialchars doubleEncode=""false"">{subheader}</f:format.htmlspecialchars></span>
+             </h5>
+         </f:case>
+         <f:case value=""5"">
+             <h6 class=""{class} {positionClass}"">
+-                <span><f:format.htmlentitiesDecode>{subheader}</f:format.htmlentitiesDecode></span>
++                <span><f:format.htmlspecialchars doubleEncode=""false"">{subheader}</f:format.htmlspecialchars></span>
+             </h6>
+         </f:case>
+         <f:defaultCase>"
+CVE-2021-40864,"From 2206c0179cb97e3b8b290a0ab5719b1f0f54542b Mon Sep 17 00:00:00 2001
+From: Nikita Khromov <Nikita.Khromov@onlyoffice.com>
+Date: Wed, 28 Apr 2021 13:20:12 +0300
+Subject: [PATCH] Added escaping characters
+
+---
+ index.html           | 1 +
+ index_widget.html    | 2 +-
+ scripts/translate.js | 2 +-
+ 3 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/index.html b/index.html
+index 47fbb52..ae422a7 100644
+--- a/index.html
++++ b/index.html
+@@ -4,6 +4,7 @@
+ 	<meta charset=""UTF-8"">
+ 	<title>translate</title>
+     <script type=""text/javascript"" src=""https://onlyoffice.github.io/sdkjs-plugins/v1/plugins.js""></script>
++	<script type=""text/javascript"" src=""https://onlyoffice.github.io/sdkjs-plugins/v1/plugins-ui.js""></script>
+ 	<script src=""scripts/translate.js""></script>
+ 	<style>
+ 		html, body {
+diff --git a/index_widget.html b/index_widget.html
+index 51fcbef..5f2b52b 100644
+--- a/index_widget.html
++++ b/index_widget.html
+@@ -148,7 +148,7 @@
+ 			else
+ 			{
+ 				if (msg.data !== ""onchange_goog-te-combo"") {
+-				document.getElementById(""google_translate_element"").innerHTML = msg.data;
++				document.getElementById(""google_translate_element"").innerHTML = escape(msg.data);
+ 				}
+ 				timeOut = setTimeout(function() {
+ 					document.getElementById(""google_translate_element"").style.opacity = 1;
+diff --git a/scripts/translate.js b/scripts/translate.js
+index 7644da0..e102f42 100644
+--- a/scripts/translate.js
++++ b/scripts/translate.js
+@@ -30,7 +30,7 @@
+ 			ifr.onload = function() {
+ 				if (ifr.contentWindow.document.readyState == 'complete')
+ 					setTimeout(function() {
+-						ifr.contentDocument.getElementById(""google_translate_element"").innerHTML = text;
++						ifr.contentDocument.getElementById(""google_translate_element"").innerHTML = escape(text);
+ 						if (text.length)
+ 							ifr.contentDocument.getElementById(""div_btn"").classList.remove(""hidden"");
+ 					}, 500);"
+CVE-2021-22888,"From f472d890c6e46d9ba4c1863435af35bf5b9f619a Mon Sep 17 00:00:00 2001
+From: Matteo Beccati <matteo@beccati.com>
+Date: Fri, 5 Mar 2021 15:28:12 +0100
+Subject: [PATCH] Fix h1 report 1097979
+
+---
+ lib/templates/admin/campaign-zone-zones.html | 22 ++++++++++----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/lib/templates/admin/campaign-zone-zones.html b/lib/templates/admin/campaign-zone-zones.html
+index d1836118ce..bf77b198a6 100644
+--- a/lib/templates/admin/campaign-zone-zones.html
++++ b/lib/templates/admin/campaign-zone-zones.html
+@@ -16,19 +16,19 @@
+ {/if}
+ 
+ 
+-<!--rows-{$status}-start-->
++<!--rows-{$status|escape}-start-->
+ {if !empty($topPager->links)}
+-<span id=""page-{$status}"" class=""hide"">{$page}</span>
++<span id=""page-{$status|escape}"" class=""hide"">{$page}</span>
+ <div class=""tableWrapper topPagerContainer clearfix"">
+   <div class=""pager topPager"">
+     {$topPager->links}
+   </div>
+ </div>
+ {/if}
+-<table id=""zones-{$status}"" class=""zones new-table tableWrapper"">
++<table id=""zones-{$status|escape}"" class=""zones new-table tableWrapper"">
+   <tbody>
+     <tr class=""header hide"">
+-      <th class=""name""><label><input type=""checkbox"" id=""{$status}-select-all"" class=""checkbox select-all"" /> {t str=SelectUnselectAll}</label></th>
++      <th class=""name""><label><input type=""checkbox"" id=""{$status|escape}-select-all"" class=""checkbox select-all"" /> {t str=SelectUnselectAll}</label></th>
+       <th class=""link""></th>
+       {if !empty($showStats)}
+           <th class=""ctr"">{t str=FinanceCTR}</th>
+@@ -39,13 +39,13 @@
+   </tbody>
+ 
+   {if !empty($topPager->links)}
+-  <tbody id=""select-all-container-{$status}"" class=""hide"">
++  <tbody id=""select-all-container-{$status|escape}"" class=""hide"">
+     <tr class=""header"">
+       <th colspan=""{$colspan}"">
+-        <div id=""zones-{$status}-select-all"" class=""selectAllInAccount hide"">
++        <div id=""zones-{$status|escape}-select-all"" class=""selectAllInAccount hide"">
+           All <em>{$zonescounts.showing}</em> zones on this page selected. <a href=""#"">Select all <em>{$zonescounts.matching}</em> matching zones from this account.</a>
+         </div>
+-        <div id=""zones-{$status}-all-selected"" class=""selectAllInAccount hide"">
++        <div id=""zones-{$status|escape}-all-selected"" class=""selectAllInAccount hide"">
+           All <em>{$zonescounts.matching}</em> matching zones from this account selected. <a href=""#"">Clear selection</a></a>
+         </div>
+       </th>
+@@ -53,7 +53,7 @@
+   </tbody>
+   {/if}
+ 
+-  <tbody id=""zones-{$status}-rows"">
++  <tbody id=""zones-{$status|escape}-rows"">
+     {foreach from=$websites key=websiteid item=website}
+     <tr class=""website"">
+       <td class=""name"" title=""{$website.name|escape}"">
+@@ -125,9 +125,9 @@
+   {/if}
+ 
+ </table>
+-<!--rows-{$status}-end-->
++<!--rows-{$status|escape}-end-->
+ 
+-<!--status-{$status}-start-->
++<!--status-{$status|escape}-start-->
+   {if $status == 'linked'}
+   {t str=Linked}:
+   {else}
+@@ -136,4 +136,4 @@
+   <span class=""status-value"">{$zonescounts.all}</span><br />
+ 
+   {t str=Showing}: <span class=""status-value"">{$zonescounts.showing}</span>
+-<!--status-{$status}-end-->
++<!--status-{$status|escape}-end-->"
+CVE-2016-2228,"From ab07a1b447de34e13983b4d7ceb18b58c3a358d8 Mon Sep 17 00:00:00 2001
+From: Jan Schneider <jan@horde.org>
+Date: Wed, 6 Jan 2016 11:46:35 +0100
+Subject: [PATCH] [jan] SECURITY: Fix XSS vulnerability in menu bar exposed by
+ only a few applications (Bug #14213).
+
+---
+ horde/docs/CHANGES                       | 2 ++
+ horde/package.xml                        | 4 ++--
+ horde/templates/topbar/_menubar.html.php | 2 +-
+ 3 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/horde/docs/CHANGES b/horde/docs/CHANGES
+index c014c41d6aa..a9fd86522e2 100644
+--- a/horde/docs/CHANGES
++++ b/horde/docs/CHANGES
+@@ -2,6 +2,8 @@
+ v5.2.9-git
+ ----------
+ 
++[jan] SECURITY: Fix XSS vulnerability in menu bar exposed by only a few
++      applications (Bug #14213).
+ 
+ 
+ ------
+diff --git a/horde/package.xml b/horde/package.xml
+index 5aecf15cbf0..17b9e11ddaf 100644
+--- a/horde/package.xml
++++ b/horde/package.xml
+@@ -39,7 +39,7 @@
+  </stability>
+  <license uri=""http://www.horde.org/licenses/lgpl"">LGPL-2</license>
+  <notes>
+-* 
++* [jan] SECURITY: Fix XSS vulnerability in menu bar exposed by only a few applications (Bug #14213).
+  </notes>
+  <contents>
+   <dir baseinstalldir=""/"" name=""/"">
+@@ -4074,7 +4074,7 @@
+    <date>2015-10-20</date>
+    <license uri=""http://www.horde.org/licenses/lgpl"">LGPL-2</license>
+    <notes>
+-* 
++* [jan] SECURITY: Fix XSS vulnerability in menu bar exposed by only a few applications (Bug #14213).
+    </notes>
+   </release>
+  </changelog>
+diff --git a/horde/templates/topbar/_menubar.html.php b/horde/templates/topbar/_menubar.html.php
+index acb416cf2e9..df75623e51c 100644
+--- a/horde/templates/topbar/_menubar.html.php
++++ b/horde/templates/topbar/_menubar.html.php
+@@ -23,7 +23,7 @@
+         <input autocomplete=""off"" id=""horde-search-input"" type=""text"" />
+       </div>
+ <?php else: ?>
+-      <input type=""text"" id=""horde-search-input"" name=""searchfield"" class=""formGhost"" title=""<?php echo $this->searchLabel ?>"" />
++      <input type=""text"" id=""horde-search-input"" name=""searchfield"" class=""formGhost"" title=""<?php echo $this->h($this->searchLabel) ?>"" />
+ <?php endif ?>
+       <input type=""image"" id=""horde-search-icon"" src=""<?php echo $this->searchIcon ?>"" />
+     </form>"
+CVE-2014-3840,"From 398c480c10416d76e7c1dcb607e726e8fc988e72 Mon Sep 17 00:00:00 2001
+From: Roberto Rosario <roberto.rosario.gonzalez@gmail.com>
+Date: Thu, 22 May 2014 17:27:06 -0400
+Subject: [PATCH] Remove the striptags functionality, fixes some instances of
+ XSS, issue #3
+
+---
+ .../templates/calculate_form_title.html       | 12 +++----
+ apps/common/templates/generic_detail.html     | 28 +++++++--------
+ apps/common/templates/generic_form.html       |  8 ++---
+ apps/common/templates/generic_list.html       |  2 +-
+ .../templates/generic_list_horizontal.html    |  2 +-
+ .../templates/generic_list_subtemplate.html   | 36 +++++++++----------
+ 6 files changed, 42 insertions(+), 46 deletions(-)
+
+diff --git a/apps/common/templates/calculate_form_title.html b/apps/common/templates/calculate_form_title.html
+index 2994f1d3387..adaec981d30 100644
+--- a/apps/common/templates/calculate_form_title.html
++++ b/apps/common/templates/calculate_form_title.html
+@@ -1,10 +1,6 @@
+ {% load i18n %}
+ {% if title %}
+-    {% if striptags %}
+-        {{ title|capfirst|striptags }}
+-    {% else %}
+-        {{ title|capfirst|safe }}
+-    {% endif %}
++    {{ title|capfirst }}
+ {% else %}
+     {% if read_only %}
+         {% if object_name %}
+@@ -15,9 +11,9 @@
+     {% else %}
+         {% if object %}
+             {% if object_name %}
+-                {% blocktrans %}Edit {{ object_name }}:{% endblocktrans %} {% if not striptags %}<a href=""{{ object.get_absolute_url }}"">{% endif %}{{ object|capfirst }}{% if not striptags %}</a>{% endif %}
++                {% blocktrans with object as object and object_name as object_name %}Edit {{ object_name }}: {{ object }}{% endblocktrans %}
+             {% else %}
+-                {% trans ""Edit"" %}: {% if not striptags %}<a href=""{{ object.get_absolute_url }}"">{% endif %}{{ object|capfirst }}{% if not striptags %}</a>{% endif %}
++                {% blocktrans with object as object %}Edit: {{ object }}{% endblocktrans %}
+             {% endif %}
+         {% else %}
+             {% if object_name %}
+@@ -25,6 +21,6 @@
+             {% else %}
+                 {% trans ""Create"" %}
+             {% endif %}
+-        {% endif %}                
++        {% endif %}
+     {% endif %}
+ {% endif %}
+diff --git a/apps/common/templates/generic_detail.html b/apps/common/templates/generic_detail.html
+index c5cc9789e89..e7f0dac78a8 100644
+--- a/apps/common/templates/generic_detail.html
++++ b/apps/common/templates/generic_detail.html
+@@ -2,15 +2,15 @@
+ {% load i18n %}
+ {% load subtemplates_tags %}
+ 
+-{% block title %} :: {% with ""true"" as read_only %}{% with ""true"" as striptags %}{% include ""calculate_form_title.html"" %}{% endwith %}{% endwith %}{% endblock %}
++{% block title %} :: {% with ""true"" as read_only %}{% include ""calculate_form_title.html"" %}{% endwith %}{% endblock %}
+ 
+ {% block sidebar %}
+     {% for subtemplate in sidebar_subtemplates %}
+         <div class=""generic_subform"">
+             {% include subtemplate %}
+-        </div>        
++        </div>
+     {% endfor %}
+-  
++
+     {% for subtemplate in sidebar_subtemplates_list %}
+         {% with ""true"" as side_bar %}
+             {% if subtemplate.form %}
+@@ -26,18 +26,18 @@
+             {% endif %}
+                 </div>
+                 {% if subtemplate.grid_clear or not subtemplate.grid %}
+-                    <div class=""""></div> 
++                    <div class=""""></div>
+             {% endif %}
+         {% endwith %}
+-    {% endfor %}     
++    {% endfor %}
+ {% endblock %}
+ 
+ {% block stylesheets %}
+     <style type=""text/css"">
+-        #subform form  textarea, 
++        #subform form  textarea,
+         #subform form  select option,
+-        #subform form  input, 
+-        #subform form  select, 
++        #subform form  input,
++        #subform form  select,
+         #subform form  input { background: none; color: black; border: none; }
+     </style>
+ {% endblock %}
+@@ -51,14 +51,14 @@
+                 </div>
+             </div>
+             {% if grid_clear or not grid %}
+-                <div class=""""></div> 
++                <div class=""""></div>
+             {% endif %}
+         {% endwith %}
+     {% endif %}
+-    
++
+     <div class=""container_12"">
+         {% for subtemplate in subtemplates_list %}
+-            <div class=""grid_{{ subtemplate.grid|default:12 }}"">       
++            <div class=""grid_{{ subtemplate.grid|default:12 }}"">
+                 {% with ""true"" as read_only %}
+                     {% render_subtemplate subtemplate.name subtemplate.context as rendered_subtemplate %}
+                     <div class=""generic_subform"">
+@@ -67,10 +67,10 @@
+                 {% endwith %}
+             </div>
+             {% if subtemplate.grid_clear or not subtemplate.grid %}
+-                <div class=""clear""></div> 
++                <div class=""clear""></div>
+             {% endif %}
+          {% endfor %}
+-    </div>    
+-    
++    </div>
++
+ {% endblock %}
+ 
+diff --git a/apps/common/templates/generic_form.html b/apps/common/templates/generic_form.html
+index f78216e9870..5fedec55279 100644
+--- a/apps/common/templates/generic_form.html
++++ b/apps/common/templates/generic_form.html
+@@ -1,7 +1,7 @@
+ {% extends ""base.html"" %}
+ {% load subtemplates_tags %}
+ 
+-{% block title %} :: {% with ""true"" as striptags %}{% include ""calculate_form_title.html"" %}{% endwith %}{% endblock %}
++{% block title %} :: {% include ""calculate_form_title.html"" %}{% endblock %}
+ 
+ {% block sidebar %}
+     {% for subtemplate in sidebar_subtemplates_list %}
+@@ -25,10 +25,10 @@
+             {% include ""generic_form_subtemplate.html"" %}
+         </div>
+     {% endif %}
+-                             
++
+ <div class=""container_12"">
+     {% for subtemplate in subtemplates_list %}
+-        <div class=""grid_{{ subtemplate.grid|default:12 }}"">       
++        <div class=""grid_{{ subtemplate.grid|default:12 }}"">
+             {% if subtemplate.form %}
+                 {% render_subtemplate subtemplate.name subtemplate.context as rendered_subtemplate %}
+                     <div class=""generic_subform"">
+@@ -40,7 +40,7 @@
+             {% endif %}
+         </div>
+         {% if subtemplate.grid_clear or not subtemplate.grid %}
+-            <div class=""clear""></div> 
++            <div class=""clear""></div>
+         {% endif %}
+      {% endfor %}
+ </div>
+diff --git a/apps/common/templates/generic_list.html b/apps/common/templates/generic_list.html
+index 19e7a34b51f..d1fb13ac250 100644
+--- a/apps/common/templates/generic_list.html
++++ b/apps/common/templates/generic_list.html
+@@ -3,7 +3,7 @@
+ {% load navigation_tags %}
+ {% load subtemplates_tags %}
+ 
+-{% block title %} :: {% blocktrans with title|striptags as stripped_title %}List of {{ stripped_title }}{% endblocktrans %}{% endblock %}
++{% block title %} :: {% blocktrans with title as title %}List of {{ title }}{% endblocktrans %}{% endblock %}
+ {#{% block secondary_links %}{{ secondary_links|safe }}{% endblock %}#}
+ 
+ {% block sidebar %}
+diff --git a/apps/common/templates/generic_list_horizontal.html b/apps/common/templates/generic_list_horizontal.html
+index c70d5299ec5..39915c8ef50 100644
+--- a/apps/common/templates/generic_list_horizontal.html
++++ b/apps/common/templates/generic_list_horizontal.html
+@@ -3,7 +3,7 @@
+ {% load navigation_tags %}
+ {% load subtemplates_tags %}
+ 
+-{% block title %} :: {% blocktrans with title|striptags as stripped_title %}List of {{ stripped_title }}{% endblocktrans %}{% endblock %}
++{% block title %} :: {% blocktrans with title as title %}List of {{ title }}{% endblocktrans %}{% endblock %}
+ {#{% block secondary_links %}{{ secondary_links|safe }}{% endblock %}#}
+ 
+ {% block sidebar %}
+diff --git a/apps/common/templates/generic_list_subtemplate.html b/apps/common/templates/generic_list_subtemplate.html
+index 81dfa73983c..6d826f3f078 100644
+--- a/apps/common/templates/generic_list_subtemplate.html
++++ b/apps/common/templates/generic_list_subtemplate.html
+@@ -16,8 +16,8 @@ <h3>
+     </h3>
+     <div class=""content"">
+         <p>
+-{% else %}    
+-    {% autopaginate object_list %} 
++{% else %}
++    {% autopaginate object_list %}
+     <div class=""content"">
+     <h2 class=""title"">
+         {% ifnotequal page_obj.paginator.num_pages 1 %}
+@@ -53,9 +53,9 @@ <h2 class=""title"">
+                             </button>
+                         </div>
+                     {% endif %}
+-                {% endif %}          
+-            {% endif %}          
+-        
++                {% endif %}
++            {% endif %}
++
+             {% if scrollable_content %}
+                 <div style=""border: 1px solid; height: {{ scrollable_content_height }}; overflow: auto;"">
+             {% endif %}
+@@ -78,11 +78,11 @@ <h2 class=""title"">
+ 
+                             {% for column in object_list.0|get_model_list_columns %}
+                                 <th>{{ column.name|capfirst }}</th>
+-                            {% endfor %}            
++                            {% endfor %}
+ 
+                             {% for column in extra_columns %}
+                                 <th>{{ column.name|capfirst }}</th>
+-                            {% endfor %}        
++                            {% endfor %}
+ 
+                             {% if not hide_links %}
+                                 <th class="""">&nbsp;</th>
+@@ -91,7 +91,7 @@ <h2 class=""title"">
+                     {% endif %}
+                     {% for object in object_list %}
+                         <tr class=""{% cycle 'odd' 'even2' %}"">
+-                        {% if multi_select or multi_select_as_buttons %}    
++                        {% if multi_select or multi_select_as_buttons %}
+                             <td>
+                             {% if multi_select_item_properties %}
+                                 <input type=""checkbox"" class=""checkbox"" name=""properties_{{ object|get_encoded_parameter:multi_select_item_properties }}"" value="""" />
+@@ -117,7 +117,7 @@ <h2 class=""title"">
+                             {% else %}
+                                 <td>{{ object|object_property:column.attribute }}</td>
+                             {% endif %}
+-                        {% endfor %}                        
++                        {% endfor %}
+                         {% if not hide_columns %}
+                             {% for column in object|get_model_list_columns %}
+                                 <td>{{ object|object_property:column.attribute }}</td>
+@@ -149,15 +149,15 @@ <h2 class=""title"">
+                             {% endif %}
+                         </tr>
+                     {% empty %}
+-                        <tr><td colspan=99 class=""tc"">{% blocktrans with title|striptags as stripped_title %}There are no {{ stripped_title }}{% endblocktrans %}</td></tr>
++                        <tr><td colspan=99 class=""tc"">{% blocktrans with title as title %}There are no {{ title }}{% endblocktrans %}</td></tr>
+                     {% endfor %}
+                 </tbody>
+             </table>
+-            
++
+             {% if scrollable_content %}
+-                </div>            
+-            {% endif %}            
+-            
++                </div>
++            {% endif %}
++
+             {% if object_list %}
+                 {% if multi_select or multi_select_as_buttons %}
+                     {% if multi_select_as_buttons %}
+@@ -179,13 +179,13 @@ <h2 class=""title"">
+                             </button>
+                         </div>
+                     {% endif %}
+-                {% endif %}  
+-            {% endif %}  
++                {% endif %}
++            {% endif %}
+         </form>
+         {% paginate %}
+-        
++
+         {% if side_bar %}
+             </p>
+-        {% endif %} 
++        {% endif %}
+     </div>
+ </div>"
+GHSA-hm45-mgqm-gjm4,"From a6b9785338003ec87fb75305e7d1cc2d40c7ab91 Mon Sep 17 00:00:00 2001
+From: NeuroAssassin <42872277+NeuroAssassin@users.noreply.github.com>
+Date: Tue, 1 Dec 2020 14:15:49 +0000
+Subject: [PATCH] [UI] Fix SelectPicker not rendering properly
+
+---
+ reddash/app/home/templates/guild.html | 57 +++++++++++++++++++--------
+ 1 file changed, 41 insertions(+), 16 deletions(-)
+
+diff --git a/reddash/app/home/templates/guild.html b/reddash/app/home/templates/guild.html
+index ac6d2061..ef1aed52 100755
+--- a/reddash/app/home/templates/guild.html
++++ b/reddash/app/home/templates/guild.html
+@@ -930,20 +930,20 @@ <h5>{{ data['message'] }}</h5>
+             img.attr(""src"", `${img.attr(""data-src-url"")}png`)
+         }
+     }
++
++    function safe(str) {
++        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/""/g, '&quot;');
++    }
+ </script>
+ 
+ {% if data['status'] == 1 and data['data']['status'] == 1 %}
+ 
+-{% if 'aliascc' in data['data']['permslist'] %}
++{% if 'aliascc' in data['data']['permslist'] and false%}
+ <script>
+     /* ---------------------------------------------------------------------------------------------------------------------
+                                                         Aliases group
+        --------------------------------------------------------------------------------------------------------------------- */
+ 
+-    function safe(str) {
+-        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/""/g, '&quot;');
+-    }
+-
+     // Alias modal
+     $(document).on('click', '.editaliasbutton', function () {
+         var command = $(this).parent().parent().data(""command"")
+@@ -1186,28 +1186,35 @@ <h5>{{ data['message'] }}</h5>
+             } else if (json.status === 1 && json.data.status === 0) {
+                 $(""#targetstatus"").html(`{{ _('Failed to fetch targets') }}: ${json.data.message}`)
+             } else {
++                let big_ol_dict = {}
+                 select.html("""")
+ 
+                 var chopt = [`<optgroup label=""{{ _('Channels') }}"">`]
+                 for (let [id, name] of json.data.CHANNELS) {
+-                    chopt.push(`<option value=${id}>${name}</option>`)
++                    chopt.push(`<option value=${id} class=""selectpicker-element-${id}"">Loading...</option>`)
++                    big_ol_dict[id] = name
+                 }
+                 chopt.push(""</optgroup>"")
+                 select.append(chopt.join(""""))
+ 
+                 var ropt = [`<optgroup label=""{{ _('Roles') }}"">`]
+                 for (let [id, name] of json.data.ROLES) {
+-                    ropt.push(`<option value=${id}>${name}</option>`)
++                    ropt.push(`<option value=${id} class=""selectpicker-element-${id}"">Loading...</option>`)
++                    big_ol_dict[id] = name
+                 }
+                 ropt.push(""</optgroup>"")
+                 select.append(ropt.join(""""))
+ 
+                 var uopt = [`<optgroup label=""{{ _('Users') }}"">`]
+                 for (let [id, name] of json.data.USERS) {
+-                    uopt.push(`<option value=${id}>${name}</option>`)
++                    uopt.push(`<option value=${id} class=""selectpicker-element-${id}"">Loading...</option>`)
++                    big_ol_dict[id] = name
+                 }
+                 uopt.push(""</optgroup>"")
+                 select.append(uopt.join(""""))
++                for (let [id, name] of Object.entries(big_ol_dict)) {
++                    $(`.selectpicker-element-${id}`).text(name)
++                }
+             }
+             select.selectpicker({ title: ""{{ _('Choose target') }}"" })
+             select.removeAttr(""disabled"")
+@@ -1299,18 +1306,24 @@ <h5>{{ data['message'] }}</h5>
+                 $(""#rulesdiv"").html("""")
+                 var overall = ['<h3 style=""margin-bottom: 10px"">{{ _(""Cog rules"") }}</h3>']
+                 var allcoglines = [""<ul>""]
++
++                let big_ol_dict_two = {}
++                let cog_counter = 0
++
+                 for (let [cog, rules] of Object.entries(json.data.COG)) {
+                     var coglines = []
+                     for (let rule of rules) {
+                         if (rule.type === ""Default"") {
+                             coglines.unshift(`<li>{{ _('By default, users are') }} ${rule.permission} {{ _('permission to use the') }} <code>${cog}</code> {{ _('cog') }}.</li>`)
+                         } else if (rule.type === ""Role"") {
+-                            coglines.push(`<li>{{ _('Users with the') }} <code>${rule.name}</code> {{ _('role') }} (${rule.id}) {{ _('are') }} ${rule.permission} {{ _('permission to use the') }} <code>${cog}</code> {{ _('cog') }}.</li>`)
++                            coglines.push(`<li>{{ _('Users with the') }} <code id=""cog-rules-${cog_counter}"">Loading...</code> {{ _('role') }} (${rule.id}) {{ _('are') }} ${rule.permission} {{ _('permission to use the') }} <code>${cog}</code> {{ _('cog') }}.</li>`)
+                         } else if (rule.type === ""Channel"") {
+-                            coglines.push(`<li>{{ _('Users in the') }} <code>${rule.name}</code> {{ _('channel') }} (${rule.id}) {{ _('are') }} ${rule.permission} {{ _('permission to use the') }} <code>${cog}</code> {{ _('cog') }}.</li>`)
++                            coglines.push(`<li>{{ _('Users in the') }} <code id=""cog-rules-${cog_counter}"">Loading...</code> {{ _('channel') }} (${rule.id}) {{ _('are') }} ${rule.permission} {{ _('permission to use the') }} <code>${cog}</code> {{ _('cog') }}.</li>`)
+                         } else {
+-                            coglines.push(`<li>{{ _('User') }} <code>${rule.name}</code> (${rule.id}) {{ _('is') }} ${rule.permission} {{ _('permission to use the') }} <code>${cog}</code> {{ _('cog') }}.</li>`)
++                            coglines.push(`<li>{{ _('User') }} <code id=""cog-rules-${cog_counter}"">Loading...</code> (${rule.id}) {{ _('is') }} ${rule.permission} {{ _('permission to use the') }} <code>${cog}</code> {{ _('cog') }}.</li>`)
+                         }
++                        big_ol_dict_two[`cog-rules-${cog_counter}`] = rule.name
++                        cog_counter += 1
+                     }
+                     if (coglines) {
+                         allcoglines = allcoglines.concat(coglines)
+@@ -1324,18 +1337,23 @@ <h5>{{ data['message'] }}</h5>
+ 
+                 overall.push('<h3 style=""margin-bottom: 10px"">{{ _(""Command rules"") }}</h3>')
+                 var allcmdlines = [""<ul>""]
++
++                let cmd_counter = 0
++
+                 for (let [cmd, rules] of Object.entries(json.data.COMMAND)) {
+                     var cmdlines = []
+                     for (let rule of rules) {
+                         if (rule.type === ""Default"") {
+                             cmdlines.unshift(`<li>{{ _('By default, users are') }} ${rule.permission} {{ _('permission to use the') }} <code>${cmd}</code> {{ _('command') }}.</li>`)
+                         } else if (rule.type === ""Role"") {
+-                            cmdlines.push(`<li>{{ _('Users with the') }} <code>${rule.name}</code> {{ _('role') }} (${rule.id}) {{ _('are') }} ${rule.permission} {{ _('permission to use the') }} <code>${cmd}</code> {{ _('command') }}.</li>`)
++                            cmdlines.push(`<li>{{ _('Users with the') }} <code id=""cmd-rules-${cmd_counter}"">Loading...</code> {{ _('role') }} (${rule.id}) {{ _('are') }} ${rule.permission} {{ _('permission to use the') }} <code>${cmd}</code> {{ _('command') }}.</li>`)
+                         } else if (rule.type === ""Channel"") {
+-                            cmdlines.push(`<li>{{ _('Users in the') }} <code>${rule.name}</code> {{ _('channel') }} (${rule.id}) {{ _('are') }} ${rule.permission} {{ _('permission to use the') }} <code>${cmd}</code> {{ _('command') }}.</li>`)
++                            cmdlines.push(`<li>{{ _('Users in the') }} <code id=""cmd-rules-${cmd_counter}"">Loading...</code> {{ _('channel') }} (${rule.id}) {{ _('are') }} ${rule.permission} {{ _('permission to use the') }} <code>${cmd}</code> {{ _('command') }}.</li>`)
+                         } else {
+-                            cmdlines.push(`<li>{{ _('User') }} <code>${rule.name}</code> (${rule.id}) {{ _('is') }} ${rule.permission} {{ _('permission to use the') }} <code>${cmd}</code> {{ _('command') }}.</li>`)
++                            cmdlines.push(`<li>{{ _('User') }} <code id=""cmd-rules-${cmd_counter}"">Loading...</code> (${rule.id}) {{ _('is') }} ${rule.permission} {{ _('permission to use the') }} <code>${cmd}</code> {{ _('command') }}.</li>`)
+                         }
++                        big_ol_dict_two[`cmd-rules-${cmd_counter}`] = rule.name
++                        cmd_counter += 1
+                     }
+                     if (cmdlines) {
+                         allcmdlines = allcmdlines.concat(cmdlines)
+@@ -1347,6 +1365,9 @@ <h5>{{ data['message'] }}</h5>
+                 }
+                 overall = overall.concat(allcmdlines)
+                 $(""#rulesdiv"").html(overall.join(""""))
++                for (let [id, name] of Object.entries(big_ol_dict_two)) {
++                    $(`#${id}`).text(name)
++                }
+                 $(""#fetchrulesstatus"").html(""{{ _('Refreshed rules') }}."")
+             }
+         }
+@@ -1378,11 +1399,12 @@ <h5>{{ data['message'] }}</h5>
+ 
+     $(document).on('click', '.adminroleoption', function () {
+         var elm = $(this)
++        let random_number = Math.floor(Math.random() * Math.floor(100000))
+         $(""#adminrolelist"").append(`
+                 <li>
+                     <div class=""row"">
+                         <div class=""col-md-10 col-8"">
+-                            <input class=""form-control adminroleinput"" value=""${elm.text()}"" disabled=True data-id=""${elm.attr(""data-id"")}"">
++                            <input class=""form-control adminroleinput"" value=""Loading..."" disabled=True data-id=""${elm.attr(""data-id"")}"" id=""admin-role-${random_number}"">
+                         </div>
+                         <div class=""col-md-1 col-1"">
+                             <span class=""admin-role-x clickable""><i class=""tim-icons icon-simple-remove"" style=""float: right; margin-top: 10px;""></i></span>
+@@ -1390,6 +1412,7 @@ <h5>{{ data['message'] }}</h5>
+                     </div>
+                 </li>
+             `)
++        $(`#admin-role-${random_number}`).val(elm.text())
+         elm.remove()
+     })
+ 
+@@ -1442,11 +1465,12 @@ <h5>{{ data['message'] }}</h5>
+ 
+     $(document).on('click', '.modroleoption', function () {
+         var elm = $(this)
++        let random_number = Math.floor(Math.random() * Math.floor(100000))
+         $(""#modrolelist"").append(`
+                 <li>
+                     <div class=""row"">
+                         <div class=""col-md-10 col-8"">
+-                            <input class=""form-control modroleinput"" value=""${elm.text()}"" disabled=True data-id=""${elm.attr(""data-id"")}"">
++                            <input class=""form-control modroleinput"" value=""Loading..."" disabled=True data-id=""${elm.attr(""data-id"")}"" id=""mod-role-${random_number}"">
+                         </div>
+                         <div class=""col-md-1 col-1"">
+                             <span class=""mod-role-x clickable""><i class=""tim-icons icon-simple-remove"" style=""float: right; margin-top: 10px;""></i></span>
+@@ -1454,6 +1478,7 @@ <h5>{{ data['message'] }}</h5>
+                     </div>
+                 </li>
+             `)
++        $(`#mod-role-${random_number}`).val(elm.text())
+         elm.remove()
+     })"
+CVE-2022-32159,"From ccc2141c5fb093870c9e2742c01336ecca8cd12e Mon Sep 17 00:00:00 2001
+From: Drini Cami <cdrini@gmail.com>
+Date: Fri, 27 May 2022 14:03:05 -0400
+Subject: [PATCH] Avoid XSS when rendering a hrefs
+
+---
+ infogami/core/macros/PageList.html             | 4 ++--
+ infogami/core/macros/RecentChanges.html        | 4 ++--
+ infogami/core/templates/permission_denied.html | 2 +-
+ infogami/plugins/i18n/templates/i18n.html      | 2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/infogami/core/macros/PageList.html b/infogami/core/macros/PageList.html
+index a7f85113..b934e041 100644
+--- a/infogami/core/macros/PageList.html
++++ b/infogami/core/macros/PageList.html
+@@ -10,8 +10,8 @@
+ 
+ <div>
+ $if page != 0:
+-    &larr; <a href=""$:changequery(page=page - 1)"">Prev</a>
++    &larr; <a href=""$changequery(page=page - 1)"">Prev</a>
+ 
+ $if len(pages) == limit:
+-    ... <a href=""$:changequery(page=page + 1)"">Next</a> &rarr;
++    ... <a href=""$changequery(page=page + 1)"">Next</a> &rarr;
+ </div>
+diff --git a/infogami/core/macros/RecentChanges.html b/infogami/core/macros/RecentChanges.html
+index 46d7e4fd..183936d1 100644
+--- a/infogami/core/macros/RecentChanges.html
++++ b/infogami/core/macros/RecentChanges.html
+@@ -37,9 +37,9 @@
+ 
+ <div>
+ $if page != 0:
+-    <a href=""$:changequery(rc_page=page - 1)"">Newer</a>
++    <a href=""$changequery(rc_page=page - 1)"">Newer</a>
+ 
+ $if len(changes) == limit:
+-    <a href=""$:changequery(rc_page=page + 1)"">Older</a>
++    <a href=""$changequery(rc_page=page + 1)"">Older</a>
+ <div>
+ 
+diff --git a/infogami/core/templates/permission_denied.html b/infogami/core/templates/permission_denied.html
+index 056b2809..658af604 100644
+--- a/infogami/core/templates/permission_denied.html
++++ b/infogami/core/templates/permission_denied.html
+@@ -7,4 +7,4 @@
+ <br/><br/>
+ 
+ $if not ctx.user:
+-	You may <a href=""/account/login?$:urlencode(dict(redirect=path))"">Login</a> if you have the required permissions.
++	You may <a href=""/account/login?$urlencode(dict(redirect=path))"">Login</a> if you have the required permissions.
+diff --git a/infogami/plugins/i18n/templates/i18n.html b/infogami/plugins/i18n/templates/i18n.html
+index e800bcfa..5d5c8ddb 100644
+--- a/infogami/plugins/i18n/templates/i18n.html
++++ b/infogami/plugins/i18n/templates/i18n.html
+@@ -21,7 +21,7 @@
+ <tr>
+ <td style=""vertical-align: top"">
+ $for ns in _.get_namespaces():
+-    <a href=""$:changequery(ns=ns)"" >$(ns or ""root"")</a> <span id=""count"" style=""font-size: 0.8em; "">$(_.get_count(ns, lang))/$_.get_count(ns)</span> <br/>
++    <a href=""$changequery(ns=ns)"" >$(ns or ""root"")</a> <span id=""count"" style=""font-size: 0.8em; "">$(_.get_count(ns, lang))/$_.get_count(ns)</span> <br/>
+ </td>
+ <td style=""vertical-align: top"">
+ $if page:"
+CVE-2015-8346,"From c096dde88ff02872ba35edc4dc403c80a7867b5c Mon Sep 17 00:00:00 2001
+From: Jean-Philippe Lang <jp_lang@yahoo.fr>
+Date: Wed, 4 Nov 2015 18:22:40 +0000
+Subject: [PATCH] Fixed that time logging form may disclose subjects of issues
+ that are not visible (#21150).
+
+Patch by Holger Just.
+
+git-svn-id: http://svn.redmine.org/redmine/trunk@14795 e93f8b46-1217-0410-a6f0-8f06a7374b81
+---
+ app/views/timelog/_form.html.erb | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/app/views/timelog/_form.html.erb b/app/views/timelog/_form.html.erb
+index 84fb9478733..0dbff35a7ed 100644
+--- a/app/views/timelog/_form.html.erb
++++ b/app/views/timelog/_form.html.erb
+@@ -13,7 +13,7 @@
+   <% end %>
+   <p>
+     <%= f.text_field :issue_id, :size => 6 %>
+-    <span id=""time_entry_issue""><%= ""#{@time_entry.issue.tracker.name} ##{@time_entry.issue.id}: #{@time_entry.issue.subject}"" if @time_entry.issue %></span>
++    <span id=""time_entry_issue""><%= ""#{@time_entry.issue.tracker.name} ##{@time_entry.issue.id}: #{@time_entry.issue.subject}"" if @time_entry.issue.try(:visible?) %></span>
+   </p>
+   <p><%= f.text_field :spent_on, :size => 10, :required => true %><%= calendar_for('time_entry_spent_on') %></p>
+   <p><%= f.text_field :hours, :size => 6, :required => true %></p>"
+CVE-2016-9472,"From 14ff73f07783fbbb9c40b77add75e68bc5f10ec6 Mon Sep 17 00:00:00 2001
+From: Matteo Beccati <matteo@beccati.com>
+Date: Tue, 27 Sep 2016 11:22:18 +0200
+Subject: [PATCH] Fix h1 report 170156
+
+Reflected XSS
+-------------
+
+The HackerOne user pavanw3b has reported that the Revive Adserver web
+installer scripts were vulnerable to a reflected XSS attack via the dbHost,
+dbUser and possibly other parameters. It has to be noted that the window
+for such attack vectors to be possible is extremely narrow and it is very
+unlikely that such an attack could be actually effective.
+
+CWE: CWE-79
+CVSSv2: 4 (AV:N/AC:H/Au:N/C:P/I:P/A:N)
+
+CVSSv3 Vector: CVSS:3.0/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:L/A:N/E:U/RL:O/RC:C
+CVSSv3 Base Score: 4.2
+CVSSv3 Temporal Score: 3.7
+---
+ lib/templates/wizard/install/messages.html | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/templates/wizard/install/messages.html b/lib/templates/wizard/install/messages.html
+index bf099539dc..9b0dbf8395 100644
+--- a/lib/templates/wizard/install/messages.html
++++ b/lib/templates/wizard/install/messages.html
+@@ -6,7 +6,7 @@
+           <div class=""body"">
+ 			<span id='errorMessages'>
+             {foreach from=$aMessages.error item=error name=messagesLoop}
+-              {$error} {if !$smarty.foreach.messagesLoop.last}<br/>{/if}
++              {$error|escape} {if !$smarty.foreach.messagesLoop.last}<br/>{/if}
+             {/foreach}
+             </span>
+           </div>"
+GHSA-4q69-q4q7-x82c,"From 8d70628c96ae72eff6eebb451d26fc9ed6b58b0e Mon Sep 17 00:00:00 2001
+From: Sam Thorogood <samthor@users.noreply.github.com>
+Date: Wed, 23 Aug 2017 14:17:31 +0200
+Subject: [PATCH] copyright headers (#72)
+
+---
+ middleware/src/middleware.js                     | 16 ++++++++++++++++
+ middleware/test/middleware-test.js               | 16 ++++++++++++++++
+ src/cache.js                                     | 16 ++++++++++++++++
+ src/index.html                                   | 15 +++++++++++++++
+ src/main.js                                      | 16 ++++++++++++++++
+ src/renderer.js                                  | 16 ++++++++++++++++
+ test/app-test.js                                 | 16 ++++++++++++++++
+ test/cache-test.js                               | 16 ++++++++++++++++
+ test/resources/basic-script.html                 | 15 +++++++++++++++
+ test/resources/custom-element.html               | 15 +++++++++++++++
+ test/resources/explicit-render-event.html        | 15 +++++++++++++++
+ .../http-meta-status-code-multiple.html          | 15 +++++++++++++++
+ test/resources/http-meta-status-code.html        | 15 +++++++++++++++
+ test/resources/include-script.html               | 15 +++++++++++++++
+ test/resources/inject-element-after-load.js      | 16 ++++++++++++++++
+ test/resources/inject-element.js                 | 16 ++++++++++++++++
+ test/resources/script-after-load.html            | 15 +++++++++++++++
+ test/resources/shadow-dom-no-polyfill.html       | 15 +++++++++++++++
+ test/resources/shadow-dom-polyfill-all.html      | 15 +++++++++++++++
+ test/resources/shadow-dom-polyfill-loader.html   | 15 +++++++++++++++
+ 20 files changed, 309 insertions(+)
+
+diff --git a/middleware/src/middleware.js b/middleware/src/middleware.js
+index 1ab3574d2..b11c76941 100644
+--- a/middleware/src/middleware.js
++++ b/middleware/src/middleware.js
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2017 Google Inc. All rights reserved.
++ *
++ * Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++ * use this file except in compliance with the License. You may obtain a copy of
++ * the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations under
++ * the License.
++ */
++
+ 'use strict';
+ 
+ const request = require('request');
+diff --git a/middleware/test/middleware-test.js b/middleware/test/middleware-test.js
+index 0e9403e80..274bd272b 100644
+--- a/middleware/test/middleware-test.js
++++ b/middleware/test/middleware-test.js
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2017 Google Inc. All rights reserved.
++ *
++ * Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++ * use this file except in compliance with the License. You may obtain a copy of
++ * the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations under
++ * the License.
++ */
++
+ 'use strict';
+ 
+ const express = require('express');
+diff --git a/src/cache.js b/src/cache.js
+index 9727660bc..c85ed9083 100644
+--- a/src/cache.js
++++ b/src/cache.js
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2017 Google Inc. All rights reserved.
++ *
++ * Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++ * use this file except in compliance with the License. You may obtain a copy of
++ * the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations under
++ * the License.
++ */
++
+ 'use strict';
+ 
+ const datastore = require('@google-cloud/datastore')();
+diff --git a/src/index.html b/src/index.html
+index 9bf0a5a43..b5a22c022 100644
+--- a/src/index.html
++++ b/src/index.html
+@@ -1,3 +1,18 @@
++<!--
++Copyright 2017 Google Inc. All rights reserved.
++
++Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++use this file except in compliance with the License. You may obtain a copy of
++the License at
++
++    http://www.apache.org/licenses/LICENSE-2.0
++
++Unless required by applicable law or agreed to in writing, software
++distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++License for the specific language governing permissions and limitations under
++the License.
++-->
+ <!doctype html>
+ <html lang=""en"">
+   <head>
+diff --git a/src/main.js b/src/main.js
+index 6a94df164..a03ef832f 100644
+--- a/src/main.js
++++ b/src/main.js
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2017 Google Inc. All rights reserved.
++ *
++ * Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++ * use this file except in compliance with the License. You may obtain a copy of
++ * the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations under
++ * the License.
++ */
++
+ 'use strict';
+ 
+ const assert = require('assert');
+diff --git a/src/renderer.js b/src/renderer.js
+index 678a8fbea..9358f700f 100644
+--- a/src/renderer.js
++++ b/src/renderer.js
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2017 Google Inc. All rights reserved.
++ *
++ * Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++ * use this file except in compliance with the License. You may obtain a copy of
++ * the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations under
++ * the License.
++ */
++
+ 'use strict';
+ 
+ const CDP = require('chrome-remote-interface');
+diff --git a/test/app-test.js b/test/app-test.js
+index 0d0932d6b..3e00361d8 100644
+--- a/test/app-test.js
++++ b/test/app-test.js
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2017 Google Inc. All rights reserved.
++ *
++ * Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++ * use this file except in compliance with the License. You may obtain a copy of
++ * the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations under
++ * the License.
++ */
++
+ 'use strict';
+ 
+ const request = require('supertest');
+diff --git a/test/cache-test.js b/test/cache-test.js
+index b52a1c73d..ee5e02fb6 100644
+--- a/test/cache-test.js
++++ b/test/cache-test.js
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2017 Google Inc. All rights reserved.
++ *
++ * Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++ * use this file except in compliance with the License. You may obtain a copy of
++ * the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations under
++ * the License.
++ */
++
+ 'use strict';
+ 
+ const test = require('ava');
+diff --git a/test/resources/basic-script.html b/test/resources/basic-script.html
+index f9dd65136..920bf44b8 100644
+--- a/test/resources/basic-script.html
++++ b/test/resources/basic-script.html
+@@ -1,3 +1,18 @@
++<!--
++Copyright 2017 Google Inc. All rights reserved.
++
++Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++use this file except in compliance with the License. You may obtain a copy of
++the License at
++
++    http://www.apache.org/licenses/LICENSE-2.0
++
++Unless required by applicable law or agreed to in writing, software
++distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++License for the specific language governing permissions and limitations under
++the License.
++-->
+ <script>
+   var element = document.createElement('title');
+   element.textContent = 'document' + '-title';
+diff --git a/test/resources/custom-element.html b/test/resources/custom-element.html
+index c37fd6475..6c0365df4 100644
+--- a/test/resources/custom-element.html
++++ b/test/resources/custom-element.html
+@@ -1,3 +1,18 @@
++<!--
++Copyright 2017 Google Inc. All rights reserved.
++
++Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++use this file except in compliance with the License. You may obtain a copy of
++the License at
++
++    http://www.apache.org/licenses/LICENSE-2.0
++
++Unless required by applicable law or agreed to in writing, software
++distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++License for the specific language governing permissions and limitations under
++the License.
++-->
+ <script>
+   class MyElement extends HTMLElement {
+     constructor() {
+diff --git a/test/resources/explicit-render-event.html b/test/resources/explicit-render-event.html
+index 6708f5198..3b4cecd4e 100644
+--- a/test/resources/explicit-render-event.html
++++ b/test/resources/explicit-render-event.html
+@@ -1,3 +1,18 @@
++<!--
++Copyright 2017 Google Inc. All rights reserved.
++
++Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++use this file except in compliance with the License. You may obtain a copy of
++the License at
++
++    http://www.apache.org/licenses/LICENSE-2.0
++
++Unless required by applicable law or agreed to in writing, software
++distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++License for the specific language governing permissions and limitations under
++the License.
++-->
+ <script>
+   setTimeout(() => {
+     document.body.textContent = 'async loaded';
+diff --git a/test/resources/http-meta-status-code-multiple.html b/test/resources/http-meta-status-code-multiple.html
+index c7a493675..5f998aa45 100644
+--- a/test/resources/http-meta-status-code-multiple.html
++++ b/test/resources/http-meta-status-code-multiple.html
+@@ -1,2 +1,17 @@
++<!--
++Copyright 2017 Google Inc. All rights reserved.
++
++Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++use this file except in compliance with the License. You may obtain a copy of
++the License at
++
++    http://www.apache.org/licenses/LICENSE-2.0
++
++Unless required by applicable law or agreed to in writing, software
++distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++License for the specific language governing permissions and limitations under
++the License.
++-->
+ <meta name=""render:status_code"" content=""401"">
+ <meta name=""render:status_code"" content=""402"">
+\ No newline at end of file
+diff --git a/test/resources/http-meta-status-code.html b/test/resources/http-meta-status-code.html
+index b2eff9845..cc8581b3c 100644
+--- a/test/resources/http-meta-status-code.html
++++ b/test/resources/http-meta-status-code.html
+@@ -1 +1,16 @@
++<!--
++Copyright 2017 Google Inc. All rights reserved.
++
++Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++use this file except in compliance with the License. You may obtain a copy of
++the License at
++
++    http://www.apache.org/licenses/LICENSE-2.0
++
++Unless required by applicable law or agreed to in writing, software
++distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++License for the specific language governing permissions and limitations under
++the License.
++-->
+ <meta name=""render:status_code"" content=""400"">
+\ No newline at end of file
+diff --git a/test/resources/include-script.html b/test/resources/include-script.html
+index bb4e78e93..597db7f26 100644
+--- a/test/resources/include-script.html
++++ b/test/resources/include-script.html
+@@ -1,3 +1,18 @@
++<!--
++Copyright 2017 Google Inc. All rights reserved.
++
++Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++use this file except in compliance with the License. You may obtain a copy of
++the License at
++
++    http://www.apache.org/licenses/LICENSE-2.0
++
++Unless required by applicable law or agreed to in writing, software
++distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++License for the specific language governing permissions and limitations under
++the License.
++-->
+ <script src=""inject-element-after-load.js""></script>
+ <link rel=""import"" href=""custom-element.html"">
+ <custom-element></custom-element>
+diff --git a/test/resources/inject-element-after-load.js b/test/resources/inject-element-after-load.js
+index e94341ade..ebca5a253 100644
+--- a/test/resources/inject-element-after-load.js
++++ b/test/resources/inject-element-after-load.js
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2017 Google Inc. All rights reserved.
++ *
++ * Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++ * use this file except in compliance with the License. You may obtain a copy of
++ * the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations under
++ * the License.
++ */
++
+ window.onload = function() {
+   var element = document.createElement('div');
+   element.textContent = 'injected' + 'Element';
+diff --git a/test/resources/inject-element.js b/test/resources/inject-element.js
+index af9b18bf5..c4e1ed4b8 100644
+--- a/test/resources/inject-element.js
++++ b/test/resources/inject-element.js
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2017 Google Inc. All rights reserved.
++ *
++ * Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++ * use this file except in compliance with the License. You may obtain a copy of
++ * the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations under
++ * the License.
++ */
++
+ var element = document.createElement('div');
+ element.textContent = 'injectedElement';
+ document.body.appendChild(element);
+\ No newline at end of file
+diff --git a/test/resources/script-after-load.html b/test/resources/script-after-load.html
+index bbd510a81..fd62d21d4 100644
+--- a/test/resources/script-after-load.html
++++ b/test/resources/script-after-load.html
+@@ -1,3 +1,18 @@
++<!--
++Copyright 2017 Google Inc. All rights reserved.
++
++Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++use this file except in compliance with the License. You may obtain a copy of
++the License at
++
++    http://www.apache.org/licenses/LICENSE-2.0
++
++Unless required by applicable law or agreed to in writing, software
++distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++License for the specific language governing permissions and limitations under
++the License.
++-->
+ <script>
+ window.onload = function() {
+   var script = document.createElement('script');
+diff --git a/test/resources/shadow-dom-no-polyfill.html b/test/resources/shadow-dom-no-polyfill.html
+index b11405495..bb1883733 100644
+--- a/test/resources/shadow-dom-no-polyfill.html
++++ b/test/resources/shadow-dom-no-polyfill.html
+@@ -1,3 +1,18 @@
++<!--
++Copyright 2017 Google Inc. All rights reserved.
++
++Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++use this file except in compliance with the License. You may obtain a copy of
++the License at
++
++    http://www.apache.org/licenses/LICENSE-2.0
++
++Unless required by applicable law or agreed to in writing, software
++distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++License for the specific language governing permissions and limitations under
++the License.
++-->
+ <my-element></my-element>
+ <script>
+   class MyElement extends HTMLElement {
+diff --git a/test/resources/shadow-dom-polyfill-all.html b/test/resources/shadow-dom-polyfill-all.html
+index 7006b2e63..cf268f7ea 100644
+--- a/test/resources/shadow-dom-polyfill-all.html
++++ b/test/resources/shadow-dom-polyfill-all.html
+@@ -1,3 +1,18 @@
++<!--
++Copyright 2017 Google Inc. All rights reserved.
++
++Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++use this file except in compliance with the License. You may obtain a copy of
++the License at
++
++    http://www.apache.org/licenses/LICENSE-2.0
++
++Unless required by applicable law or agreed to in writing, software
++distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++License for the specific language governing permissions and limitations under
++the License.
++-->
+ <script src=""node_modules/@webcomponents/webcomponentsjs/webcomponents-lite.js""></script>
+ <my-element></my-element>
+ <script>
+diff --git a/test/resources/shadow-dom-polyfill-loader.html b/test/resources/shadow-dom-polyfill-loader.html
+index 8cb343f54..0214550aa 100644
+--- a/test/resources/shadow-dom-polyfill-loader.html
++++ b/test/resources/shadow-dom-polyfill-loader.html
+@@ -1,3 +1,18 @@
++<!--
++Copyright 2017 Google Inc. All rights reserved.
++
++Licensed under the Apache License, Version 2.0 (the ""License""); you may not
++use this file except in compliance with the License. You may obtain a copy of
++the License at
++
++    http://www.apache.org/licenses/LICENSE-2.0
++
++Unless required by applicable law or agreed to in writing, software
++distributed under the License is distributed on an ""AS IS"" BASIS, WITHOUT
++WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++License for the specific language governing permissions and limitations under
++the License.
++-->
+ <script src=""node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js""></script>
+ <my-element></my-element>
+ <script>"
+GHSA-j977-g5vj-j27g,"From 5db68845b6130bf3768998f58ad9c0b778f66217 Mon Sep 17 00:00:00 2001
+From: Christopher Willis-Ford <7019101+cwillisf@users.noreply.github.com>
+Date: Fri, 9 Oct 2020 12:43:48 -0700
+Subject: [PATCH 1/4] add hotfix capability to .travis.yml
+
+---
+ .travis.yml | 43 +++++++++++++++++++++++++++++++++----------
+ 1 file changed, 33 insertions(+), 10 deletions(-)
+
+diff --git a/.travis.yml b/.travis.yml
+index 85267c70..d7c9f0cb 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -3,7 +3,10 @@ node_js:
+   - 6
+   - node
+ env:
+-  - NODE_ENV=production
++  global:
++    - NODE_ENV=production
++    - NPM_TAG=latest
++    - RELEASE_TIMESTAMP=""$(date +'%Y%m%d%H%M%S')""
+ sudo: false
+ cache:
+   directories:
+@@ -21,16 +24,36 @@ jobs:
+       node_js: 6
+       script: npm run build
+       before_deploy:
+-      - VPKG=$($(npm bin)/json -f package.json version)
+-      - export VERSION=${VPKG}-prerelease.$(date +%Y%m%d%H%M%S)
+-      - npm --no-git-tag-version version $VERSION
+-      - git config --global user.email ""$(git log --pretty=format:""%ae"" -n1)""
+-      - git config --global user.name ""$(git log --pretty=format:""%an"" -n1)""
++      - >
++        if [ -z ""$BEFORE_DEPLOY_RAN"" ]; then
++          VPKG=$($(npm bin)/json -f package.json version)
++          export RELEASE_VERSION=${VPKG}-prerelease.${RELEASE_TIMESTAMP}
++          npm --no-git-tag-version version $RELEASE_VERSION
++          if [[ ""$TRAVIS_BRANCH"" == hotfix/* ]]; then # double brackets are important for matching the wildcard
++            export NPM_TAG=hotfix
++          fi
++          git config --global user.email ""$(git log --pretty=format:""%ae"" -n1)""
++          git config --global user.name ""$(git log --pretty=format:""%an"" -n1)""
++          export BEFORE_DEPLOY_RAN=true
++        fi
+       deploy:
+-        provider: npm
++      - provider: npm
++        on:
++          branch:
++          - master
++          - develop
++          - hotfix/*
++          condition: $TRAVIS_EVENT_TYPE != cron
+         skip_cleanup: true
+-        ""on"":
+-          all_branches: true
+-          condition: $RELEASE_BRANCHES =~ $TRAVIS_BRANCH
+         email: $NPM_EMAIL
+         api_key: $NPM_TOKEN
++        tag: $NPM_TAG
++      - provider: script
++        on:
++          branch:
++          - master
++          - develop
++          - hotfix/*
++          condition: $TRAVIS_EVENT_TYPE != cron
++        skip_cleanup: true
++        script: if npm info | grep -q $RELEASE_VERSION; then git tag $RELEASE_VERSION && git push https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git $RELEASE_VERSION; fi
+
+From ce342844c2cff5dbeb705c2b4d6d766ff0b0548d Mon Sep 17 00:00:00 2001
+From: rschamp <rschamp@media.mit.edu>
+Date: Mon, 12 Oct 2020 10:55:39 -0400
+Subject: [PATCH 2/4] Add more info to playground
+
+---
+ src/playground/index.html | 19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
+
+diff --git a/src/playground/index.html b/src/playground/index.html
+index fe3b86b2..5f55908f 100644
+--- a/src/playground/index.html
++++ b/src/playground/index.html
+@@ -27,6 +27,10 @@
+     </p>
+     <p>
+         <input type=""button"" id=""trigger-render"" value=""Render"">
++        <label for=""shouldRenderReference"">
++          <input type=""checkbox"" id=""shouldRenderReference"" checked />
++          Render Reference?
++        </label>
+     </p>
+ 
+     <div class=""columns"">
+@@ -39,6 +43,17 @@
+             <span id=""reference""></span>
+        </div>
+      </div>
++    <div class=""columns"">
++        <div class=""column"">
++            <div>Rendered Content</div>
++            <textarea id=""renderedContent"" wrap=""off"" cols=""50"" rows=""50""></textarea>
++       </div>
++       <div class=""column"">
++            <div>Reference</div>
++            <span id=""reference""></span>
++            <textarea id=""referenceContent"" wrap=""off"" cols=""50"" rows=""50""></textarea>
++       </div>
++     </div>
+ 
+     <script src=""scratch-svg-renderer.js""></script>
+     <script>
+@@ -60,6 +75,7 @@
+         function renderSVGString(str) {
+             renderer.fromString(str);
+             renderer._draw(parseFloat(scaleSlider.value));
++            renderedContent.value = renderer.toString(true);
+         }
+ 
+         function updateReferenceImage() {
+@@ -92,7 +108,8 @@
+ 
+         function renderLoadedString() {
+             renderSVGString(loadedSVGString);
+-            updateReferenceImage();
++            referenceContent.value = loadedSVGString;
++            shouldRenderReference.checked && updateReferenceImage();
+         }
+ 
+         function scaleSliderChanged() {
+
+From 16974b462c02b2915db728f75eaf682559c50a0b Mon Sep 17 00:00:00 2001
+From: picklesrus <picklesrus@users.noreply.github.com>
+Date: Thu, 15 Oct 2020 08:41:41 -0400
+Subject: [PATCH 3/4] Add empty onFinish callback
+
+---
+ src/playground/index.html | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/playground/index.html b/src/playground/index.html
+index 5f55908f..aed0d843 100644
+--- a/src/playground/index.html
++++ b/src/playground/index.html
+@@ -74,7 +74,7 @@
+ 
+         function renderSVGString(str) {
+             renderer.fromString(str);
+-            renderer._draw(parseFloat(scaleSlider.value));
++            renderer._draw(parseFloat(scaleSlider.value), ()=>{});
+             renderedContent.value = renderer.toString(true);
+         }
+ 
+
+From 21d8f1668f6a8926280f9a9247b062c8ec6957fd Mon Sep 17 00:00:00 2001
+From: picklesrus <picklesrus@users.noreply.github.com>
+Date: Thu, 15 Oct 2020 09:47:13 -0400
+Subject: [PATCH 4/4] Run svg through dompurfiy right before it is measured.
+
+---
+ package.json        |  1 +
+ src/svg-renderer.js | 27 ++++++++++++++++++++-------
+ 2 files changed, 21 insertions(+), 7 deletions(-)
+
+diff --git a/package.json b/package.json
+index bc18d4c5..6697c005 100644
+--- a/package.json
++++ b/package.json
+@@ -22,6 +22,7 @@
+   ""dependencies"": {
+     ""base64-js"": ""1.2.1"",
+     ""base64-loader"": ""1.0.0"",
++    ""dompurify"": ""2.1.1"",
+     ""minilog"": ""3.1.0"",
+     ""transformation-matrix"": ""1.15.0"",
+     ""scratch-render-fonts"": ""1.0.0-prerelease.20200507182347""
+diff --git a/src/svg-renderer.js b/src/svg-renderer.js
+index a610aa80..d4b0622a 100644
+--- a/src/svg-renderer.js
++++ b/src/svg-renderer.js
+@@ -1,3 +1,4 @@
++const DOMPurify = require('dompurify');
+ const inlineSvgFonts = require('./font-inliner');
+ const SvgElement = require('./svg-element');
+ const convertFonts = require('./font-converter');
+@@ -363,19 +364,31 @@ class SvgRenderer {
+         // which returns the full bounding-box of all drawn SVG
+         // elements, similar to how Scratch 2.0 did measurement.
+         const svgSpot = document.createElement('span');
+-        // Clone the svg tag. This tag becomes unusable/undrawable in browsers
+-        // once it's appended to the page, perhaps for security reasons?
+-        const tempTag = this._svgTag.cloneNode(/* deep */ true);
++        // Since we're adding user-provided SVG to document.body,
++        // sanitizing is required. This should not affect bounding box calculation.
++        // outerHTML is attribute of Element (and not HTMLElement), so use it instead of
++        // calling serializer or toString()
++        // NOTE: this._svgTag remains untouched!
++        const rawValue = this._svgTag.outerHTML;
++        const sanitizedValue = DOMPurify.sanitize(rawValue, {
++            // Use SVG profile (no HTML elements)
++            USE_PROFILES: {svg: true},
++            // Remove some tags that Scratch does not use.
++            FORBID_TAGS: ['a', 'audio', 'canvas', 'video'],
++            // Allow data URI in image tags (e.g. SVGs converted from bitmap)
++            ADD_DATA_URI_TAGS: ['image']
++        });
+         let bbox;
+         try {
+-            svgSpot.appendChild(tempTag);
++            // Insert sanitized value.
++            svgSpot.innerHTML = sanitizedValue;
+             document.body.appendChild(svgSpot);
+-            // Take the bounding box.
+-            bbox = tempTag.getBBox();
++            // Take the bounding box. We have to get elements via svgSpot
++            // because we added it via innerHTML.
++            bbox = svgSpot.children[0].getBBox();
+         } finally {
+             // Always destroy the element, even if, for example, getBBox throws.
+             document.body.removeChild(svgSpot);
+-            svgSpot.removeChild(tempTag);
+         }
+ 
+         // Enlarge the bbox from the largest found stroke width"
