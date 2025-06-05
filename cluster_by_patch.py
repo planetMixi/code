@@ -50,4 +50,4 @@ for _, row in df.iterrows():
 for category, entries in category_buckets.items():
     if entries:
         pd.DataFrame(entries).to_csv(f"{output_dir}/commits_{category}.csv", index=False)
-        print(f"✅ Saved {len(entries)} rows to commits_{category}.csv")
+        print(f" Saved {len(entries)} rows to commits_{category}.csv")

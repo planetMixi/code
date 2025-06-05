@@ -1,8 +1,8 @@
 import pandas as pd
 
 # Load original SECOM result CSV
-input_file = "secom_zero_shot_100.csv"
-output_file = "secom_zero_shot_100_cleaned.csv"
+input_file = "secom_zero_shot_10.csv"
+output_file = "secom_zero_shot_10_cleaned.csv"
 
 # Load the CSV
 df = pd.read_csv(input_file)

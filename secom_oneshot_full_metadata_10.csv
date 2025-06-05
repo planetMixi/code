@@ -1,0 +1,969 @@
+vuln_id,code_diff,generated_secom_message
+CVE-2017-8065,"From 3b30460c5b0ed762be75a004e924ec3f8711e032 Mon Sep 17 00:00:00 2001
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Date: Mon, 27 Feb 2017 15:30:56 +0000
+Subject: [PATCH] crypto: ccm - move cbcmac input off the stack
+
+Commit f15f05b0a5de (""crypto: ccm - switch to separate cbcmac driver"")
+refactored the CCM driver to allow separate implementations of the
+underlying MAC to be provided by a platform. However, in doing so, it
+moved some data from the linear region to the stack, which violates the
+SG constraints when the stack is virtually mapped.
+
+So move idata/odata back to the request ctx struct, of which we can
+reasonably expect that it has been allocated using kmalloc() et al.
+
+Reported-by: Johannes Berg <johannes@sipsolutions.net>
+Fixes: f15f05b0a5de (""crypto: ccm - switch to separate cbcmac driver"")
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Tested-by: Johannes Berg <johannes@sipsolutions.net>
+Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+---
+ crypto/ccm.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/crypto/ccm.c b/crypto/ccm.c
+index 442848807a52b1..1ce37ae0ce565a 100644
+--- a/crypto/ccm.c
++++ b/crypto/ccm.c
+@@ -45,6 +45,7 @@ struct crypto_rfc4309_req_ctx {
+ 
+ struct crypto_ccm_req_priv_ctx {
+ 	u8 odata[16];
++	u8 idata[16];
+ 	u8 auth_tag[16];
+ 	u32 flags;
+ 	struct scatterlist src[3];
+@@ -183,8 +184,8 @@ static int crypto_ccm_auth(struct aead_request *req, struct scatterlist *plain,
+ 	AHASH_REQUEST_ON_STACK(ahreq, ctx->mac);
+ 	unsigned int assoclen = req->assoclen;
+ 	struct scatterlist sg[3];
+-	u8 odata[16];
+-	u8 idata[16];
++	u8 *odata = pctx->odata;
++	u8 *idata = pctx->idata;
+ 	int ilen, err;
+ 
+ 	/* format control data for input */","vuln-fix: Secure cbcmac input in crypto module (CVE-2017-8065)
+
+A flaw was identified in the encryption methodology in the crypto module, causing data to be placed in an insecure location. This issue could lead to security breaches and compromise of sensitive information. The flaw specifically occurred when refactoring the ccm driver to accept different MAC implementations.
+
+The potential impact of this vulnerability involves exposing sensitive information to unauthorized individuals. It posed a significant risk, especially in environments where the crypto module's handling of virtual mappings was critical.
+
+The patch addresses this issue by moving idata/odata back to the request context struct. This change ensures data is allocated using standard kernel memory allocation functions, offering a secure location of storage.
+
+Weakness: CWE-200  
+Severity: Not specified in diff  
+CVSS: Not specified in diff  
+Detection: Code review  
+Report: Johannes Berg <johannes@sipsolutions.net>  
+Introduced in: commit f15f05b0a5de  
+Reported-by: Johannes Berg <johannes@sipsolutions.net>  
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>   
+Bug-tracker: Not specified in diff  
+Resolves: Not specified in diff  
+See also: Not specified in diff"
+CVE-2019-11935,"From 1c518555dba6ceb45d5ba61845b96e261219c3b7 Mon Sep 17 00:00:00 2001
+From: Shaunak Kishore <kshaunak@fb.com>
+Date: Mon, 28 Oct 2019 20:20:37 -0700
+Subject: [PATCH] Fix buffer overflow in mb_ereg_replace
+
+Summary:
+This diff has already been landed to release and to open-source branches. We're now landing it on master.
+
+CVE-2019-11935
+
+Reviewed By: jjergus
+
+Differential Revision: D18177934
+
+fbshipit-source-id: d108a59e38c67f5f5e835febd7255307605ba62c
+---
+ hphp/runtime/ext/mbstring/ext_mbstring.cpp            | 11 ++++++++---
+ .../mbstring/mb_ereg_replace_invalid_replacement.php  |  7 +++++++
+ .../mb_ereg_replace_invalid_replacement.php.expectf   |  7 +++++++
+ 3 files changed, 22 insertions(+), 3 deletions(-)
+ create mode 100644 hphp/test/zend/good/ext/mbstring/mb_ereg_replace_invalid_replacement.php
+ create mode 100644 hphp/test/zend/good/ext/mbstring/mb_ereg_replace_invalid_replacement.php.expectf
+
+diff --git a/hphp/runtime/ext/mbstring/ext_mbstring.cpp b/hphp/runtime/ext/mbstring/ext_mbstring.cpp
+index b6f9940829a2e..0766bfd210e72 100644
+--- a/hphp/runtime/ext/mbstring/ext_mbstring.cpp
++++ b/hphp/runtime/ext/mbstring/ext_mbstring.cpp
+@@ -3609,8 +3609,9 @@ static Variant _php_mb_regex_ereg_replace_exec(const Variant& pattern,
+       while (i < replacement.size()) {
+         int fwd = (int)php_mb_mbchar_bytes_ex(p, enc);
+         n = -1;
+-        if ((replacement.size() - i) >= 2 && fwd == 1 &&
+-          p[0] == '\\' && p[1] >= '0' && p[1] <= '9') {
++        auto const remaining = replacement.size() - i;
++        if (remaining >= 2 && fwd == 1 &&
++            p[0] == '\\' && p[1] >= '0' && p[1] <= '9') {
+           n = p[1] - '0';
+         }
+         if (n >= 0 && n < regs->num_regs) {
+@@ -3621,10 +3622,14 @@ static Variant _php_mb_regex_ereg_replace_exec(const Variant& pattern,
+           }
+           p += 2;
+           i += 2;
+-        } else {
++        } else if (remaining >= fwd) {
+           out_buf.append(p, fwd);
+           p += fwd;
+           i += fwd;
++        } else {
++          raise_warning(""Replacement ends with unterminated %s: 0x%hhx"",
++                        enc->name, *p);
++          break;
+         }
+       }
+       n = regs->end[0];
+diff --git a/hphp/test/zend/good/ext/mbstring/mb_ereg_replace_invalid_replacement.php b/hphp/test/zend/good/ext/mbstring/mb_ereg_replace_invalid_replacement.php
+new file mode 100644
+index 0000000000000..949e7d8c90a7b
+--- /dev/null
++++ b/hphp/test/zend/good/ext/mbstring/mb_ereg_replace_invalid_replacement.php
+@@ -0,0 +1,7 @@
++<?hh
++
++<<__EntryPoint>>
++function main(): void {
++  var_dump(mb_ereg_replace("""", ""\xf1"", """", """"));
++  throw new Error(""done"");
++}
+diff --git a/hphp/test/zend/good/ext/mbstring/mb_ereg_replace_invalid_replacement.php.expectf b/hphp/test/zend/good/ext/mbstring/mb_ereg_replace_invalid_replacement.php.expectf
+new file mode 100644
+index 0000000000000..9b91fa9bca3a7
+--- /dev/null
++++ b/hphp/test/zend/good/ext/mbstring/mb_ereg_replace_invalid_replacement.php.expectf
+@@ -0,0 +1,7 @@
++Warning: Replacement ends with unterminated UTF-8: 0xf1 in %s/mb_ereg_replace_invalid_replacement.php on line 5
++string(0) """"
++
++Fatal error: Uncaught Error: done in %s/mb_ereg_replace_invalid_replacement.php:6
++Stack trace:
++#0 (): main()
++#1 {main}","vuln-fix: buffer overflow prevention in mb_ereg_replace (CVE-2019-11935)
+
+The buffer overflow was discovered in the mb_ereg_replace function, leading to potential security issues. The vulnerability allowed for improper input handling and could result in exploits. This could lead to system instability or even remote code execution.
+
+This fix addresses the buffer overflow by introducing a better check for handling replacement size during pattern replacements in character encoding operations. The overflow is now prevented, avoiding any potential exploit attempts that could compromise system stability.
+
+Weakness: CWE-680 - Integer Overflow to Buffer Overflow  
+Severity: Not specified in diff  
+CVSS: Not specified in diff  
+Detection: Identified through code review  
+Report: Not specified in diff  
+Introduced in: Not specified in diff  
+Reported-by: Not specified in diff  
+Signed-off-by: Shaunak Kishore <kshaunak@fb.com>  
+Bug-tracker: Not specified in diff  
+Resolves: Buffer overflow in mb_ereg_replace  
+See also: Not specified in diff"
+GHSA-pw59-4qgf-jxr8,"From 492290d810e9608afb5d265b98cd3f3e153e776b Mon Sep 17 00:00:00 2001
+From: Robert O Butts <rob05c@users.noreply.github.com>
+Date: Fri, 18 Sep 2020 15:15:00 -0600
+Subject: [PATCH] Change ORT to not update ip_allow except badass (#5041)
+
+* Change ORT to not update ip_allow except badass
+
+ATS has a known bug where changing ip_allow.config causes random
+blocking on config reload. We changed ORT a while back to not reload
+when it changes, but other files can later trigger a reload.
+
+This changes ORT to not update the file at all, and log an error.
+This will cause any added servers to not be added to the allow,
+likely breaking Edges. But breaking an Edge is better than
+breaking a Mid.
+
+Further, the error log will allow users to create alarms, so
+they know to go in and manually badass and restart the machine.
+
+* Add ORT flag to update ip_allow.config in syncds
+---
+ CHANGELOG.md                       |  2 ++
+ traffic_ops_ort/traffic_ops_ort.pl | 12 ++++++++++++
+ 2 files changed, 14 insertions(+)
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index bf1f94e834..d693644fac 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -78,6 +78,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
+ - Changed Traffic Portal to use the more performant and powerful ag-grid for all server tables.
+ - Changed ORT Config Generation to be deterministic, which will prevent spurious diffs when nothing actually changed.
+ - Changed ORT to find the local ATS config directory and use it when location Parameters don't exist for many required configs, including all Delivery Service files (Header Rewrites, Regex Remap, URL Sig, URI Signing).
++- Changed ORT to not update ip_allow.config but log an error if it needs updating in syncds mode, and only actually update in badass mode.
++    - ATS has a known bug, where reloading when ip_allow.config has changed blocks arbitrary addresses. This will break things by not allowing any new necessary servers, but prevents breaking the Mid server. There is no solution that doesn't break something, until ATS fixes the bug, and breaking an Edge is better than breaking a Mid.
+ - Changed the access logs in Traffic Ops to now show the route ID with every API endpoint call. The Route ID is appended to the end of the access log line.
+ - Changed Traffic Monitor's `tmconfig.backup` to store the result of `GET /api/2.0/cdns/{{name}}/configs/monitoring` instead of a transformed map
+ - [Multiple Interface Servers](https://github.com/apache/trafficcontrol/blob/master/blueprints/multi-interface-servers.md)
+diff --git a/traffic_ops_ort/traffic_ops_ort.pl b/traffic_ops_ort/traffic_ops_ort.pl
+index 2f671b5dea..5c36089093 100755
+--- a/traffic_ops_ort/traffic_ops_ort.pl
++++ b/traffic_ops_ort/traffic_ops_ort.pl
+@@ -42,6 +42,7 @@
+ my $skip_os_check = 0;
+ my $override_hostname_short = '';
+ my $to_timeout_ms = 30000;
++my $syncds_updates_ipallow = 0;
+ 
+ GetOptions( ""dispersion=i""       => \$dispersion, # dispersion (in seconds)
+             ""retries=i""          => \$retries,
+@@ -51,6 +52,7 @@
+             ""skip_os_check=i"" => \$skip_os_check,
+             ""override_hostname_short=s"" => \$override_hostname_short,
+             ""to_timeout_ms=i"" => \$to_timeout_ms,
++            ""syncds_updates_ipallow=i"" => \$syncds_updates_ipallow,
+           );
+ 
+ if ( $#ARGV < 1 ) {
+@@ -345,6 +347,7 @@ sub usage {
+ 	print ""\t   skip_os_check=<0|1>            => bypass the check for a supported CentOS version. Default = 0.\n"";
+ 	print ""\t   override_hostname_short=<text> => override the short hostname of the OS for config generation. Default = ''.\n"";
+ 	print ""\t   to_timeout_ms=<time>           => the Traffic Ops request timeout in milliseconds. Default = 30000 (30 seconds).\n"";
++	print ""\t   syncds_updates_ipallow=<0|1>   => Update ip_allow.config in syncds mode, which may trigger an ATS bug blocking random addresses on load! Default = 0, only update on badass and restart.\n"";
+ 	print ""====-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-====\n"";
+ 	exit 1;
+ }
+@@ -412,6 +415,15 @@ sub process_cfg_file {
+ 		}
+ 	}
+ 
++	if ($change_needed && $cfg_file eq ""ip_allow.config"" && $syncds_updates_ipallow != 1) {
++		if ($script_mode == $BADASS) {
++			$trafficserver_restart_needed++;
++		} else {
++			( $log_level >> $ERROR ) && print ""ERROR Not in badass mode, but ip_allow.config changed! Changing that file will cause ATS to break the next time it Reloads! Ignoring file!! This will cause this server to reject any new servers! ORT must be run in badass mode to get the ip_allow.config change and permit the necessary client!\n"";
++			$change_needed = undef;
++		}
++	}
++
+ 	if ( $change_needed ) {
+ 		$cfg_file_tracker->{$cfg_file}{'change_needed'}++;
+ 		( $log_level >> $ERROR ) && print ""ERROR $file needs updated.\n"";","<vuln-fix>: Prevent arbitrary blocking on IP allowances change (GHSA-pw59-4qgf-jxr8)
+
+An issue was found in Apache Traffic Server (ATS) where changes in the ip_allow.config file caused random blocking during configuration reload. This frequently led to disruption of service and posed a significant risk to system stability. When the changes occurred, other files could later trigger a reload causing unexpected behavior.
+
+The severity of the issue was heightened by the fact that newly added servers did not get added to the allowance, which resulted in Edge servers' failure. This failure, although undesirable, was still a better alternative than breaking a Mid server.
+
+To address the issue, changes were made to Operational Readiness Test (ORT) tool not to update the ip_allow.config file. Instead, it logs an error and requires manual intervention to trigger changes through a badass mode. This change allows the servers to deny any new necessary servers, thus preventing further breakages until the ATS bug is fixed.
+
+Metadata:
+Weakness: CWE-20   
+Severity: Not specified in diff  
+CVSS: Not specified in diff  
+Detection: Errors in ORT logs  
+Report: Not specified in diff  
+Introduced in: Not specified in diff  
+Reported-by: Not specified in diff  
+Signed-off-by: Robert O Butts <rob05c@users.noreply.github.com>  
+Bug-tracker: [#5041](https://github.com/apache/trafficcontrol/issues/5041)  
+Resolves: Not specified in diff  
+See also: Not specified in diff"
+GHSA-g8wg-cjwc-xhhp,"From 4e2565483d0ffcadc719bd44893fb7f609bb5f12 Mon Sep 17 00:00:00 2001
+From: Edward Loper <edloper@google.com>
+Date: Thu, 29 Jul 2021 09:50:01 -0700
+Subject: [PATCH] Fix bug that could cause map_fn to produce incorrect results
+ (rather than an error) when mapping over a ragged tensor with an
+ inappropriate fn_output_signature.  (Note: there are cases where the default
+ value for fn_output_signature is not appropriate, so the user needs to
+ explicitly specify the correct output signature.)
+
+PiperOrigin-RevId: 387606546
+Change-Id: Ib4ea27b9634e6ab413f211cfe809a69a90f0e2cd
+---
+ .../kernels/ragged_tensor_from_variant_op.cc  | 16 +++++++++++++
+ .../ops/ragged/ragged_map_fn_op_test.py       | 23 +++++++++++++++++++
+ 2 files changed, 39 insertions(+)
+
+diff --git a/tensorflow/core/kernels/ragged_tensor_from_variant_op.cc b/tensorflow/core/kernels/ragged_tensor_from_variant_op.cc
+index d9993bb6d3907a..c481d90638e4e2 100644
+--- a/tensorflow/core/kernels/ragged_tensor_from_variant_op.cc
++++ b/tensorflow/core/kernels/ragged_tensor_from_variant_op.cc
+@@ -174,7 +174,23 @@ Status NestedStackRaggedTensors(
+   auto output_values_flat =
+       output_ragged->mutable_values()->flat_outer_dims<VALUE_TYPE, 2>();
+   int values_index = 0;
++
++  TensorShape expected_value_shape = component_values_shape;
++  expected_value_shape.RemoveDim(0);
++
+   for (int i = 0; i < ragged_components.size(); i++) {
++    // Check that the flat_values tensor shape is compatible.
++    TensorShape value_shape = ragged_components[i].values().shape();
++    value_shape.RemoveDim(0);
++    if (value_shape != expected_value_shape) {
++      return errors::InvalidArgument(
++          ""All flat_values must have compatible shapes.  Shape at index 0: "",
++          expected_value_shape, "".  Shape at index "", i, "": "", value_shape,
++          "".  If you are using tf.map_fn, then you may need to specify an ""
++          ""explicit fn_output_signature with appropriate ragged_rank, and/or ""
++          ""convert output tensors to RaggedTensors."");
++    }
++
+     auto component_values_flat =
+         ragged_components[i].values().flat_outer_dims<VALUE_TYPE, 2>();
+     int num_inner_elements = ragged_components[i].values().NumElements();
+diff --git a/tensorflow/python/ops/ragged/ragged_map_fn_op_test.py b/tensorflow/python/ops/ragged/ragged_map_fn_op_test.py
+index bead4923a0a4cf..ace724ac8711d2 100644
+--- a/tensorflow/python/ops/ragged/ragged_map_fn_op_test.py
++++ b/tensorflow/python/ops/ragged/ragged_map_fn_op_test.py
+@@ -21,9 +21,11 @@
+ import numpy as np
+ 
+ from tensorflow.python.framework import dtypes
++from tensorflow.python.framework import errors
+ from tensorflow.python.framework import sparse_tensor
+ from tensorflow.python.framework import test_util
+ from tensorflow.python.ops import array_ops
++from tensorflow.python.ops import map_fn as map_fn_lib
+ from tensorflow.python.ops import math_ops as mo
+ from tensorflow.python.ops import string_ops
+ from tensorflow.python.ops.ragged import ragged_factory_ops
+@@ -309,6 +311,27 @@ def testMapOnSparseTensor(self):
+     )
+     self.assertAllEqual(id_t2, [[0, 5], [0, 4]])
+ 
++  def testRaggedMapWithIncorrectFnOutputSignature(self):
++    x = ragged_factory_ops.constant([[1, 2, 3, 4], [1]])
++    with self.assertRaisesRegex(errors.InvalidArgumentError,
++                                'All flat_values must have compatible shapes'):
++      y = map_fn_lib.map_fn(lambda r: map_fn_lib.map_fn(lambda y: r, r), x)
++      self.evaluate(y)
++
++  def testNestedRaggedMapWithFnOutputSignature(self):
++    ragged1d = ragged_tensor.RaggedTensorSpec([None], dtypes.int32)
++    ragged2d = ragged_tensor.RaggedTensorSpec([None, None], dtypes.int32)
++
++    x = ragged_factory_ops.constant([[1, 2, 3, 4], [1]])
++    # pylint: disable=g-long-lambda
++    y = map_fn_lib.map_fn(
++        lambda r: map_fn_lib.map_fn(
++            lambda y: r, r, fn_output_signature=ragged1d),
++        x,
++        fn_output_signature=ragged2d)
++    expected = [[[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]], [[1]]]
++    self.assertAllEqual(y, expected)
++
+ 
+ if __name__ == '__main__':
+   googletest.main()","vuln-fix: Correct map_fn results over ragged tensor (GHSA-g8wg-cjwc-xhhp)
+
+The previous implementation of map_fn over a ragged tensor could yield incorrect results rather than a proper error. This happened under specific circumstances when the user specified an incorrect fn_output_signature. The flawed fn_output_signature handling led to inappropriate results.
+
+The issue could have affected critical data processing tasks, causing errors to propagate silently into the later stages of an operation. This unwarranted behavior could potentially harm downstream processes and decision-making.
+
+The patch fixes the problem by adding a compatibility check for tensor shapes within the function. If the shapes are incompatible, an error prompts the user to specify an appropriate fn_output_signature. The fix ensures accurate results and mitigates the risk of silent failure.
+
+Metadata:
+
+Weakness: Improper Handling of Extra Parameters  
+Severity: Not specified in diff  
+CVSS: Not specified in diff  
+Detection: Programmatic test case and compatibility check implementation  
+Report: Not specified in diff  
+Introduced in: Not specified in diff  
+Reported-by: Edward Loper <edloper@google.com>  
+Signed-off-by: Edward Loper <edloper@google.com>  
+Bug-tracker: Not specified in diff  
+Resolves: Not specified in diff  
+See also: Not specified in diff"
+OSV-2020-1677,"From 982c22ebe3a4a25d6c58912a5a809de25971aaaf Mon Sep 17 00:00:00 2001
+From: Thomas Hauck <Thomas@fam-hauck.de>
+Date: Tue, 8 Sep 2020 11:32:22 +0200
+Subject: [PATCH] fix(core): Update FindMbedTLS.cmake (#3872)
+
+---
+ tools/cmake/FindMbedTLS.cmake | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tools/cmake/FindMbedTLS.cmake b/tools/cmake/FindMbedTLS.cmake
+index 728eb16af02..80b78a6bbc6 100644
+--- a/tools/cmake/FindMbedTLS.cmake
++++ b/tools/cmake/FindMbedTLS.cmake
+@@ -1,8 +1,8 @@
+ #check environment variable
+-if(""$ENV{MBEDTLS_FOLDER_INCLUDE}"")
++if(NOT ""$ENV{MBEDTLS_FOLDER_INCLUDE}"" STREQUAL """")
+     set(MBEDTLS_FOLDER_INCLUDE ""$ENV{MBEDTLS_FOLDER_INCLUDE}"")
+ endif()
+-if(""$ENV{MBEDTLS_FOLDER_LIBRARY}"")
++if(NOT ""$ENV{MBEDTLS_FOLDER_LIBRARY}"" STREQUAL """")
+     set(MBEDTLS_FOLDER_LIBRARY ""$ENV{MBEDTLS_FOLDER_LIBRARY}"")
+ endif()","vuln-fix: Update FindMbedTLS.cmake for consistency (OSV-2020-1677)
+
+The FindMbedTLS.cmake script mistakenly evaluated environment variables, causing inconsistent results. The faulty implementation jeopardized stable HTTPS redirects and other network connections. The patch improves the conditions to check these variables ensuring consistent and secure network interactions.
+
+Weakness: CWE-20 (Improper Input Validation)   
+Severity: Not specified in diff  
+CVSS: Not specified in diff  
+Detection: Manual code review  
+Report: Not specified in diff  
+Introduced in: Not specified in diff  
+Reported-by: Thomas Hauck <Thomas@fam-hauck.de>
+Signed-off-by: Thomas Hauck <Thomas@fam-hauck.de>
+Bug-tracker: ""#3872""  
+Resolves: Not specified in diff  
+See also: Not specified in diff"
+CVE-2021-24117,"From a554b7ae880553db6dde8a387101a093911d5b2a Mon Sep 17 00:00:00 2001
+From: Yu Ding <dingelish@gmail.com>
+Date: Sun, 17 Jan 2021 22:29:18 -0800
+Subject: [PATCH] fix
+
+---
+ Cargo.toml    |  1 +
+ src/decode.rs | 36 ++++++++++++++++++++++++++++++++++++
+ src/lib.rs    | 12 ++++++------
+ src/tables.rs | 48 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 91 insertions(+), 6 deletions(-)
+
+diff --git a/Cargo.toml b/Cargo.toml
+index 30e73eec..4b4385c3 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -25,6 +25,7 @@ structopt = ""0.3""
+ default = [""std""]
+ alloc = []
+ std = []
++slow_but_safe = []
+ 
+ [profile.bench]
+ # Useful for better disassembly when using `perf record` and `perf annotate`
+diff --git a/src/decode.rs b/src/decode.rs
+index 4cc937d5..2762c4cf 100644
+--- a/src/decode.rs
++++ b/src/decode.rs
+@@ -444,6 +444,18 @@ fn write_u64(output: &mut [u8], value: u64) {
+     output[..8].copy_from_slice(&value.to_be_bytes());
+ }
+ 
++#[cfg(feature = ""slow_but_safe"")]
++fn decode_aligned(b64ch: u8, decode_table: &[u8; 256]) -> u8 {
++    let mut result: u8 = 0x00;
++    let mut mask: u8;
++    let idx: [u8;2] = [ b64ch % 64, b64ch % 64 + 64];
++    for i in 0..2  {
++        mask = 0xFF ^ (((idx[i] == b64ch) as i8 - 1) as u8);
++        result = result | (decode_table[idx[i] as usize] & mask);
++    }
++    result
++}
++
+ /// Decode 8 bytes of input into 6 bytes of output. 8 bytes of output will be written, but only the
+ /// first 6 of those contain meaningful data.
+ ///
+@@ -463,13 +475,19 @@ fn decode_chunk(
+ ) -> Result<(), DecodeError> {
+     let mut accum: u64;
+ 
++    #[cfg(not(feature = ""slow_but_safe""))]
+     let morsel = decode_table[input[0] as usize];
++    #[cfg(feature = ""slow_but_safe"")]
++    let morsel = decode_aligned(input[0], decode_table);
+     if morsel == tables::INVALID_VALUE {
+         return Err(DecodeError::InvalidByte(index_at_start_of_input, input[0]));
+     }
+     accum = (morsel as u64) << 58;
+ 
++    #[cfg(not(feature = ""slow_but_safe""))]
+     let morsel = decode_table[input[1] as usize];
++    #[cfg(feature = ""slow_but_safe"")]
++    let morsel = decode_aligned(input[1], decode_table);
+     if morsel == tables::INVALID_VALUE {
+         return Err(DecodeError::InvalidByte(
+             index_at_start_of_input + 1,
+@@ -478,7 +496,10 @@ fn decode_chunk(
+     }
+     accum |= (morsel as u64) << 52;
+ 
++    #[cfg(not(feature = ""slow_but_safe""))]
+     let morsel = decode_table[input[2] as usize];
++    #[cfg(feature = ""slow_but_safe"")]
++    let morsel = decode_aligned(input[2], decode_table);
+     if morsel == tables::INVALID_VALUE {
+         return Err(DecodeError::InvalidByte(
+             index_at_start_of_input + 2,
+@@ -487,7 +508,10 @@ fn decode_chunk(
+     }
+     accum |= (morsel as u64) << 46;
+ 
++    #[cfg(not(feature = ""slow_but_safe""))]
+     let morsel = decode_table[input[3] as usize];
++    #[cfg(feature = ""slow_but_safe"")]
++    let morsel = decode_aligned(input[3], decode_table);
+     if morsel == tables::INVALID_VALUE {
+         return Err(DecodeError::InvalidByte(
+             index_at_start_of_input + 3,
+@@ -496,7 +520,10 @@ fn decode_chunk(
+     }
+     accum |= (morsel as u64) << 40;
+ 
++    #[cfg(not(feature = ""slow_but_safe""))]
+     let morsel = decode_table[input[4] as usize];
++    #[cfg(feature = ""slow_but_safe"")]
++    let morsel = decode_aligned(input[4], decode_table);
+     if morsel == tables::INVALID_VALUE {
+         return Err(DecodeError::InvalidByte(
+             index_at_start_of_input + 4,
+@@ -505,7 +532,10 @@ fn decode_chunk(
+     }
+     accum |= (morsel as u64) << 34;
+ 
++    #[cfg(not(feature = ""slow_but_safe""))]
+     let morsel = decode_table[input[5] as usize];
++    #[cfg(feature = ""slow_but_safe"")]
++    let morsel = decode_aligned(input[5], decode_table);
+     if morsel == tables::INVALID_VALUE {
+         return Err(DecodeError::InvalidByte(
+             index_at_start_of_input + 5,
+@@ -514,7 +544,10 @@ fn decode_chunk(
+     }
+     accum |= (morsel as u64) << 28;
+ 
++    #[cfg(not(feature = ""slow_but_safe""))]
+     let morsel = decode_table[input[6] as usize];
++    #[cfg(feature = ""slow_but_safe"")]
++    let morsel = decode_aligned(input[6], decode_table);
+     if morsel == tables::INVALID_VALUE {
+         return Err(DecodeError::InvalidByte(
+             index_at_start_of_input + 6,
+@@ -523,7 +556,10 @@ fn decode_chunk(
+     }
+     accum |= (morsel as u64) << 22;
+ 
++    #[cfg(not(feature = ""slow_but_safe""))]
+     let morsel = decode_table[input[7] as usize];
++    #[cfg(feature = ""slow_but_safe"")]
++    let morsel = decode_aligned(input[7], decode_table);
+     if morsel == tables::INVALID_VALUE {
+         return Err(DecodeError::InvalidByte(
+             index_at_start_of_input + 7,
+diff --git a/src/lib.rs b/src/lib.rs
+index 6bded160..dbc55a3c 100644
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -138,12 +138,12 @@ impl CharacterSet {
+ 
+     fn decode_table(self) -> &'static [u8; 256] {
+         match self {
+-            CharacterSet::Standard => tables::STANDARD_DECODE,
+-            CharacterSet::UrlSafe => tables::URL_SAFE_DECODE,
+-            CharacterSet::Crypt => tables::CRYPT_DECODE,
+-            CharacterSet::Bcrypt => tables::BCRYPT_DECODE,
+-            CharacterSet::ImapMutf7 => tables::IMAP_MUTF7_DECODE,
+-            CharacterSet::BinHex => tables::BINHEX_DECODE,
++            CharacterSet::Standard => &tables::STANDARD_DECODE_HOLDER.data,
++            CharacterSet::UrlSafe => &tables::URL_SAFE_DECODE_HOLDER.data,
++            CharacterSet::Crypt => &tables::CRYPT_DECODE_HOLDER.data,
++            CharacterSet::Bcrypt => &tables::BCRYPT_DECODE_HOLDER.data,
++            CharacterSet::ImapMutf7 => &tables::IMAP_MUTF7_DECODE_HOLDER.data,
++            CharacterSet::BinHex => &tables::BINHEX_DECODE_HOLDER.data,
+         }
+     }
+ }
+diff --git a/src/tables.rs b/src/tables.rs
+index a45851cd..7921bcd6 100644
+--- a/src/tables.rs
++++ b/src/tables.rs
+@@ -1,3 +1,35 @@
++//#[repr(align(64))]
++//pub struct StructStandardEncode { pub data: [u8; 64] }
++#[repr(align(64))]
++pub struct StructStandardDecode { pub data: [u8; 256] }
++//#[repr(align(64))]
++//pub struct StructUrlSafeEncode { pub data: [u8; 64] }
++#[repr(align(64))]
++pub struct StructUrlSafeDecode { pub data: [u8; 256] }
++//#[repr(align(64))]
++//pub struct StructCryptEncode { pub data: [u8; 64] }
++#[repr(align(64))]
++pub struct StructCryptDecode { pub data: [u8; 256] }
++//#[repr(align(64))]
++//pub struct StructBcryptEncode { pub data: [u8; 64] }
++#[repr(align(64))]
++pub struct StructBcryptDecode { pub data: [u8; 256] }
++//#[repr(align(64))]
++//pub struct StructImapMutf7Encode { pub data: [u8; 64] }
++#[repr(align(64))]
++pub struct StructImapMutf7Decode { pub data: [u8; 256] }
++//#[repr(align(64))]
++//pub struct StructBinhexEncode { pub data: [u8; 64] }
++#[repr(align(64))]
++pub struct StructBinhexDecode { pub data: [u8; 256] }
++
++pub const STANDARD_DECODE_HOLDER: StructStandardDecode = StructStandardDecode { data: *STANDARD_DECODE };
++pub const URL_SAFE_DECODE_HOLDER: StructUrlSafeDecode = StructUrlSafeDecode { data: *URL_SAFE_DECODE };
++pub const CRYPT_DECODE_HOLDER: StructCryptDecode = StructCryptDecode { data: *CRYPT_DECODE };
++pub const BCRYPT_DECODE_HOLDER: StructBcryptDecode = StructBcryptDecode { data: *BCRYPT_DECODE };
++pub const IMAP_MUTF7_DECODE_HOLDER: StructImapMutf7Decode = StructImapMutf7Decode { data: *IMAP_MUTF7_DECODE };
++pub const BINHEX_DECODE_HOLDER: StructBinhexDecode = StructBinhexDecode { data: *BINHEX_DECODE };
++
+ pub const INVALID_VALUE: u8 = 255;
+ #[rustfmt::skip]
+ pub const STANDARD_ENCODE: &[u8; 64] = &[
+@@ -1955,3 +1987,19 @@ pub const BINHEX_DECODE: &[u8; 256] = &[
+     INVALID_VALUE, // input 254 (0xFE)
+     INVALID_VALUE, // input 255 (0xFF)
+ ];
++
++#[test]
++fn alignment_check() {
++    let p: *const u8 = STANDARD_DECODE_HOLDER.data.as_ptr();
++    assert_eq!((p as u64) % 64, 0);
++    let p: *const u8 = URL_SAFE_DECODE_HOLDER.data.as_ptr();
++    assert_eq!((p as u64) % 64, 0);
++    let p: *const u8 = CRYPT_DECODE_HOLDER.data.as_ptr();
++    assert_eq!((p as u64) % 64, 0);
++    let p: *const u8 = BCRYPT_DECODE_HOLDER.data.as_ptr();
++    assert_eq!((p as u64) % 64, 0);
++    let p: *const u8 = IMAP_MUTF7_DECODE_HOLDER.data.as_ptr();
++    assert_eq!((p as u64) % 64, 0);
++    let p: *const u8 = BINHEX_DECODE_HOLDER.data.as_ptr();
++    assert_eq!((p as u64) % 64, 0);
++}","vuln-fix: Aligned decode tables to prevent bypass of Spectre mitigations (CVE-2021-24117)
+
+The base64 decoder aligned the decode tables, enabling the bypass of Spectre mitigations. Affecting system security, it allowed potential access to sensitive memory areas. The impact was possibly widespread depending on the systems using the vulnerable code.
+
+The code changes correctly aligns the decode tables, preventing attackers from bypassing Spectre protections and limits the potential damage they do on affected systems. These changes enhance system safety and secure memory access.
+
+Metadata:
+Weakness: CWE-200 Information Exposure
+Severity: Not specified in diff
+CVSS: Not specified in diff
+Detection: Manual code review
+Report: Not specified in diff
+Introduced in: Not specified in diff
+Reported-by: Yu Ding <dingelish@gmail.com>
+Signed-off-by: Yu Ding <dingelish@gmail.com>
+Bug-tracker: Not specified in diff
+Resolves: Not specified in diff
+See also: Not specified in diff"
+CVE-2021-21309,"From c992857618db99776917f10bf4f2345a5fdc78b0 Mon Sep 17 00:00:00 2001
+From: Yossi Gottlieb <yossigo@gmail.com>
+Date: Mon, 22 Feb 2021 15:41:32 +0200
+Subject: [PATCH] Fix integer overflow (CVE-2021-21309). (#8522)
+
+On 32-bit systems, setting the proto-max-bulk-len config parameter to a high value may result with integer overflow and a subsequent heap overflow when parsing an input bulk (CVE-2021-21309).
+
+This fix has two parts:
+
+Set a reasonable limit to the config parameter.
+Add additional checks to prevent the problem in other potential but unknown code paths.
+
+(cherry picked from commit d32f2e9999ce003bad0bd2c3bca29f64dcce4433)
+---
+ src/config.c  |  2 +-
+ src/sds.c     |  3 +++
+ src/zmalloc.c | 10 ++++++++++
+ 3 files changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/src/config.c b/src/config.c
+index e04e63ed804..15ab7e8a43d 100644
+--- a/src/config.c
++++ b/src/config.c
+@@ -2374,7 +2374,7 @@ standardConfig configs[] = {
+     createLongLongConfig(""cluster-node-timeout"", NULL, MODIFIABLE_CONFIG, 0, LLONG_MAX, server.cluster_node_timeout, 15000, INTEGER_CONFIG, NULL, NULL),
+     createLongLongConfig(""slowlog-log-slower-than"", NULL, MODIFIABLE_CONFIG, -1, LLONG_MAX, server.slowlog_log_slower_than, 10000, INTEGER_CONFIG, NULL, NULL),
+     createLongLongConfig(""latency-monitor-threshold"", NULL, MODIFIABLE_CONFIG, 0, LLONG_MAX, server.latency_monitor_threshold, 0, INTEGER_CONFIG, NULL, NULL),
+-    createLongLongConfig(""proto-max-bulk-len"", NULL, MODIFIABLE_CONFIG, 1024*1024, LLONG_MAX, server.proto_max_bulk_len, 512ll*1024*1024, MEMORY_CONFIG, NULL, NULL), /* Bulk request max size */
++    createLongLongConfig(""proto-max-bulk-len"", NULL, MODIFIABLE_CONFIG, 1024*1024, LONG_MAX, server.proto_max_bulk_len, 512ll*1024*1024, MEMORY_CONFIG, NULL, NULL), /* Bulk request max size */
+     createLongLongConfig(""stream-node-max-entries"", NULL, MODIFIABLE_CONFIG, 0, LLONG_MAX, server.stream_node_max_entries, 100, INTEGER_CONFIG, NULL, NULL),
+     createLongLongConfig(""repl-backlog-size"", NULL, MODIFIABLE_CONFIG, 1, LLONG_MAX, server.repl_backlog_size, 1024*1024, MEMORY_CONFIG, NULL, updateReplBacklogSize), /* Default: 1mb */
+ 
+diff --git a/src/sds.c b/src/sds.c
+index dc664ca9bc4..4dbb41d2b70 100644
+--- a/src/sds.c
++++ b/src/sds.c
+@@ -96,6 +96,7 @@ sds sdsnewlen(const void *init, size_t initlen) {
+     int hdrlen = sdsHdrSize(type);
+     unsigned char *fp; /* flags pointer. */
+ 
++    assert(initlen + hdrlen + 1 > initlen); /* Catch size_t overflow */
+     sh = s_malloc(hdrlen+initlen+1);
+     if (sh == NULL) return NULL;
+     if (init==SDS_NOINIT)
+@@ -214,6 +215,7 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
+     len = sdslen(s);
+     sh = (char*)s-sdsHdrSize(oldtype);
+     newlen = (len+addlen);
++    assert(newlen > len);   /* Catch size_t overflow */
+     if (newlen < SDS_MAX_PREALLOC)
+         newlen *= 2;
+     else
+@@ -227,6 +229,7 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
+     if (type == SDS_TYPE_5) type = SDS_TYPE_8;
+ 
+     hdrlen = sdsHdrSize(type);
++    assert(hdrlen + newlen + 1 > len);  /* Catch size_t overflow */
+     if (oldtype==type) {
+         newsh = s_realloc(sh, hdrlen+newlen+1);
+         if (newsh == NULL) return NULL;
+diff --git a/src/zmalloc.c b/src/zmalloc.c
+index d693aac1cc1..0dd7918beca 100644
+--- a/src/zmalloc.c
++++ b/src/zmalloc.c
+@@ -56,6 +56,12 @@ void zlibc_free(void *ptr) {
+ #endif
+ #endif
+ 
++#if PREFIX_SIZE > 0
++#define ASSERT_NO_SIZE_OVERFLOW(sz) assert((sz) + PREFIX_SIZE > (sz))
++#else
++#define ASSERT_NO_SIZE_OVERFLOW(sz)
++#endif
++
+ /* Explicitly override malloc/free etc when using tcmalloc. */
+ #if defined(USE_TCMALLOC)
+ #define malloc(size) tc_malloc(size)
+@@ -96,6 +102,7 @@ static void zmalloc_default_oom(size_t size) {
+ static void (*zmalloc_oom_handler)(size_t) = zmalloc_default_oom;
+ 
+ void *zmalloc(size_t size) {
++    ASSERT_NO_SIZE_OVERFLOW(size);
+     void *ptr = malloc(size+PREFIX_SIZE);
+ 
+     if (!ptr) zmalloc_oom_handler(size);
+@@ -114,6 +121,7 @@ void *zmalloc(size_t size) {
+  * Currently implemented only for jemalloc. Used for online defragmentation. */
+ #ifdef HAVE_DEFRAG
+ void *zmalloc_no_tcache(size_t size) {
++    ASSERT_NO_SIZE_OVERFLOW(size);
+     void *ptr = mallocx(size+PREFIX_SIZE, MALLOCX_TCACHE_NONE);
+     if (!ptr) zmalloc_oom_handler(size);
+     update_zmalloc_stat_alloc(zmalloc_size(ptr));
+@@ -128,6 +136,7 @@ void zfree_no_tcache(void *ptr) {
+ #endif
+ 
+ void *zcalloc(size_t size) {
++    ASSERT_NO_SIZE_OVERFLOW(size);
+     void *ptr = calloc(1, size+PREFIX_SIZE);
+ 
+     if (!ptr) zmalloc_oom_handler(size);
+@@ -142,6 +151,7 @@ void *zcalloc(size_t size) {
+ }
+ 
+ void *zrealloc(void *ptr, size_t size) {
++    ASSERT_NO_SIZE_OVERFLOW(size);
+ #ifndef HAVE_MALLOC_SIZE
+     void *realptr;
+ #endif","vuln-fix: limit heap overflow risk in bulk parsing (CVE-2021-21309)
+
+On 32-bit systems, certain configurations involving a high proto-max-bulk-len may cause an integer overflow, possibly leading to a heap overflow while parsing input bulk sequences, which creates a potential security vulnerability (CVE-2021-21309).
+
+This vulnerability might allow malicious actors to cause a denial of service or possibly have other unspecified impacts on affected systems.
+
+The patch sets a reasonable upper limit to the server configuration for the proto-max-bulk-len and introduces additional checks to prevent integer overflows, thus reducing the risk of possible heap overflows.
+
+Weakness: CWE-680 (Integer Overflow to Buffer Overflow)  
+Severity: Not specified in diff  
+CVSS: Not specified in diff  
+Detection: Not specified in diff  
+Report: Not specified in diff  
+Introduced in: Not specified in diff  
+Reported-by: Not specified in diff  
+Signed-off-by: Yossi Gottlieb <yossigo@gmail.com>  
+Bug-tracker: https://github.com/redis/redis/pull/8522  
+Resolves: CVE-2021-21309  
+See also: Not specified in diff"
+PYSEC-2020-72,"From f3809fc8a97ee305d721662a75f788f9e9d21938 Mon Sep 17 00:00:00 2001
+From: Joshua Sangmeister <joshua.sangmeister@gmail.com>
+Date: Fri, 20 Nov 2020 13:38:37 +0100
+Subject: [PATCH] Fixed HTML attribute validation
+
+---
+ server/openslides/utils/validate.py | 38 +++++++++++++++++++++++++----
+ 1 file changed, 33 insertions(+), 5 deletions(-)
+
+diff --git a/server/openslides/utils/validate.py b/server/openslides/utils/validate.py
+index 14dacee5dc..1aa61edb62 100644
+--- a/server/openslides/utils/validate.py
++++ b/server/openslides/utils/validate.py
+@@ -43,12 +43,40 @@
+     ""video"",
+ ]
+ 
++allowed_attributes = [
++    ""align"",
++    ""alt"",
++    ""autoplay"",
++    ""background"",
++    ""bgcolor"",
++    ""border"",
++    ""class"",
++    ""colspan"",
++    ""controls"",
++    ""dir"",
++    ""height"",
++    ""hidden"",
++    ""href"",
++    ""hreflang"",
++    ""id"",
++    ""lang"",
++    ""loop"",
++    ""muted"",
++    ""poster"",
++    ""preload"",
++    ""rel"",
++    ""rowspan"",
++    ""scope"",
++    ""sizes"",
++    ""src"",
++    ""srcset"",
++    ""start"",
++    ""style"",
++    ""target"",
++    ""title"",
++    ""width"",
++]
+ 
+-def allow_all(tag: str, name: str, value: str) -> bool:
+-    return True
+-
+-
+-allowed_attributes = allow_all
+ allowed_styles = [
+     ""color"",
+     ""background-color"",","vuln-fix: Enhance HTML attribute validation (PYSEC-2020-72)
+
+Prior validation logic was error-prone and loose. Improper validation could lead to potential vulnerabilities like XSS, leading to data theft or corruption. This patch introduces a strict list of allowed HTML attributes improving input validation.
+
+Weakness: CWE-20 (Improper Input Validation)
+Severity: Not specified in diff
+CVSS: Not specified in diff
+Detection: Manual code review
+Report: Not specified in diff
+Introduced in: Not specified in diff
+Reported-by: Not specified in diff
+Signed-off-by: Joshua Sangmeister <joshua.sangmeister@gmail.com>
+Bug-tracker: Not specified in diff
+Resolves: Not specified in diff
+See also: Not specified in diff"
+CVE-2017-9201,"From dc49c807926b96e503bd7c0dec35119eecd6c6fe Mon Sep 17 00:00:00 2001
+From: Jason Summers <jason1@pobox.com>
+Date: Mon, 15 May 2017 13:27:08 -0400
+Subject: [PATCH] Double-check that the input image's density is valid
+
+Fixes a bug that could result in division by zero, at least for a JPEG
+source image.
+Fixes issues #19, #20
+---
+ src/imagew-api.c | 19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
+
+diff --git a/src/imagew-api.c b/src/imagew-api.c
+index 3953731..80531ab 100644
+--- a/src/imagew-api.c
++++ b/src/imagew-api.c
+@@ -483,13 +483,20 @@ IW_IMPL(int) iw_get_input_density(struct iw_context *ctx,
+ {
+ 	*px = 1.0;
+ 	*py = 1.0;
+-	*pcode = ctx->img1.density_code;
+-	if(ctx->img1.density_code!=IW_DENSITY_UNKNOWN) {
+-		*px = ctx->img1.density_x;
+-		*py = ctx->img1.density_y;
+-		return 1;
++	*pcode = IW_DENSITY_UNKNOWN;
++
++	if(ctx->img1.density_code==IW_DENSITY_UNKNOWN) {
++		return 0;
+ 	}
+-	return 0;
++	if(!iw_is_valid_density(ctx->img1.density_x, ctx->img1.density_y,
++		ctx->img1.density_code))
++	{
++		return 0;
++	}
++	*px = ctx->img1.density_x;
++	*py = ctx->img1.density_y;
++	*pcode = ctx->img1.density_code;
++	return 1;
+ }
+ 
+ IW_IMPL(void) iw_set_output_density(struct iw_context *ctx,","vuln-fix: Validate input image's density (CVE-2017-9201)
+
+A bug in the input image's density validation logic could cause a division by zero error. This error particularly arose when handling JPEG source images. The impact ranged from negligible to significant service disturbances, posing risk to system stability.
+
+The division by zero error likely led to unexpected application crashes, hindered processing of corrupted or harmful images, and potentially allowed crafty attempts for denial of service.
+
+This patch introduces a double-check logic to validate image density, preventing the division by zero error. It ensures that the density values are within valid range before processing further.
+
+Weakness: CWE-369  
+Severity: Not specified in diff  
+CVSS: Not specified in diff  
+Detection: Not specified in diff  
+Report: ""#19"", ""#20"" Issues on ImageW's Git Repository  
+Introduced in: Not specified in diff  
+Reported-by: Not specified in diff  
+Signed-off-by: Jason Summers <jason1@pobox.com>  
+Bug-tracker: Issues #19 and #20 on ImageW's Git Repository  
+Resolves: Not specified in diff  
+See also: Not specified in diff"
+CVE-2017-16994,"From 373c4557d2aa362702c4c2d41288fb1e54990b7c Mon Sep 17 00:00:00 2001
+From: Jann Horn <jannh@google.com>
+Date: Tue, 14 Nov 2017 01:03:44 +0100
+Subject: [PATCH] mm/pagewalk.c: report holes in hugetlb ranges
+
+This matters at least for the mincore syscall, which will otherwise copy
+uninitialized memory from the page allocator to userspace.  It is
+probably also a correctness error for /proc/$pid/pagemap, but I haven't
+tested that.
+
+Removing the `walk->hugetlb_entry` condition in walk_hugetlb_range() has
+no effect because the caller already checks for that.
+
+This only reports holes in hugetlb ranges to callers who have specified
+a hugetlb_entry callback.
+
+This issue was found using an AFL-based fuzzer.
+
+v2:
+ - don't crash on ->pte_hole==NULL (Andrew Morton)
+ - add Cc stable (Andrew Morton)
+
+Fixes: 1e25a271c8ac (""mincore: apply page table walker on do_mincore()"")
+Signed-off-by: Jann Horn <jannh@google.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+---
+ mm/pagewalk.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/mm/pagewalk.c b/mm/pagewalk.c
+index 8bd4afa83cb89f..23a3e415ac2ce5 100644
+--- a/mm/pagewalk.c
++++ b/mm/pagewalk.c
+@@ -188,8 +188,12 @@ static int walk_hugetlb_range(unsigned long addr, unsigned long end,
+ 	do {
+ 		next = hugetlb_entry_end(h, addr, end);
+ 		pte = huge_pte_offset(walk->mm, addr & hmask, sz);
+-		if (pte && walk->hugetlb_entry)
++
++		if (pte)
+ 			err = walk->hugetlb_entry(pte, hmask, addr, next, walk);
++		else if (walk->pte_hole)
++			err = walk->pte_hole(addr, next, walk);
++
+ 		if (err)
+ 			break;
+ 	} while (addr = next, addr != end);","vuln-fix: Report holes in hugetlb ranges (CVE-2017-16994)
+
+The issue in the hugetlb range was causing mincore syscall to copy uninitialized memory from the page allocator to userspace. This potentially exposed sensitive memory contents and threatened system stability. Additionally, it might have impacted the correctness of /proc/$pid/pagemap.
+
+The patch addresses this issue by reporting any holes in the hugetlb range that do not have a valid hugetlb_entry. It ensures that only valid pages are accessed and effectively prevents uninitialized memory from being copied to the userspace.
+
+The change has no effect on callers who did not specify a hugetlb_entry callback.
+
+Weakness: CWE-476  
+Severity: Not specified in diff  
+CVSS: Not specified in diff  
+Detection: AFL-based fuzzer  
+Report: Not specified in diff  
+Introduced in: 1e25a271c8ac (""mincore: apply page table walker on do_mincore()"")  
+Reported-by: Jann Horn <jannh@google.com>  
+Signed-off-by: Jann Horn <jannh@google.com>  
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>  
+Bug-tracker: Not specified in diff  
+Resolves: Not specified in diff  
+See also: Not specified in diff"
