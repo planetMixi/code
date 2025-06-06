@@ -1,0 +1,496 @@
+vuln_id,code_diff,cwe_id
+OSV-2021-1221,"From 1d3fde1205440296c1d6a54feee5a9d637055bee Mon Sep 17 00:00:00 2001
+From: Daniel-Constantin Mierla <miconda@gmail.com>
+Date: Tue, 14 Sep 2021 08:05:05 +0200
+Subject: [PATCH] core: parse via - safe check for end of buffer
+
+- just in case it is needed to be used for non-zero-terminated strings
+---
+ src/core/parser/parse_via.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/core/parser/parse_via.c b/src/core/parser/parse_via.c
+index 78bd304f320..100af6d6bf2 100644
+--- a/src/core/parser/parse_via.c
++++ b/src/core/parser/parse_via.c
+@@ -940,7 +940,7 @@ static /*inline*/ char *parse_via_param(char *const p, const char *const end,
+ 
+ find_value:
+ 	tmp++;
+-	for(; *tmp; tmp++) {
++	for(; tmp<end && *tmp; tmp++) {
+ 		switch(*tmp) {
+ 			case ' ':
+ 			case '\t':
+@@ -2064,7 +2064,7 @@ char *parse_via(
+ 	tmp++;
+ 	c_nest = 0;
+ 	/*state should always be F_HOST here*/;
+-	for(; *tmp; tmp++) {
++	for(; tmp<end && *tmp; tmp++) {
+ 		switch(*tmp) {
+ 			case ' ':
+ 			case '\t':",CWE-125
+OSV-2021-1189,"From 495c734969f4af9288a8e745c29fb1d707a46baa Mon Sep 17 00:00:00 2001
+From: Antoine Pitrou <antoine@python.org>
+Date: Thu, 2 Sep 2021 13:03:21 +0200
+Subject: [PATCH] ARROW-13846: [C++] Fix crashes on invalid IPC file
+
+Should fix the following issues found by OSS-Fuzz:
+* https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=37927
+* https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=37915
+* https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=37888
+
+Also add the IPC integration reference files to the fuzzing corpus, this may help find more issues.
+
+Closes #11059 from pitrou/ARROW-13846-ipc-fuzz-crashes
+
+Authored-by: Antoine Pitrou <antoine@python.org>
+Signed-off-by: Antoine Pitrou <antoine@python.org>
+---
+ .../fuzzing/generate_corpuses.sh              |  9 ++-
+ cpp/src/arrow/array/array_test.cc             | 69 +++++++++++++++++++
+ cpp/src/arrow/array/util.cc                   | 26 ++++---
+ cpp/src/arrow/type.cc                         |  2 +
+ testing                                       |  2 +-
+ 5 files changed, 96 insertions(+), 12 deletions(-)
+
+diff --git a/cpp/build-support/fuzzing/generate_corpuses.sh b/cpp/build-support/fuzzing/generate_corpuses.sh
+index f0d8e16237549..e3f00e64782c1 100755
+--- a/cpp/build-support/fuzzing/generate_corpuses.sh
++++ b/cpp/build-support/fuzzing/generate_corpuses.sh
+@@ -27,15 +27,21 @@ fi
+ set -ex
+ 
+ CORPUS_DIR=/tmp/corpus
+-ARROW_CPP=$(cd $(dirname $BASH_SOURCE)/../..; pwd)
++ARROW_ROOT=$(cd $(dirname $BASH_SOURCE)/../../..; pwd)
++ARROW_CPP=$ARROW_ROOT/cpp
+ OUT=$1
+ 
+ # NOTE: name of seed corpus output file should be ""<FUZZ TARGET>-seed_corpus.zip""
+ # where ""<FUZZ TARGET>"" is the exact name of the fuzz target executable the
+ # seed corpus is generated for.
+ 
++IPC_INTEGRATION_FILES=$(find ${ARROW_ROOT}/testing/data/arrow-ipc-stream/integration -name ""*.stream"")
++
+ rm -rf ${CORPUS_DIR}
+ ${OUT}/arrow-ipc-generate-fuzz-corpus -stream ${CORPUS_DIR}
++# Several IPC integration files can have the same name, make sure
++# they all appear in the corpus by numbering the duplicates.
++cp --backup=numbered ${IPC_INTEGRATION_FILES} ${CORPUS_DIR}
+ ${ARROW_CPP}/build-support/fuzzing/pack_corpus.py ${CORPUS_DIR} ${OUT}/arrow-ipc-stream-fuzz_seed_corpus.zip
+ 
+ rm -rf ${CORPUS_DIR}
+@@ -48,5 +54,6 @@ ${ARROW_CPP}/build-support/fuzzing/pack_corpus.py ${CORPUS_DIR} ${OUT}/arrow-ipc
+ 
+ rm -rf ${CORPUS_DIR}
+ ${OUT}/parquet-arrow-generate-fuzz-corpus ${CORPUS_DIR}
++# Add Parquet testing examples
+ cp ${ARROW_CPP}/submodules/parquet-testing/data/*.parquet ${CORPUS_DIR}
+ ${ARROW_CPP}/build-support/fuzzing/pack_corpus.py ${CORPUS_DIR} ${OUT}/parquet-arrow-fuzz_seed_corpus.zip
+diff --git a/cpp/src/arrow/array/array_test.cc b/cpp/src/arrow/array/array_test.cc
+index cc45a36940003..d9617c4e60321 100644
+--- a/cpp/src/arrow/array/array_test.cc
++++ b/cpp/src/arrow/array/array_test.cc
+@@ -3214,4 +3214,73 @@ TEST(TestSwapEndianArrayData, MonthDayNanoInterval) {
+   ASSERT_OK(swap_array->ValidateFull());
+ }
+ 
++DataTypeVector SwappableTypes() {
++  return DataTypeVector{int8(),
++                        int16(),
++                        int32(),
++                        int64(),
++                        uint8(),
++                        uint16(),
++                        uint32(),
++                        uint64(),
++                        decimal128(19, 4),
++                        decimal256(37, 8),
++                        timestamp(TimeUnit::MICRO, """"),
++                        time32(TimeUnit::SECOND),
++                        time64(TimeUnit::NANO),
++                        date32(),
++                        date64(),
++                        day_time_interval(),
++                        month_interval(),
++                        month_day_nano_interval(),
++                        binary(),
++                        utf8(),
++                        large_binary(),
++                        large_utf8(),
++                        list(int16()),
++                        large_list(int16()),
++                        dictionary(int16(), utf8())};
++}
++
++TEST(TestSwapEndianArrayData, RandomData) {
++  random::RandomArrayGenerator rng(42);
++
++  for (const auto& type : SwappableTypes()) {
++    ARROW_SCOPED_TRACE(""type = "", type->ToString());
++    auto arr = rng.ArrayOf(*field("""", type), /*size=*/31);
++    ASSERT_OK_AND_ASSIGN(auto swapped_data,
++                         ::arrow::internal::SwapEndianArrayData(arr->data()));
++    auto swapped = MakeArray(swapped_data);
++    ASSERT_OK_AND_ASSIGN(auto roundtripped_data,
++                         ::arrow::internal::SwapEndianArrayData(swapped_data));
++    auto roundtripped = MakeArray(roundtripped_data);
++    ASSERT_OK(roundtripped->ValidateFull());
++
++    AssertArraysEqual(*arr, *roundtripped, /*verbose=*/true);
++    if (type->id() == Type::INT8 || type->id() == Type::UINT8) {
++      AssertArraysEqual(*arr, *swapped, /*verbose=*/true);
++    } else {
++      // Random generated data is unlikely to be made of byte-palindromes
++      ASSERT_FALSE(arr->Equals(*swapped));
++    }
++  }
++}
++
++TEST(TestSwapEndianArrayData, InvalidLength) {
++  // IPC-incoming data may be invalid, SwapEndianArrayData shouldn't crash
++  // by accessing memory out of bounds.
++  random::RandomArrayGenerator rng(42);
++
++  for (const auto& type : SwappableTypes()) {
++    ARROW_SCOPED_TRACE(""type = "", type->ToString());
++    ASSERT_OK_AND_ASSIGN(auto arr, MakeArrayOfNull(type, 0));
++    auto data = arr->data();
++    // Fake length
++    data->length = 123456789;
++    ASSERT_OK_AND_ASSIGN(auto swapped_data, ::arrow::internal::SwapEndianArrayData(data));
++    auto swapped = MakeArray(swapped_data);
++    ASSERT_RAISES(Invalid, swapped->Validate());
++  }
++}
++
+ }  // namespace arrow
+diff --git a/cpp/src/arrow/array/util.cc b/cpp/src/arrow/array/util.cc
+index f12281155b8dc..232947d2c88b0 100644
+--- a/cpp/src/arrow/array/util.cc
++++ b/cpp/src/arrow/array/util.cc
+@@ -78,11 +78,16 @@ class ArrayDataWrapper {
+ 
+ class ArrayDataEndianSwapper {
+  public:
+-  ArrayDataEndianSwapper(const std::shared_ptr<ArrayData>& data, int64_t length)
+-      : data_(data), length_(length) {
++  explicit ArrayDataEndianSwapper(const std::shared_ptr<ArrayData>& data) : data_(data) {
+     out_ = data->Copy();
+   }
+ 
++  // WARNING: this facility can be called on invalid Array data by the IPC reader.
++  // Do not rely on the advertised ArrayData length, instead use the physical
++  // buffer sizes to avoid accessing memory out of bounds.
++  //
++  // (If this guarantee turns out to be difficult to maintain, we should call
++  //  Validate() instead)
+   Status SwapType(const DataType& type) {
+     RETURN_NOT_OK(VisitTypeInline(type, this));
+     RETURN_NOT_OK(SwapChildren(type.fields()));
+@@ -111,6 +116,7 @@ class ArrayDataEndianSwapper {
+     auto in_data = reinterpret_cast<const T*>(in_buffer->data());
+     ARROW_ASSIGN_OR_RAISE(auto out_buffer, AllocateBuffer(in_buffer->size()));
+     auto out_data = reinterpret_cast<T*>(out_buffer->mutable_data());
++    // NOTE: data_->length not trusted (see warning above)
+     int64_t length = in_buffer->size() / sizeof(T);
+     for (int64_t i = 0; i < length; i++) {
+       out_data[i] = BitUtil::ByteSwap(in_data[i]);
+@@ -146,8 +152,8 @@ class ArrayDataEndianSwapper {
+     auto data = reinterpret_cast<const uint64_t*>(data_->buffers[1]->data());
+     ARROW_ASSIGN_OR_RAISE(auto new_buffer, AllocateBuffer(data_->buffers[1]->size()));
+     auto new_data = reinterpret_cast<uint64_t*>(new_buffer->mutable_data());
+-    int64_t length = length_;
+-    length = data_->buffers[1]->size() / (sizeof(uint64_t) * 2);
++    // NOTE: data_->length not trusted (see warning above)
++    const int64_t length = data_->buffers[1]->size() / Decimal128Type::kByteWidth;
+     for (int64_t i = 0; i < length; i++) {
+       uint64_t tmp;
+       auto idx = i * 2;
+@@ -169,8 +175,8 @@ class ArrayDataEndianSwapper {
+     auto data = reinterpret_cast<const uint64_t*>(data_->buffers[1]->data());
+     ARROW_ASSIGN_OR_RAISE(auto new_buffer, AllocateBuffer(data_->buffers[1]->size()));
+     auto new_data = reinterpret_cast<uint64_t*>(new_buffer->mutable_data());
+-    int64_t length = length_;
+-    length = data_->buffers[1]->size() / (sizeof(uint64_t) * 4);
++    // NOTE: data_->length not trusted (see warning above)
++    const int64_t length = data_->buffers[1]->size() / Decimal256Type::kByteWidth;
+     for (int64_t i = 0; i < length; i++) {
+       uint64_t tmp0, tmp1, tmp2;
+       auto idx = i * 4;
+@@ -206,9 +212,10 @@ class ArrayDataEndianSwapper {
+     auto data = reinterpret_cast<const MonthDayNanos*>(data_->buffers[1]->data());
+     ARROW_ASSIGN_OR_RAISE(auto new_buffer, AllocateBuffer(data_->buffers[1]->size()));
+     auto new_data = reinterpret_cast<MonthDayNanos*>(new_buffer->mutable_data());
+-    int64_t length = data_->length;
++    // NOTE: data_->length not trusted (see warning above)
++    const int64_t length = data_->buffers[1]->size() / sizeof(MonthDayNanos);
+     for (int64_t i = 0; i < length; i++) {
+-      MonthDayNanoIntervalType::MonthDayNanos tmp = data[i];
++      MonthDayNanos tmp = data[i];
+ #if ARROW_LITTLE_ENDIAN
+       tmp.months = BitUtil::FromBigEndian(tmp.months);
+       tmp.days = BitUtil::FromBigEndian(tmp.days);
+@@ -279,7 +286,6 @@ class ArrayDataEndianSwapper {
+   }
+ 
+   const std::shared_ptr<ArrayData>& data_;
+-  int64_t length_;
+   std::shared_ptr<ArrayData> out_;
+ };
+ 
+@@ -292,7 +298,7 @@ Result<std::shared_ptr<ArrayData>> SwapEndianArrayData(
+   if (data->offset != 0) {
+     return Status::Invalid(""Unsupported data format: data.offset != 0"");
+   }
+-  ArrayDataEndianSwapper swapper(data, data->length);
++  ArrayDataEndianSwapper swapper(data);
+   RETURN_NOT_OK(swapper.SwapType(*data->type));
+   return std::move(swapper.out_);
+ }
+diff --git a/cpp/src/arrow/type.cc b/cpp/src/arrow/type.cc
+index d2adbf04b15d7..572286799a62f 100644
+--- a/cpp/src/arrow/type.cc
++++ b/cpp/src/arrow/type.cc
+@@ -88,6 +88,8 @@ constexpr Type::type MonthIntervalType::type_id;
+ 
+ constexpr Type::type DayTimeIntervalType::type_id;
+ 
++constexpr Type::type MonthDayNanoIntervalType::type_id;
++
+ constexpr Type::type DurationType::type_id;
+ 
+ constexpr Type::type DictionaryType::type_id;
+diff --git a/testing b/testing
+index 6d98243093c0b..896d05d351631 160000
+--- a/testing
++++ b/testing
+@@ -1 +1 @@
+-Subproject commit 6d98243093c0b36442da94de7010f3eacc2a9909
++Subproject commit 896d05d35163168831876b0f3e76977f6f20d4f4",CWE-125
+CVE-2017-9995,"From 7ac5067146613997bb38442cb022d7f41321a706 Mon Sep 17 00:00:00 2001
+From: Michael Niedermayer <michael@niedermayer.cc>
+Date: Thu, 11 May 2017 15:29:31 +0200
+Subject: [PATCH] avcodec/scpr: Check y in first line loop in decompress_i()
+
+Fixes: out of array access
+Fixes: 1478/clusterfuzz-testcase-minimized-5285486908145664
+
+Found-by: continuous fuzzing process https://github.com/google/oss-fuzz/tree/master/targets/ffmpeg
+Signed-off-by: Michael Niedermayer <michael@niedermayer.cc>
+---
+ libavcodec/scpr.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/libavcodec/scpr.c b/libavcodec/scpr.c
+index ba1f65f2e9b88..b87c047ab6591 100644
+--- a/libavcodec/scpr.c
++++ b/libavcodec/scpr.c
+@@ -331,6 +331,9 @@ static int decompress_i(AVCodecContext *avctx, uint32_t *dst, int linesize)
+         clr = (b << 16) + (g << 8) + r;
+         k += run;
+         while (run-- > 0) {
++            if (y >= avctx->height)
++                return AVERROR_INVALIDDATA;
++
+             dst[y * linesize + x] = clr;
+             lx = x;
+             ly = y;",CWE-125
+OSV-2022-250,"From 622489f07fd4fd4eaefdb24fa1381aab3bed3ed3 Mon Sep 17 00:00:00 2001
+From: ""Alan T. DeKok"" <aland@freeradius.org>
+Date: Wed, 16 Mar 2022 10:27:01 -0400
+Subject: [PATCH] it helps to check if there's room for the header.
+
+---
+ src/protocols/dhcpv4/decode.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/protocols/dhcpv4/decode.c b/src/protocols/dhcpv4/decode.c
+index 20ce648a05eb9..120db27aa002e 100644
+--- a/src/protocols/dhcpv4/decode.c
++++ b/src/protocols/dhcpv4/decode.c
+@@ -682,6 +682,7 @@ ssize_t fr_dhcpv4_decode_option(TALLOC_CTX *ctx, fr_pair_list_t *out,
+ 		q = packet_ctx->buffer;
+ 
+ 		for (next = data; next < end; next += 2 + next[1]) {
++			if ((end - next) < 2) return -1;
+ 			if (next[0] != data[0]) break;
+ 			if ((next + 2 + next[1]) > end) return -1;",CWE-125
+CVE-2017-7854,"From d2632f6483a3ceb5d8e0a5fb11142c51c43978b4 Mon Sep 17 00:00:00 2001
+From: pancake <pancake@nopcode.org>
+Date: Thu, 13 Apr 2017 15:31:24 +0200
+Subject: [PATCH] Fix crash in fuzzed wasm r2_hoobr_consume_init_expr
+
+---
+ libr/bin/format/wasm/wasm.c | 65 +++++++++++++++----------------------
+ 1 file changed, 27 insertions(+), 38 deletions(-)
+
+diff --git a/libr/bin/format/wasm/wasm.c b/libr/bin/format/wasm/wasm.c
+index a950737fc8a62..4df4802ed2dbd 100644
+--- a/libr/bin/format/wasm/wasm.c
++++ b/libr/bin/format/wasm/wasm.c
+@@ -67,11 +67,12 @@ static size_t consume_str (ut8 *buf, ut8 *max, size_t sz, char *out, ut32 *offse
+ 	if (offset) *offset += sz;
+ 	return sz;
+ }
++
+ static size_t consume_init_expr (ut8 *buf, ut8 *max, ut8 eoc, void *out, ut32 *offset) {
+ 	ut32 i = 0;
+ 	while (buf + i < max && buf[i] != eoc) {
+ 		// TODO: calc the expresion with the bytcode (ESIL?)
+-		i += 1;
++		i++;
+ 	}
+ 	if (buf[i] != eoc) {
+ 		return 0;
+@@ -448,43 +449,40 @@ static RList *r_bin_wasm_get_code_entries (RBinWasmObj *bin, RBinWasmSection *se
+ }
+ 
+ static RList *r_bin_wasm_get_data_entries (RBinWasmObj *bin, RBinWasmSection *sec) {
+-
+ 	RList *ret = NULL;
+ 	RBinWasmDataEntry *ptr = NULL;
++	ut32 len =  sec->payload_len;
+ 
+ 	if (!(ret = r_list_newf ((RListFree)free))) {
+ 		return NULL;
+ 	}
+ 
+ 	ut8* buf = bin->buf->buf + (ut32)sec->payload_data;
+-	ut32 len =  sec->payload_len;
++	int buflen = bin->buf->length - (ut32)sec->payload_data;
+ 	ut32 count = sec->count;
+ 	ut32 i = 0, r = 0;
+ 	size_t n = 0;
+ 
+-	while (i < len && r < count) {
+-
++	while (i < len && len < buflen && r < count) {
+ 		if (!(ptr = R_NEW0 (RBinWasmDataEntry))) {
+ 			return ret;
+ 		}
+-
+ 		if (!(consume_u32 (buf + i, buf + len, &ptr->index, &i))) {
+-			free (ptr);
+-			return ret;
++			goto beach;
++		}
++		if (i + 4 >= buflen) {
++			goto beach;
+ 		}
+-
+ 		if (!(n = consume_init_expr (buf + i, buf + len, R_BIN_WASM_END_OF_CODE, NULL, &i))) {
+-			free (ptr);
+-			return ret;
++			goto beach;
+ 		}
+-
+ 		ptr->offset.len = n;
+-
+ 		if (!(consume_u32 (buf + i, buf + len, &ptr->size, &i))) {	
+-			free (ptr);
+-			return ret;
++			goto beach;
++		}
++		if (i + 4 >= buflen) {
++			goto beach;
+ 		}
+-
+ 		ptr->data = sec->payload_data + i;
+ 
+ 		r_list_append (ret, ptr);
+@@ -492,7 +490,9 @@ static RList *r_bin_wasm_get_data_entries (RBinWasmObj *bin, RBinWasmSection *se
+ 		r += 1;
+ 
+ 	}
+-
++	return ret;
++beach:
++	free (ptr);
+ 	return ret;
+ }
+ 
+@@ -593,16 +593,13 @@ static RList *r_bin_wasm_get_table_entries (RBinWasmObj *bin, RBinWasmSection *s
+ static RList *r_bin_wasm_get_global_entries (RBinWasmObj *bin, RBinWasmSection *sec) {
+ 	RList *ret = NULL;
+ 	RBinWasmGlobalEntry *ptr = NULL;
+-	int buflen = bin->buf->length;
+-	if (sec->payload_data + 32 > buflen) {
+-		return NULL;
+-	}
+ 
+ 	if (!(ret = r_list_newf ((RListFree)free))) {
+ 		return NULL;
+ 	}
+ 
+ 	ut8* buf = bin->buf->buf + (ut32)sec->payload_data;
++	int buflen = bin->buf->length - (ut32)sec->payload_data;
+ 	ut32 len =  sec->payload_len;
+ 	ut32 count = sec->count;
+ 	ut32 i = 0, r = 0;
+@@ -631,7 +628,6 @@ static RList *r_bin_wasm_get_global_entries (RBinWasmObj *bin, RBinWasmSection *
+ }
+ 
+ static RList *r_bin_wasm_get_element_entries (RBinWasmObj *bin, RBinWasmSection *sec) {
+-
+ 	RList *ret = NULL;
+ 	RBinWasmElementEntry *ptr = NULL;
+ 
+@@ -640,33 +636,26 @@ static RList *r_bin_wasm_get_element_entries (RBinWasmObj *bin, RBinWasmSection
+ 	}
+ 
+ 	ut8* buf = bin->buf->buf + (ut32)sec->payload_data;
++	int buflen = bin->buf->length - (ut32)sec->payload_data;
+ 	ut32 len =  sec->payload_len;
+ 	ut32 count = sec->count;
+ 	ut32 i = 0, r = 0;
+ 
+-	while (i < len && r < count) {
+-
++	while (i < len && len < buflen && r < count) {
+ 		if (!(ptr = R_NEW0 (RBinWasmElementEntry))) {
+ 			return ret;
+ 		}
+-
+ 		if (!(consume_u32 (buf + i, buf + len, &ptr->index, &i))) {
+-			free (ptr);
+-			return ret;
++			goto beach;
+ 		}
+-
+ 		if (!(consume_init_expr (buf + i, buf + len, R_BIN_WASM_END_OF_CODE, NULL, &i))) {
+-			free (ptr);
+-			return ret;
++			goto beach;
+ 		}
+-
+ 		if (!(consume_u32 (buf + i, buf + len, &ptr->num_elem, &i))) {
+-			free (ptr);
+-			return ret;
++			goto beach;
+ 		}
+-
+ 		ut32 j = 0;
+-		while (i < len && j < ptr->num_elem	) {
++		while (i < len && j < ptr->num_elem) {
+ 			// TODO: allocate space and fill entry
+ 			ut32 e;
+ 			if (!(consume_u32 (buf + i, buf + len, &e, &i))) {
+@@ -674,13 +663,13 @@ static RList *r_bin_wasm_get_element_entries (RBinWasmObj *bin, RBinWasmSection
+ 				return ret;
+ 			}
+ 		}
+-
+ 		r_list_append (ret, ptr);
+ 
+ 		r += 1;
+-
+ 	}
+-
++	return ret;
++beach:
++	free (ptr);
+ 	return ret;
+ }",CWE-125

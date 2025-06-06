@@ -1,0 +1,27 @@
+vuln_id,code_diff,cwe_id
+GHSA-hv96-xxx2-5v7w,"From adb4df1e012d38a3872578d484291b9af07aad5b Mon Sep 17 00:00:00 2001
+From: Mithgol the Webmaster <getgit@mithgol.ru>
+Date: Wed, 12 Jul 2017 19:57:53 +0300
+Subject: [PATCH] =?UTF-8?q?fix=20nwjs/npm-installer#2=20(start=C2=A0using?=
+ =?UTF-8?q?=20HTTPS:=20it=C2=A0improves=20security)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ scripts/install.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scripts/install.js b/scripts/install.js
+index 98075d8..bac1f9d 100755
+--- a/scripts/install.js
++++ b/scripts/install.js
+@@ -33,7 +33,7 @@ if ( version.slice(-4) === '-sdk' ){
+ }
+ 
+ var url = false;
+-var urlBase = process.env.npm_config_nwjs_urlbase || process.env.NWJS_URLBASE ||  'http://dl.nwjs.io/v';
++var urlBase = process.env.npm_config_nwjs_urlbase || process.env.NWJS_URLBASE ||  'https://dl.nwjs.io/v';
+ var buildTypeSuffix = buildType === 'normal' ? '' : ('-' + buildType);
+ 
+ // Determine download url",CWE-319

@@ -1,0 +1,915 @@
+vuln_id,code_diff,cwe_id
+CVE-2021-31272,"From 3844e8569689dd476064a0759d704bc64fb3ca2c Mon Sep 17 00:00:00 2001
+From: Baron Lenardson <lenardson.baron@gmail.com>
+Date: Wed, 17 Mar 2021 20:41:34 -0500
+Subject: [PATCH] Userland: Fix tar/unzip directory traversal vulnerability
+
+This change validates the filenames within a tar/zip archive during
+extraction. If the filename within a the archive is outside of the
+current working directory the file will be skipped and not extracted
+onto the host system.
+
+Closes #3991
+Closes #3992
+---
+ Userland/Utilities/tar.cpp   | 48 +++++++++++++++++++++++++++++++++++-
+ Userland/Utilities/unzip.cpp | 48 ++++++++++++++++++++++++++++++++++--
+ 2 files changed, 93 insertions(+), 3 deletions(-)
+
+diff --git a/Userland/Utilities/tar.cpp b/Userland/Utilities/tar.cpp
+index c3fb4834c15a24..da3f8cde6ea282 100644
+--- a/Userland/Utilities/tar.cpp
++++ b/Userland/Utilities/tar.cpp
+@@ -59,6 +59,18 @@ int main(int argc, char** argv)
+     args_parser.add_positional_argument(paths, ""Paths"", ""PATHS"", Core::ArgsParser::Required::No);
+     args_parser.parse(argc, argv);
+ 
++    // Currently tar doesn't support extracting to a specified location. If that is implemented the target path
++    // should be unveiled with rwc instead of the current directory.
++    StringBuilder target_path_raw;
++    target_path_raw.append(realpath(""."", nullptr));
++    target_path_raw.append(""/"");
++    LexicalPath target_path(target_path_raw.to_string());
++    auto target_path_string = target_path.string();
++    if (unveil(target_path_string.characters(), ""rwc"") < 0) {
++        perror(""unveil"");
++        return 1;
++    }
++
+     if (create + extract + list != 1) {
+         warnln(""exactly one of -c, -x, and -t can be used"");
+         return 1;
+@@ -68,6 +80,16 @@ int main(int argc, char** argv)
+         auto file = Core::File::standard_input();
+ 
+         if (archive_file) {
++            // make sure we can read the archive path
++            auto archive_file_path = realpath(archive_file, nullptr);
++            if (unveil(archive_file_path, ""r"") < 0) {
++                perror(""unveil"");
++                return 1;
++            }
++            if (unveil(nullptr, nullptr) < 0) {
++                perror(""unveil"");
++                return 1;
++            }
+             auto maybe_file = Core::File::open(archive_file, Core::IODevice::OpenMode::ReadOnly);
+             if (maybe_file.is_error()) {
+                 warnln(""Core::File::open: {}"", maybe_file.error());
+@@ -86,14 +108,38 @@ int main(int argc, char** argv)
+             warnln(""the provided file is not a well-formatted ustar file"");
+             return 1;
+         }
++
+         for (; !tar_stream.finished(); tar_stream.advance()) {
++            auto file_name = tar_stream.header().file_name();
++
+             if (list || verbose)
+-                outln(""{}"", tar_stream.header().file_name());
++                outln(""{}"", file_name);
+ 
+             if (extract) {
+                 Tar::TarFileStream file_stream = tar_stream.file_contents();
+ 
+                 const Tar::Header& header = tar_stream.header();
++
++                // determine where the archive intends to write a file
++                StringBuilder destination_path_raw;
++                if (file_name[0] != '/') {
++                    destination_path_raw.append(target_path_string);
++                    destination_path_raw.append(""/"");
++                }
++                destination_path_raw.append(file_name);
++                LexicalPath destination_path(destination_path_raw.to_string());
++
++                if (!(destination_path.string().starts_with(target_path_string))) {
++                    fprintf(stderr, ""File %s path is outside of current working directory, skipping\n"", file_name.to_string().characters());
++                    return false;
++                }
++
++                // Ignore tars containing target path.
++                // This will prevent mkdir from failing later when it probably shouldn't
++                if (destination_path.string() == target_path_string) {
++                    continue;
++                }
++
+                 switch (header.type_flag()) {
+                 case Tar::NormalFile:
+                 case Tar::AlternateNormalFile: {
+diff --git a/Userland/Utilities/unzip.cpp b/Userland/Utilities/unzip.cpp
+index d62d1d3d9b5ddd..f79697e2ff6c3f 100644
+--- a/Userland/Utilities/unzip.cpp
++++ b/Userland/Utilities/unzip.cpp
+@@ -24,12 +24,14 @@
+  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  */
+ 
++#include <AK/LexicalPath.h>
+ #include <AK/MappedFile.h>
+ #include <AK/NumberFormat.h>
+ #include <LibCore/ArgsParser.h>
+ #include <LibCore/File.h>
+ #include <string.h>
+ #include <sys/stat.h>
++#include <unistd.h>
+ 
+ static const u8 central_directory_file_header_sig[] = ""\x50\x4b\x01\x02"";
+ 
+@@ -62,7 +64,7 @@ static bool find_next_central_directory(off_t file_size, const MappedFile& file,
+     return false;
+ }
+ 
+-static bool unpack_file_for_central_directory_index(off_t central_directory_index, const MappedFile& file)
++static bool unpack_file_for_central_directory_index(off_t central_directory_index, const MappedFile& file, const AK::String target_path)
+ {
+     enum CentralFileDirectoryHeaderOffsets {
+         CFDHCompressionMethodOffset = 10,
+@@ -120,6 +122,25 @@ static bool unpack_file_for_central_directory_index(off_t central_directory_inde
+         return false;
+     file_name[file_name_length] = '\0';
+ 
++    // determine where the archive intends to write a file
++    StringBuilder destination_path_raw;
++    if (file_name[0] != '/') {
++        destination_path_raw.append(target_path);
++        destination_path_raw.append(""/"");
++    }
++    destination_path_raw.append(file_name);
++    LexicalPath destination_path(destination_path_raw.to_string());
++    if (!(destination_path.string().starts_with(target_path))) {
++        fprintf(stderr, ""File %s path is outside of current working directory, skipping\n"", file_name);
++        return false;
++    }
++
++    // Ignore zips containing target path.
++    // This will prevent mkdir from failing later when it probably shouldn't
++    if (destination_path.string() == target_path) {
++        return true;
++    }
++
+     if (file_name[file_name_length - 1] == '/') {
+         if (mkdir(file_name, 0755) < 0) {
+             perror(""mkdir"");
+@@ -162,6 +183,29 @@ int main(int argc, char** argv)
+     args_parser.add_positional_argument(path, ""File to unzip"", ""path"", Core::ArgsParser::Required::Yes);
+     args_parser.parse(argc, argv);
+ 
++    StringBuilder target_path_raw;
++    // Currently unzip doesn't support extracting to a specified location. If that is implemented the target_path
++    // should be replaced with the target path from the command line arguements instead of "".""
++    target_path_raw.append(realpath(""."", nullptr));
++    target_path_raw.append(""/"");
++    LexicalPath target_path(target_path_raw.to_string());
++    auto target_path_string = target_path.string();
++    if (unveil(target_path_string.characters(), ""rwc"") < 0) {
++        perror(""unveil"");
++        return 1;
++    }
++
++    auto zip_path = realpath(path, nullptr);
++    if (unveil(zip_path, ""r"") < 0) {
++        perror(""unveil"");
++        return 1;
++    }
++
++    if (unveil(nullptr, nullptr) < 0) {
++        perror(""unveil"");
++        return 1;
++    }
++
+     String zip_file_path { path };
+ 
+     struct stat st;
+@@ -192,7 +236,7 @@ int main(int argc, char** argv)
+ 
+     off_t index = 0;
+     while (find_next_central_directory(st.st_size, mapped_file, index, index)) {
+-        bool success = unpack_file_for_central_directory_index(index, mapped_file);
++        bool success = unpack_file_for_central_directory_index(index, mapped_file, target_path_string);
+         if (!success) {
+             printf(""Could not find local file header for a file.\n"");
+             return 4;",CWE-22
+CVE-2022-26960,"From 3b758495538a448ac8830ee3559e7fb2c260c6db Mon Sep 17 00:00:00 2001
+From: nao-pon <hypweb@gmail.com>
+Date: Tue, 8 Mar 2022 22:03:38 +0900
+Subject: [PATCH] [security:CVE-2022-26960] fix a path traversal issue
+
+Fixed a paste traversal vulnerability. The problem was getting out of
+the configured directory and allowing the hosting server's file system
+to read and write ""arbitrary"" files.
+
+Special thanks to Gaetan Ferry (Synacktiv) for reporting this issue.
+---
+ php/elFinderVolumeDriver.class.php          | 17 ++++++++++++++---
+ php/elFinderVolumeLocalFileSystem.class.php |  1 +
+ 2 files changed, 15 insertions(+), 3 deletions(-)
+
+diff --git a/php/elFinderVolumeDriver.class.php b/php/elFinderVolumeDriver.class.php
+index 898f6ad8fb..e11d3ffcac 100644
+--- a/php/elFinderVolumeDriver.class.php
++++ b/php/elFinderVolumeDriver.class.php
+@@ -6794,14 +6794,22 @@ protected function getFullPath($path, $base)
+             $base = rtrim($base, $separator);
+         }
+ 
+-        // 'Here'
+-        if ($path === '' || $path === '.' . $separator) return $base;
+-
+         $sepquoted = preg_quote($separator, '#');
+ 
++        // normalize `//` to `/`
++        $path = preg_replace('#' . $sepquoted . '+#', $separator, $path); // '#/+#'
++
++        // remove `./`
++        $path = preg_replace('#(?<=^|' . $sepquoted . ')\.' . $sepquoted . '#', '', $path); // '#(?<=^|/)\./#'
++
++        // 'Here'
++        if ($path === '') return $base;
++
++        // join $base to $path if $path start `../`
+         if (substr($path, 0, 3) === '..' . $separator) {
+             $path = $base . $separator . $path;
+         }
++
+         // normalize `/../`
+         $normreg = '#(' . $sepquoted . ')[^' . $sepquoted . ']+' . $sepquoted . '\.\.' . $sepquoted . '#'; // '#(/)[^\/]+/\.\./#'
+         while (preg_match($normreg, $path)) {
+@@ -6811,6 +6819,9 @@ protected function getFullPath($path, $base)
+             $path = rtrim($path, $separator);
+         }
+ 
++        // discard the surplus `../`
++        $path = str_replace('..' . $separator, '', $path);
++
+         // Absolute path
+         if ($path[0] === $separator || strpos($path, $systemroot) === 0) {
+             return $path;
+diff --git a/php/elFinderVolumeLocalFileSystem.class.php b/php/elFinderVolumeLocalFileSystem.class.php
+index 12db2dc4d2..ce2186b990 100644
+--- a/php/elFinderVolumeLocalFileSystem.class.php
++++ b/php/elFinderVolumeLocalFileSystem.class.php
+@@ -485,6 +485,7 @@ protected function _abspath($path)
+         if ($path === DIRECTORY_SEPARATOR) {
+             return $this->root;
+         } else {
++            $path = $this->_normpath($path);
+             if (strpos($path, $this->systemRoot) === 0) {
+                 return $path;
+             } else if (DIRECTORY_SEPARATOR !== '/' && preg_match('/^[a-zA-Z]:' . preg_quote(DIRECTORY_SEPARATOR, '/') . '/', $path)) {",CWE-22
+GHSA-fx95-883v-4q4h,"From 6b5bc7bb304975147b4af68df54ac214ed2554c1 Mon Sep 17 00:00:00 2001
+From: Erik Dubbelboer <erik@dubbelboer.com>
+Date: Mon, 28 Feb 2022 11:56:59 +0100
+Subject: [PATCH] Add windows support to normalizePath
+
+This is probably still not 100% sure and there are still many bugs with
+FS on windows. But it's a slight improvement.
+
+Fixes #1226
+---
+ strings.go | 34 ++++++++++++++++++---------------
+ uri.go     | 55 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 74 insertions(+), 15 deletions(-)
+
+diff --git a/strings.go b/strings.go
+index e4fb08bdac..370e307989 100644
+--- a/strings.go
++++ b/strings.go
+@@ -7,21 +7,25 @@ var (
+ )
+ 
+ var (
+-	strSlash            = []byte(""/"")
+-	strSlashSlash       = []byte(""//"")
+-	strSlashDotDot      = []byte(""/.."")
+-	strSlashDotSlash    = []byte(""/./"")
+-	strSlashDotDotSlash = []byte(""/../"")
+-	strCRLF             = []byte(""\r\n"")
+-	strHTTP             = []byte(""http"")
+-	strHTTPS            = []byte(""https"")
+-	strHTTP10           = []byte(""HTTP/1.0"")
+-	strHTTP11           = []byte(""HTTP/1.1"")
+-	strColon            = []byte("":"")
+-	strColonSlashSlash  = []byte(""://"")
+-	strColonSpace       = []byte("": "")
+-	strCommaSpace       = []byte("", "")
+-	strGMT              = []byte(""GMT"")
++	strSlash                    = []byte(""/"")
++	strSlashSlash               = []byte(""//"")
++	strSlashDotDot              = []byte(""/.."")
++	strSlashDotSlash            = []byte(""/./"")
++	strSlashDotDotSlash         = []byte(""/../"")
++	strBackSlashDotDot          = []byte(`\..`)
++	strBackSlashDotBackSlash    = []byte(`\.\`)
++	strSlashDotDotBackSlash     = []byte(`/..\`)
++	strBackSlashDotDotBackSlash = []byte(`\..\`)
++	strCRLF                     = []byte(""\r\n"")
++	strHTTP                     = []byte(""http"")
++	strHTTPS                    = []byte(""https"")
++	strHTTP10                   = []byte(""HTTP/1.0"")
++	strHTTP11                   = []byte(""HTTP/1.1"")
++	strColon                    = []byte("":"")
++	strColonSlashSlash          = []byte(""://"")
++	strColonSpace               = []byte("": "")
++	strCommaSpace               = []byte("", "")
++	strGMT                      = []byte(""GMT"")
+ 
+ 	strResponseContinue = []byte(""HTTP/1.1 100 Continue\r\n\r\n"")
+ 
+diff --git a/uri.go b/uri.go
+index 62974df896..38a431e1d0 100644
+--- a/uri.go
++++ b/uri.go
+@@ -5,6 +5,7 @@ import (
+ 	""errors""
+ 	""fmt""
+ 	""io""
++	""path/filepath""
+ 	""strconv""
+ 	""sync""
+ )
+@@ -634,6 +635,60 @@ func normalizePath(dst, src []byte) []byte {
+ 		b = b[:nn+1]
+ 	}
+ 
++	if filepath.Separator == '\\' {
++		// remove \.\ parts
++		b = dst
++		for {
++			n := bytes.Index(b, strBackSlashDotBackSlash)
++			if n < 0 {
++				break
++			}
++			nn := n + len(strSlashDotSlash) - 1
++			copy(b[n:], b[nn:])
++			b = b[:len(b)-nn+n]
++		}
++
++		// remove /foo/..\ parts
++		for {
++			n := bytes.Index(b, strSlashDotDotBackSlash)
++			if n < 0 {
++				break
++			}
++			nn := bytes.LastIndexByte(b[:n], '/')
++			if nn < 0 {
++				nn = 0
++			}
++			n += len(strSlashDotDotBackSlash) - 1
++			copy(b[nn:], b[n:])
++			b = b[:len(b)-n+nn]
++		}
++
++		// remove /foo\..\ parts
++		for {
++			n := bytes.Index(b, strBackSlashDotDotBackSlash)
++			if n < 0 {
++				break
++			}
++			nn := bytes.LastIndexByte(b[:n], '/')
++			if nn < 0 {
++				nn = 0
++			}
++			n += len(strBackSlashDotDotBackSlash) - 1
++			copy(b[nn:], b[n:])
++			b = b[:len(b)-n+nn]
++		}
++
++		// remove trailing \foo\..
++		n := bytes.LastIndex(b, strBackSlashDotDot)
++		if n >= 0 && n+len(strSlashDotDot) == len(b) {
++			nn := bytes.LastIndexByte(b[:n], '/')
++			if nn < 0 {
++				return append(dst[:0], strSlash...)
++			}
++			b = b[:nn+1]
++		}
++	}
++
+ 	return b
+ }",CWE-22
+GO-2020-0025,"From 09b5706aa9367972c09144a450bb4523049ee840 Mon Sep 17 00:00:00 2001
+From: Stephane Jolicoeur <sjolicoeur@pivotal.io>
+Date: Wed, 23 May 2018 15:22:29 -0700
+Subject: [PATCH] Refactored the path resolution to use securejoin
+
+[#157757626]
+
+Signed-off-by: Edwin Xie <exie@pivotal.io>
+---
+ extractor/extractor_test.go | 97 +++++++++++++++++++++++++++++++++++++
+ extractor/tgz_extractor.go  |  9 +++-
+ extractor/zip_extractor.go  |  8 +--
+ 3 files changed, 109 insertions(+), 5 deletions(-)
+
+diff --git a/extractor/extractor_test.go b/extractor/extractor_test.go
+index 0e57cea..c4cda6e 100644
+--- a/extractor/extractor_test.go
++++ b/extractor/extractor_test.go
+@@ -120,6 +120,24 @@ var _ = Describe(""Extractor"", func() {
+ 			})
+ 
+ 			It(""extracts the ZIP's files, generating directories, and honoring file permissions and symlinks"", extractionTest)
++
++			Context(""with a bad zip archive"", func() {
++				BeforeEach(func() {
++					test_helper.CreateZipArchive(extractionSrc, []test_helper.ArchiveFile{
++						{
++							Name: ""../some-file"",
++							Body: ""file-in-bad-dir-contents"",
++						},
++					})
++				})
++
++				It(""returns an error"", func() {
++					subdir := filepath.Join(extractionDest, ""subdir"")
++					Expect(os.Mkdir(subdir, 0777)).To(Succeed())
++					err := extractor.Extract(extractionSrc, subdir)
++					Expect(err).To(HaveOccurred())
++				})
++			})
+ 		})
+ 
+ 		Context(""when 'unzip' is not in the PATH"", func() {
+@@ -138,6 +156,27 @@ var _ = Describe(""Extractor"", func() {
+ 			})
+ 
+ 			It(""extracts the ZIP's files, generating directories, and honoring file permissions and symlinks"", extractionTest)
++
++			Context(""with a bad zip archive"", func() {
++				BeforeEach(func() {
++					test_helper.CreateZipArchive(extractionSrc, []test_helper.ArchiveFile{
++						{
++							Name: ""../some-file"",
++							Body: ""file-in-bad-dir-contents"",
++						},
++					})
++				})
++
++				It(""does not insecurely extract the file outside of the provided destination"", func() {
++					subdir := filepath.Join(extractionDest, ""subdir"")
++					Expect(os.Mkdir(subdir, 0777)).To(Succeed())
++					err := extractor.Extract(extractionSrc, subdir)
++					Expect(err).NotTo(HaveOccurred())
++
++					Expect(filepath.Join(extractionDest, ""some-file"")).NotTo(BeAnExistingFile())
++					Expect(filepath.Join(subdir, ""some-file"")).To(BeAnExistingFile())
++				})
++			})
+ 		})
+ 	})
+ 
+@@ -153,6 +192,24 @@ var _ = Describe(""Extractor"", func() {
+ 			})
+ 
+ 			It(""extracts the TGZ's files, generating directories, and honoring file permissions and symlinks"", extractionTest)
++
++			Context(""with a bad tgz archive"", func() {
++				BeforeEach(func() {
++					test_helper.CreateTarGZArchive(extractionSrc, []test_helper.ArchiveFile{
++						{
++							Name: ""../some-file"",
++							Body: ""file-in-bad-dir-contents"",
++						},
++					})
++				})
++
++				It(""returns an error"", func() {
++					subdir := filepath.Join(extractionDest, ""subdir"")
++					Expect(os.Mkdir(subdir, 0777)).To(Succeed())
++					err := extractor.Extract(extractionSrc, subdir)
++					Expect(err).To(HaveOccurred())
++				})
++			})
+ 		})
+ 
+ 		Context(""when 'tar' is not in the PATH"", func() {
+@@ -171,6 +228,26 @@ var _ = Describe(""Extractor"", func() {
+ 			})
+ 
+ 			It(""extracts the TGZ's files, generating directories, and honoring file permissions and symlinks"", extractionTest)
++
++			Context(""with a bad tgz archive"", func() {
++				BeforeEach(func() {
++					test_helper.CreateTarGZArchive(extractionSrc, []test_helper.ArchiveFile{
++						{
++							Name: ""../some-file"",
++							Body: ""file-in-bad-dir-contents"",
++						},
++					})
++				})
++
++				It(""does not insecurely extract the file outside of the provided destination"", func() {
++					subdir := filepath.Join(extractionDest, ""subdir"")
++					Expect(os.Mkdir(subdir, 0777)).To(Succeed())
++					err := extractor.Extract(extractionSrc, subdir)
++					Expect(err).NotTo(HaveOccurred())
++					Expect(filepath.Join(extractionDest, ""some-file"")).NotTo(BeAnExistingFile())
++					Expect(filepath.Join(subdir, ""some-file"")).To(BeAnExistingFile())
++				})
++			})
+ 		})
+ 	})
+ 
+@@ -181,5 +258,25 @@ var _ = Describe(""Extractor"", func() {
+ 		})
+ 
+ 		It(""extracts the TAR's files, generating directories, and honoring file permissions and symlinks"", extractionTest)
++
++		Context(""with a bad tar archive"", func() {
++			BeforeEach(func() {
++				test_helper.CreateTarArchive(extractionSrc, []test_helper.ArchiveFile{
++					{
++						Name: ""../some-file"",
++						Body: ""file-in-bad-dir-contents"",
++					},
++				})
++			})
++
++			It(""does not insecurely extract the file outside of the provided destination"", func() {
++				subdir := filepath.Join(extractionDest, ""subdir"")
++				Expect(os.Mkdir(subdir, 0777)).To(Succeed())
++				err := extractor.Extract(extractionSrc, subdir)
++				Expect(err).NotTo(HaveOccurred())
++				Expect(filepath.Join(extractionDest, ""some-file"")).NotTo(BeAnExistingFile())
++				Expect(filepath.Join(subdir, ""some-file"")).To(BeAnExistingFile())
++			})
++		})
+ 	})
+ })
+diff --git a/extractor/tgz_extractor.go b/extractor/tgz_extractor.go
+index fee53ac..f1a1a70 100644
+--- a/extractor/tgz_extractor.go
++++ b/extractor/tgz_extractor.go
+@@ -8,6 +8,8 @@ import (
+ 	""os""
+ 	""os/exec""
+ 	""path/filepath""
++
++	securejoin ""github.com/cyphar/filepath-securejoin""
+ )
+ 
+ type tgzExtractor struct{}
+@@ -87,14 +89,17 @@ func extractTarArchive(tarReader *tar.Reader, dest string) error {
+ }
+ 
+ func extractTarArchiveFile(header *tar.Header, dest string, input io.Reader) error {
+-	filePath := filepath.Join(dest, header.Name)
++	filePath, err := securejoin.SecureJoin(dest, header.Name)
++	if err != nil {
++		return err
++	}
+ 	fileInfo := header.FileInfo()
+ 
+ 	if fileInfo.IsDir() {
+ 		return os.MkdirAll(filePath, fileInfo.Mode())
+ 	}
+ 
+-	err := os.MkdirAll(filepath.Dir(filePath), 0755)
++	err = os.MkdirAll(filepath.Dir(filePath), 0755)
+ 	if err != nil {
+ 		return err
+ 	}
+diff --git a/extractor/zip_extractor.go b/extractor/zip_extractor.go
+index 927644a..d61005c 100644
+--- a/extractor/zip_extractor.go
++++ b/extractor/zip_extractor.go
+@@ -8,6 +8,8 @@ import (
+ 	""os""
+ 	""os/exec""
+ 	""path/filepath""
++
++	securejoin ""github.com/cyphar/filepath-securejoin""
+ )
+ 
+ type zipExtractor struct{}
+@@ -77,16 +79,16 @@ func extractZip(src, dest string) error {
+ }
+ 
+ func extractZipArchiveFile(file *zip.File, dest string, input io.Reader) error {
+-	filePath := filepath.Join(dest, file.Name)
++	filePath, err := securejoin.SecureJoin(dest, file.Name)
+ 	fileInfo := file.FileInfo()
+ 
+ 	if fileInfo.IsDir() {
+-		err := os.MkdirAll(filePath, fileInfo.Mode())
++		err = os.MkdirAll(filePath, fileInfo.Mode())
+ 		if err != nil {
+ 			return err
+ 		}
+ 	} else {
+-		err := os.MkdirAll(filepath.Dir(filePath), 0755)
++		err = os.MkdirAll(filepath.Dir(filePath), 0755)
+ 		if err != nil {
+ 			return err
+ 		}",CWE-22
+GHSA-pqcf-v8v5-jmcg,"From 777ee9c3e7519eb3672c79ac41066175b2001b50 Mon Sep 17 00:00:00 2001
+From: bobimicroweber <bobi@microweber.com>
+Date: Wed, 4 Nov 2020 11:43:08 +0200
+Subject: [PATCH] update
+
+---
+ src/MicroweberPackages/Utils/Zip/Unzip.php    | 30 +++++++++++++++++--
+ .../modules/admin/backup_v2/css/style.css     |  1 +
+ 2 files changed, 28 insertions(+), 3 deletions(-)
+
+diff --git a/src/MicroweberPackages/Utils/Zip/Unzip.php b/src/MicroweberPackages/Utils/Zip/Unzip.php
+index 73e6ac1c105..61af6f38d8f 100644
+--- a/src/MicroweberPackages/Utils/Zip/Unzip.php
++++ b/src/MicroweberPackages/Utils/Zip/Unzip.php
+@@ -82,14 +82,19 @@ public function extract($zip_file, $target_dir = null, $preserve_filepath = true
+             }
+ 
+         } else if (function_exists('gzinflate')) {
++
+             if (!$files = $this->_list_files()) {
+                 $this->set_error('ZIP folder was empty.');
+-
+                 return false;
+             }
+ 
+             $file_locations = array();
+             foreach ($files as $file => $trash) {
++
++                if (strpos($file,'..') !== false) {
++                    continue;
++                }
++
+                 $dirname = pathinfo($file, PATHINFO_DIRNAME);
+                 $extension = (pathinfo($file, PATHINFO_EXTENSION));
+ 
+@@ -205,12 +210,17 @@ public function native_unzip($zip_file, $target_dir = null, $preserve_filepath =
+                 $name = dirname($name);
+                 $is_dir_there = $target_dir . $name;
+ 
++                if (strpos($is_dir_there,'..') !== false) {
++                   continue;
++                }
++
+                 if ($name != '.') {
+                     $dirs_tree[] = $is_dir_there;
+ 
+                 }
+ 
+             }
++
+             $dirs_tree = array_unique($dirs_tree);
+ 
+             foreach ($dirs_tree as $item) {
+@@ -238,6 +248,11 @@ public function native_unzip($zip_file, $target_dir = null, $preserve_filepath =
+                     $size = zip_entry_filesize($entry);
+                     $name = zip_entry_name($entry);
+                     $target_file_to_save = normalize_path($target_dir . $name, false);
++
++                    if (strpos($target_file_to_save,'..') !== false) {
++                        continue;
++                    }
++
+                     $target_file_to_save_dir = dirname($target_file_to_save);
+                     if(!is_dir($target_file_to_save_dir)){
+                         mkdir_recursive($target_file_to_save_dir);
+@@ -263,8 +278,9 @@ public function native_unzip($zip_file, $target_dir = null, $preserve_filepath =
+                 }
+                 zip_close($archive);
+             }
+-
+-            return $file_locations;
++            if (!empty($file_locations)) {
++                $file_locations = array_unique($file_locations);
++            }
+         }
+ 
+         return $file_locations;
+@@ -569,6 +585,14 @@ private function _load_files_by_signatures(&$fh, $stop_on_file = false)
+      */
+     private function _extract_file($compressed_file_name, $target_file_name = false, $underscore_case = false)
+     {
++        if (strpos($target_file_name,'..') !== false) {
++            return false;
++        }
++
++        if (strpos($compressed_file_name,'..') !== false) {
++            return false;
++        }
++
+         if (!sizeof($this->compressed_list)) {
+             $this->set_debug('Trying to unzip before loading file list... Loading it!');
+             $this->_list_files(false, $compressed_file_name);
+diff --git a/userfiles/modules/admin/backup_v2/css/style.css b/userfiles/modules/admin/backup_v2/css/style.css
+index 6ad58b40dad..614ae19c5c5 100644
+--- a/userfiles/modules/admin/backup_v2/css/style.css
++++ b/userfiles/modules/admin/backup_v2/css/style.css
+@@ -140,6 +140,7 @@
+     border-radius: 4px;
+     margin-top: 15px;
+     margin-bottom: 15px;
++    overflow-y: scroll;
+ }
+ 
+ .js-export-log:empty {",CWE-22
+GHSA-gpvv-69j7-gwj8,"From a4c735b14a62f9cb864533808ac63936704f2ace Mon Sep 17 00:00:00 2001
+From: gzpan123 <gzpan123@gmail.com>
+Date: Wed, 17 Apr 2019 21:25:45 +0800
+Subject: [PATCH] FIX #6413 pip install <url> allow directory traversal
+
+---
+ news/6413.bugfix              |  3 ++
+ src/pip/_internal/download.py | 31 ++++++++++---
+ tests/unit/test_download.py   | 85 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 114 insertions(+), 5 deletions(-)
+ create mode 100644 news/6413.bugfix
+
+diff --git a/news/6413.bugfix b/news/6413.bugfix
+new file mode 100644
+index 00000000000..68d0a72f64a
+--- /dev/null
++++ b/news/6413.bugfix
+@@ -0,0 +1,3 @@
++Prevent ``pip install <url>`` from permitting directory traversal if e.g.
++a malicious server sends a ``Content-Disposition`` header with a filename
++containing ``../`` or ``..\\``.
+diff --git a/src/pip/_internal/download.py b/src/pip/_internal/download.py
+index c98fae5d330..6a54f89400f 100644
+--- a/src/pip/_internal/download.py
++++ b/src/pip/_internal/download.py
+@@ -66,7 +66,8 @@
+            'is_url', 'url_to_path', 'path_to_url',
+            'is_archive_file', 'unpack_vcs_link',
+            'unpack_file_url', 'is_vcs_url', 'is_file_url',
+-           'unpack_http_url', 'unpack_url']
++           'unpack_http_url', 'unpack_url',
++           'parse_content_disposition', 'sanitize_content_filename']
+ 
+ 
+ logger = logging.getLogger(__name__)
+@@ -1050,6 +1051,29 @@ def unpack_url(
+         write_delete_marker_file(location)
+ 
+ 
++def sanitize_content_filename(filename):
++    # type: (str) -> str
++    """"""
++    Sanitize the ""filename"" value from a Content-Disposition header.
++    """"""
++    return os.path.basename(filename)
++
++
++def parse_content_disposition(content_disposition, default_filename):
++    # type: (str, str) -> str
++    """"""
++    Parse the ""filename"" value from a Content-Disposition header, and
++    return the default filename if the result is empty.
++    """"""
++    _type, params = cgi.parse_header(content_disposition)
++    filename = params.get('filename')
++    if filename:
++        # We need to sanitize the filename to prevent directory traversal
++        # in case the filename contains "".."" path parts.
++        filename = sanitize_content_filename(filename)
++    return filename or default_filename
++
++
+ def _download_http_url(
+     link,  # type: Link
+     session,  # type: PipSession
+@@ -1097,10 +1121,7 @@ def _download_http_url(
+     # Have a look at the Content-Disposition header for a better guess
+     content_disposition = resp.headers.get('content-disposition')
+     if content_disposition:
+-        type, params = cgi.parse_header(content_disposition)
+-        # We use ``or`` here because we don't want to use an ""empty"" value
+-        # from the filename param.
+-        filename = params.get('filename') or filename
++        filename = parse_content_disposition(content_disposition, filename)
+     ext = splitext(filename)[1]
+     if not ext:
+         ext = mimetypes.guess_extension(content_type)
+diff --git a/tests/unit/test_download.py b/tests/unit/test_download.py
+index 438ebcb2e10..7baee5e04b4 100644
+--- a/tests/unit/test_download.py
++++ b/tests/unit/test_download.py
+@@ -12,6 +12,7 @@
+ import pip
+ from pip._internal.download import (
+     CI_ENVIRONMENT_VARIABLES, MultiDomainBasicAuth, PipSession, SafeFileCache,
++    _download_http_url, parse_content_disposition, sanitize_content_filename,
+     unpack_file_url, unpack_http_url, url_to_path,
+ )
+ from pip._internal.exceptions import HashMismatch
+@@ -199,6 +200,90 @@ def test_unpack_http_url_bad_downloaded_checksum(mock_unpack_file):
+         rmtree(download_dir)
+ 
+ 
++@pytest.mark.parametrize(""filename, expected"", [
++    ('dir/file', 'file'),
++    ('../file', 'file'),
++    ('../../file', 'file'),
++    ('../', ''),
++    ('../..', '..'),
++    ('/', ''),
++])
++def test_sanitize_content_filename(filename, expected):
++    """"""
++    Test inputs where the result is the same for Windows and non-Windows.
++    """"""
++    assert sanitize_content_filename(filename) == expected
++
++
++@pytest.mark.parametrize(""filename, win_expected, non_win_expected"", [
++    ('dir\\file', 'file', 'dir\\file'),
++    ('..\\file', 'file', '..\\file'),
++    ('..\\..\\file', 'file', '..\\..\\file'),
++    ('..\\', '', '..\\'),
++    ('..\\..', '..', '..\\..'),
++    ('\\', '', '\\'),
++])
++def test_sanitize_content_filename__platform_dependent(
++    filename,
++    win_expected,
++    non_win_expected
++):
++    """"""
++    Test inputs where the result is different for Windows and non-Windows.
++    """"""
++    if sys.platform == 'win32':
++        expected = win_expected
++    else:
++        expected = non_win_expected
++    assert sanitize_content_filename(filename) == expected
++
++
++@pytest.mark.parametrize(""content_disposition, default_filename, expected"", [
++    ('attachment;filename=""../file""', 'df', 'file'),
++])
++def test_parse_content_disposition(
++    content_disposition,
++    default_filename,
++    expected
++):
++    actual = parse_content_disposition(content_disposition, default_filename)
++    assert actual == expected
++
++
++def test_download_http_url__no_directory_traversal(tmpdir):
++    """"""
++    Test that directory traversal doesn't happen on download when the
++    Content-Disposition header contains a filename with a "".."" path part.
++    """"""
++    mock_url = 'http://www.example.com/whatever.tgz'
++    contents = b'downloaded'
++    link = Link(mock_url)
++
++    session = Mock()
++    resp = MockResponse(contents)
++    resp.url = mock_url
++    resp.headers = {
++        # Set the content-type to a random value to prevent
++        # mimetypes.guess_extension from guessing the extension.
++        'content-type': 'random',
++        'content-disposition': 'attachment;filename=""../out_dir_file""'
++    }
++    session.get.return_value = resp
++
++    download_dir = tmpdir.join('download')
++    os.mkdir(download_dir)
++    file_path, content_type = _download_http_url(
++        link,
++        session,
++        download_dir,
++        hashes=None,
++        progress_bar='on',
++    )
++    # The file should be downloaded to download_dir.
++    actual = os.listdir(download_dir)
++    assert actual == ['out_dir_file']
++
++
+ @pytest.mark.parametrize(""url,win_expected,non_win_expected"", [
+     ('file:tmp', 'tmp', 'tmp'),
+     ('file:c:/path/to/file', r'C:\path\to\file', 'c:/path/to/file'),",CWE-22
+GHSA-wxj7-97fp-j53j,"From 949446a95a660c0752b1db0c654f0fd619ae6085 Mon Sep 17 00:00:00 2001
+From: Mostafa Samir <mostafa.3210@gmail.com>
+Date: Thu, 30 Dec 2021 18:05:29 +0200
+Subject: [PATCH] add test for sync unzipping a zip-slip attack file
+
+---
+ tests/unzip.sync.test.js | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/tests/unzip.sync.test.js b/tests/unzip.sync.test.js
+index 57c06de..501722a 100644
+--- a/tests/unzip.sync.test.js
++++ b/tests/unzip.sync.test.js
+@@ -27,6 +27,13 @@ describe(""Unzipping synchronously"", function () {
+         zipper.sync.unzip(""./tests/assets/hello.zip"").save(""./tests/assets/hello-sync-unzip/"");
+     });
+ 
++    it(""should raise an error when an entry is outside extraction path"", function () {
++        fs.mkdirSync(""./tests/assets/zip-slip-sync"");
++        expect(
++            zipper.sync.unzip(""./tests/assets/zip-slip.zip"").save(""./tests/assets/zip-slip-sync"")
++        ).to.throw(""Entry is outside the extraction path"")
++    });
++
+     it(""checks if unzipped files on disk contain correct data"", function (done) {
+ 
+         fs.readFile(""./tests/assets/hello-sync-unzip/hello/says-hello"", 'utf8', function (err, data) {",CWE-22
