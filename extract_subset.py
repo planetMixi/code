@@ -2,6 +2,7 @@ import json
 import os
 import random
 import argparse
+import pandas as pd
 
 def extract_subset(input_file, subset_dir="subsets"):
     # Create subsets directory if it doesn't exist
@@ -16,21 +17,19 @@ def extract_subset(input_file, subset_dir="subsets"):
     else:
         next_id = 1
     
-    # Load the data
+    # Load the data using pandas
     try:
-        with open(input_file, 'r') as f:
-            full_data = json.load(f)
-    except json.JSONDecodeError:
-        print(f"Error: {input_file} is not a valid JSON file")
-        return
-
-    # Handle the specific structure with 'schema' and 'data' keys
-    if 'schema' in full_data and 'data' in full_data:
-        schema = full_data['schema']
-        data = full_data['data']
-    else:
-        data = full_data
-        schema = None
+        # The orient='table' automatically handles the schema/data structure
+        df = pd.read_json(input_file, orient='table')
+        print(f"Loaded dataset with {len(df)} records")
+    except ValueError:
+        # If not in table format, try standard JSON
+        try:
+            df = pd.read_json(input_file)
+            print(f"Loaded dataset with {len(df)} records (standard JSON format)")
+        except Exception as e:
+            print(f"Error: Unable to read {input_file}: {str(e)}")
+            return
     
     # Create or load a tracking file to keep track of used indices
     tracking_file = f"{input_file}.tracking"
@@ -41,7 +40,7 @@ def extract_subset(input_file, subset_dir="subsets"):
         used_indices = set()
     
     # Get available data points (indices not in used_indices)
-    all_indices = set(range(len(data)))
+    all_indices = set(range(len(df)))
     available_indices = list(all_indices - used_indices)
     
     if len(available_indices) < 100:
@@ -54,27 +53,15 @@ def extract_subset(input_file, subset_dir="subsets"):
     to_extract = min(100, len(available_indices))
     selected_indices = random.sample(available_indices, to_extract)
     
-    # Create subset
-    subset_data = [data[idx] for idx in selected_indices]
+    # Create subset dataframe
+    subset_df = df.iloc[selected_indices].copy()
     
     # Update the used indices
     used_indices.update(selected_indices)
     
     # Save the subset
     subset_file = os.path.join(subset_dir, f"subset_{next_id}.json")
-    
-    if schema:
-        # If the original had a schema, maintain the same structure
-        subset_full_data = {
-            'schema': schema,
-            'data': subset_data
-        }
-        with open(subset_file, 'w') as f:
-            json.dump(subset_full_data, f, indent=2)
-    else:
-        # Otherwise just save the data array
-        with open(subset_file, 'w') as f:
-            json.dump(subset_data, f, indent=2)
+    subset_df.to_json(subset_file, orient='table', indent=4)
     
     # Save the updated tracking file
     with open(tracking_file, 'w') as f:
