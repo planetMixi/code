@@ -12,7 +12,7 @@ python filter_secommits.py
 Expected output:
 ```
 Total rows processed: 11036
-Rows following the heuristics: 956
+Rows following the heuristics: 952
 Filtered data saved to 'dataset/secommits_filtered.json'
 ```
 
@@ -26,6 +26,8 @@ We applied the following heuristics to curate high-quality vulnerability-related
 * **CWE-annotated only**: We excluded commits with missing or null CWE IDs. This ensures we can later verify whether the LLM-generated vulnerability description correctly identifies the CWE class.
 
 * **Exclude documentation, configuration, and test-only changes**: Commits that only touch documentation files (.md, .txt, .rst), configuration (.toml), or test directories (test/, tests/) are excluded, as these changes are less likely to represent real vulnerabilities.
+
+* **Non-empty patch content only**: We ensured that the patch_content field is not null or empty, excluding any commits where a diff could not be retrieved or parsed.
 
 4. Generate subsets
 
