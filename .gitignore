@@ -12,3 +12,6 @@ __pycache__/
 
 # Local Ollama model folder (not source controlled)
 ollama/
+
+# ignore dataset
+dataset/secommits.json
