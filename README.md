@@ -12,14 +12,20 @@ python filter_secommits.py
 Expected output:
 ```
 Total rows processed: 11036
-Rows following the heuristics: 984
+Rows following the heuristics: 956
 Filtered data saved to 'dataset/secommits_filtered.json'
 ```
 
-Heuristics for the dataset:
-* **commits with single-file diffs** (due to expenses constrains) -- you can briefly mentioned in your thesis that your first attempt was to try running llama and other free models with ollama on your computer; but since you couldn't due to your RAM memory, you shifted for OPENAI API and tried gpt.
-* **from the open-source vulnerability database** (since osv is considered the most reliable source) -- you should mention the dataset includes data points from NVD and OSV in the dataset characterization.
-* **with no empty or null CWE-ID** (since we want to use the CWE-ID to validate if the LLM generated the correct CWE)
+## Heuristics for the dataset
+We applied the following heuristics to curate high-quality vulnerability-related commits for our dataset:
+
+* **Single-file diffs only**: To minimize inference costs (especially when using OpenAI’s API), we selected commits that modify only one file. This design choice followed initial failed attempts to run open-source models like LLaMA locally via Ollama, due to insufficient RAM.
+
+* **From authoritative vulnerability sources**: Commits were filtered to include only those linked to entries in public vulnerability databases — primarily the Open Source Vulnerabilities (OSV) and the National Vulnerability Database (NVD). These sources are recognized for their reliability in security research.
+
+* **CWE-annotated only**: We excluded commits with missing or null CWE IDs. This ensures we can later verify whether the LLM-generated vulnerability description correctly identifies the CWE class.
+
+* **Exclude documentation, configuration, and test-only changes**: Commits that only touch documentation files (.md, .txt, .rst), configuration (.toml), or test directories (test/, tests/) are excluded, as these changes are less likely to represent real vulnerabilities.
 
 4. Generate subsets
 
@@ -29,3 +35,5 @@ The subsets were generated in groups of 100. Each subset was collected randomly 
 python extract_subset.py --input dataset/secommits_filtered.json
 ```
 If you run it 10 times, you should get 10 subsets for the `dataset/secommits_filtered.json`.
+
+5. Generate code diffs to provide to the model.

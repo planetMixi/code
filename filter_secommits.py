@@ -13,11 +13,13 @@ for index, row in df.iterrows():
 # 1. num_files equals 1
 # 2. dataset is 'osv'
 # 3. cwe_id is not null or empty
+# 4. files do not include .md, .txt, .rst, .txt, .toml, test/ or tests/
 df_filtered = df[
     (df['num_files'] == 1) &  # heuristic 1
     (df['dataset'] == 'osv') &  # heuristic 2
     (df['cwe_id'].notna()) &  # heuristic 3
-    (df['cwe_id'] != '{}')  # heuristic 3
+    (df['cwe_id'] != '{}') & # heuristic 3
+    (~df['list_files'].str.contains(r'\.md|\.txt|\.rst|\.txt|\.toml|test/|tests/')) # heuristic 4
 ]
 
 # Save the filtered dataframe to a JSON file in table format
