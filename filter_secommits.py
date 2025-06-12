@@ -2,7 +2,7 @@
 import pandas as pd
 
 # Read the JSON file
-df = pd.read_json("dataset/secommits.json", orient="table")
+df = pd.read_json("dataset/merged_subsets.json", orient="table")
 
 # Iterate over the dataframe and print the files column
 for index, row in df.iterrows():
@@ -14,17 +14,20 @@ for index, row in df.iterrows():
 # 2. dataset is 'osv'
 # 3. cwe_id is not null or empty
 # 4. files do not include .md, .txt, .rst, .txt, .toml, test/ or tests/
+# 5. patch_content is not empty
 df_filtered = df[
     (df['num_files'] == 1) &  # heuristic 1
     (df['dataset'] == 'osv') &  # heuristic 2
     (df['cwe_id'].notna()) &  # heuristic 3
     (df['cwe_id'] != '{}') & # heuristic 3
-    (~df['list_files'].str.contains(r'\.md|\.txt|\.rst|\.txt|\.toml|test/|tests/')) # heuristic 4
+    (~df['list_files'].str.contains(r'\.md|\.txt|\.rst|\.txt|\.toml|test/|tests/')) & # heuristic 4
+    (df['patch_content'].notna()) & # heuristic 5
+    (df['patch_content'] != '') # heuristic 5   
 ]
 
 # Save the filtered dataframe to a JSON file in table format
 foutput = "dataset/secommits_filtered.json"
-df_filtered.to_json(foutput, orient="table")
+df_filtered.to_json(foutput, orient="table", indent=4)
 
 print(f"Total rows processed: {len(df)}")
 print(f"Rows following the heuristics: {len(df_filtered)}")
