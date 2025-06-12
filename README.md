@@ -5,13 +5,19 @@
 gdown --fuzzy https://drive.google.com/file/d/1kkjdqMis0KnJ8jBLjyBDpsP7zR1VgrfM/view\?usp\=drive_link -O dataset/
 ```
 
-3. Filter dataset for diffs with only one file.
+3. Filter dataset for diffs with only one file. 
 ```
 python filter_secommits_one_file_diff.py 
 ```
 Expected output:
 ```
 Total rows processed: 11036
-Rows with exactly 1 file: 5306
+Rows with exactly 1 file: 984
+Rows with valid CWE IDs: 984
 Filtered data saved to 'dataset/secommits_single_file.json'
 ```
+
+Heuristics for the dataset:
+* commits with single-file diffs (due to expenses constrains) -- you can briefly mentioned in your thesis that your first attempt was to try running llama and other free models with ollama on your computer; but since you couldn't due to your RAM memory, you shifted for OPENAI API and tried gpt.
+* from the open-source vulnerability database (since osv is considered the most reliable source) -- you should mention the dataset includes data points from NVD and OSV in the dataset characterization.
+* with no empty or null CWE-ID (since we want to use the CWE-ID to validate if the LLM generated the correct CWE)

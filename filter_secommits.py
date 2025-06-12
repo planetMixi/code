@@ -9,13 +9,21 @@ for index, row in df.iterrows():
     df.at[index, 'list_files'] = str(eval(row['files']).keys())
     df.at[index, 'num_files'] = len(eval(row['files']).keys())
     
-# Filter to include only rows where num_files equals 1
-df_filtered = df[df['num_files'] == 1]
+# Filter to include only rows where:
+# 1. num_files equals 1
+# 2. dataset is 'osv'
+# 3. cwe_id is not null or empty
+df_filtered = df[
+    (df['num_files'] == 1) &  # heuristic 1
+    (df['dataset'] == 'osv') &  # heuristic 2
+    (df['cwe_id'].notna()) &  # heuristic 3
+    (df['cwe_id'] != '{}')  # heuristic 3
+]
 
 # Save the filtered dataframe to a JSON file in table format
-foutput = "dataset/secommits_single_file.json"
+foutput = "dataset/secommits_filtered.json"
 df_filtered.to_json(foutput, orient="table")
 
 print(f"Total rows processed: {len(df)}")
-print(f"Rows with exactly 1 file: {len(df_filtered)}")
+print(f"Rows following the heuristics: {len(df_filtered)}")
 print(f"Filtered data saved to '{foutput}'")
