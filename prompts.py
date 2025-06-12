@@ -45,6 +45,7 @@ See also: <Related Issue or PR Number>
     3. How it was fixed.
   - Do **NOT** combine them into a single paragraph. Instead, use line breaks to separate them.
   - Do **not** add labels like “What:” or “Why:”.
+  - The body should be ~75 words total.
 """
 
 zero_shot_prompt = f"""Generate a SECOM-style security commit message for the following code diff:

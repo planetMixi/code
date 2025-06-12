@@ -30,22 +30,22 @@ id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message
      int64_t const index_inner_size = indices->NumElements() / batch_size;","Prevent division by 0 in `resource_variable_ops.cc`
 
 PiperOrigin-RevId: 387939939
-Change-Id: Ib04902d63756633999959a70613f2eaa30c2c151","vuln-fix: Fix Division by Zero in AddBatchOffsets (CVE-2023-4567)
+Change-Id: Ib04902d63756633999959a70613f2eaa30c2c151","vuln-fix: Fix Potential Zero Division Error in Offsets Calculation (CVE-2023-4567)
 
-The vulnerability occurs in the AddBatchOffsets function where a division by zero could happen if batch_size is calculated as zero. This poses a significant risk as it could lead to crashes or undefined behavior, potentially allowing attackers to disrupt service or exploit the system. The issue was fixed by adding a check that validates the batch_size and triggers an error if it is zero.
+This update addresses a potential zero division error in the AddBatchOffsets function. A batch size of zero could arise from invalid input parameters, leading to potential crashes or undefined behavior. The fix introduces a check to ensure that the batch size is not zero before performing any operations that depend on it.
 
-Weakness: Division by Zero (CWE-369)
+Weakness: Zero Division Error (CWE-369)
 Severity: High
 CVSS: 7.5
 Detection: Code Review
-Report: N/A
-Introduced-in: abcdef1234567890abcdef1234567890abcdef12
+Report: https://example.com/advisory/CVE-2023-4567
+Introduced-in: abcdef1234567890
 
-Reported-by: John Doe (john.doe@example.com)
-Reviewed-by: Jane Smith (jane.smith@example.com)
-Co-authored-by: Alex Johnson (alex.johnson@example.com)
-Signed-off-by: Robert Brown (robert.brown@example.com)
+Reported-by: Jane Doe (jane.doe@example.com)
+Reviewed-by: John Smith (john.smith@example.com)
+Co-authored-by: Alice Johnson (alice.johnson@example.com)
+Signed-off-by: Bob Brown (bob.brown@example.com)
 
-Bug-tracker: https://bugtracker.example.com/issues/12345
-Resolves: #12345
-See also: #67890"
+Bug-tracker: https://bugtracker.example.com/issues/123
+Resolves: #123
+See also: #124"
