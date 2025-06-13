@@ -1,0 +1,310 @@
+{
+  "schema":{
+    "fields":[
+      {
+        "name":"index",
+        "type":"integer"
+      },
+      {
+        "name":"vuln_id",
+        "type":"string"
+      },
+      {
+        "name":"cwe_id",
+        "type":"string"
+      },
+      {
+        "name":"score",
+        "type":"number"
+      },
+      {
+        "name":"chain",
+        "type":"string"
+      },
+      {
+        "name":"dataset",
+        "type":"string"
+      },
+      {
+        "name":"summary",
+        "type":"string"
+      },
+      {
+        "name":"published_date",
+        "type":"string"
+      },
+      {
+        "name":"chain_len",
+        "type":"integer"
+      },
+      {
+        "name":"project",
+        "type":"string"
+      },
+      {
+        "name":"commit_href",
+        "type":"string"
+      },
+      {
+        "name":"commit_sha",
+        "type":"string"
+      },
+      {
+        "name":"patch",
+        "type":"string"
+      },
+      {
+        "name":"chain_ord",
+        "type":"string"
+      },
+      {
+        "name":"before_first_fix_commit",
+        "type":"string"
+      },
+      {
+        "name":"last_fix_commit",
+        "type":"string"
+      },
+      {
+        "name":"chain_ord_pos",
+        "type":"number"
+      },
+      {
+        "name":"commit_datetime",
+        "type":"string"
+      },
+      {
+        "name":"message",
+        "type":"string"
+      },
+      {
+        "name":"author",
+        "type":"string"
+      },
+      {
+        "name":"comments",
+        "type":"string"
+      },
+      {
+        "name":"stats",
+        "type":"string"
+      },
+      {
+        "name":"files",
+        "type":"string"
+      },
+      {
+        "name":"message_norm",
+        "type":"string"
+      },
+      {
+        "name":"language",
+        "type":"string"
+      },
+      {
+        "name":"entities",
+        "type":"string"
+      },
+      {
+        "name":"classification_level_1",
+        "type":"string"
+      },
+      {
+        "name":"classification_level_2",
+        "type":"string"
+      },
+      {
+        "name":"list_files",
+        "type":"string"
+      },
+      {
+        "name":"num_files",
+        "type":"number"
+      },
+      {
+        "name":"patch_content",
+        "type":"string"
+      },
+      {
+        "name":"code_diff",
+        "type":"string"
+      }
+    ],
+    "primaryKey":[
+      "index"
+    ],
+    "pandas_version":"1.4.0"
+  },
+  "data":[
+    {
+      "index":0,
+      "vuln_id":"GHSA-qr82-2c78-4m8h",
+      "cwe_id":"{'CWE-824'}",
+      "score":7.8,
+      "chain":"{'https:\/\/github.com\/tensorflow\/tensorflow\/commit\/532f5c5a547126c634fefd43bbad1dc6417678ac'}",
+      "dataset":"osv",
+      "summary":"Reference binding to nullptr in map operations ### Impact\nAn attacker can cause undefined behavior via binding a reference to null pointer in `tf.raw_ops.Map*` and `tf.raw_ops.OrderedMap*` operations:\n\n```python\nimport tensorflow as tf\n  \ntf.raw_ops.MapPeek(\n  key=tf.constant([8],dtype=tf.int64),\n  indices=[],\n  dtypes=[tf.int32],\n  capacity=8,\n  memory_limit=128)\n```\n\nThe [implementation](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/460e000de3a83278fb00b61a16d161b1964f15f4\/tensorflow\/core\/kernels\/map_stage_op.cc#L222-L248) has a check in place to ensure that `indices` is in ascending order, but does not check that `indices` is not empty.\n    \n### Patches\nWe have patched the issue in GitHub commit [532f5c5a547126c634fefd43bbad1dc6417678ac](https:\/\/github.com\/tensorflow\/tensorflow\/commit\/532f5c5a547126c634fefd43bbad1dc6417678ac).\n                       \nThe fix will be included in TensorFlow 2.6.0. We will also cherrypick this commit on TensorFlow 2.5.1, TensorFlow 2.4.3, and TensorFlow 2.3.4, as these are also affected and still in supported range.\n    \n### For more information\nPlease consult [our security guide](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/master\/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n\n### Attribution\nThis vulnerability has been reported by members of the Aivul Team from Qihoo 360.",
+      "published_date":"2021-08-25",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/tensorflow\/tensorflow",
+      "commit_href":"https:\/\/github.com\/tensorflow\/tensorflow\/commit\/532f5c5a547126c634fefd43bbad1dc6417678ac",
+      "commit_sha":"532f5c5a547126c634fefd43bbad1dc6417678ac",
+      "patch":"SINGLE",
+      "chain_ord":"['532f5c5a547126c634fefd43bbad1dc6417678ac']",
+      "before_first_fix_commit":"{'a4e138660270e7599793fa438cd7b2fc2ce215a6'}",
+      "last_fix_commit":"532f5c5a547126c634fefd43bbad1dc6417678ac",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"07\/30\/2021, 05:24:39",
+      "message":"Prevent nullptr deref in validation of indexes in map ops.\n\nPiperOrigin-RevId: 387738023\nChange-Id: I83d18d36a7b82ffd2a40b5124a4e5b4c72238f27",
+      "author":"Mihai Maruseac",
+      "comments":null,
+      "stats":"{'additions': 9, 'deletions': 6, 'total': 15}",
+      "files":"{'tensorflow\/core\/kernels\/map_stage_op.cc': {'additions': 9, 'deletions': 6, 'changes': 15, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/tensorflow\/tensorflow\/raw\/532f5c5a547126c634fefd43bbad1dc6417678ac\/tensorflow%2Fcore%2Fkernels%2Fmap_stage_op.cc', 'patch': '@@ -210,25 +210,28 @@ class StagingMap : public ResourceBase {\\n                                    const OptionalTuple& tuple)\\n       TF_EXCLUSIVE_LOCKS_REQUIRED(mu_) {\\n     if (tuple[index].has_value()) {\\n-      return Status(errors::InvalidArgument(\\n+      return errors::InvalidArgument(\\n           \"The tensor for index \\'\", index, \"\\' for key \\'\", key.scalar<int64>()(),\\n-          \"\\' was already initialized \\'\", dtypes_.size(), \"\\'.\"));\\n+          \"\\' was already initialized \\'\", dtypes_.size(), \"\\'.\");\\n     }\\n \\n     return Status::OK();\\n   }\\n \\n   \/\/ Check that the indices are strictly ordered\\n   Status check_index_ordering(const Tensor& indices) {\\n+    if (indices.NumElements() == 0) {\\n+      return errors::InvalidArgument(\"Indices are empty\");\\n+    }\\n+\\n     auto findices = indices.flat<int>();\\n \\n     for (std::size_t i = 0; i < findices.dimension(0) - 1; ++i) {\\n       if (findices(i) < findices(i + 1)) {\\n         continue;\\n       }\\n \\n-      return Status(\\n-          errors::InvalidArgument(\"Indices are not strictly ordered\"));\\n+      return errors::InvalidArgument(\"Indices are not strictly ordered\");\\n     }\\n \\n     return Status::OK();\\n@@ -238,10 +241,10 @@ class StagingMap : public ResourceBase {\\n   Status check_memory_limit(std::size_t bytes)\\n       TF_EXCLUSIVE_LOCKS_REQUIRED(mu_) {\\n     if (has_memory_limit() && bytes > memory_limit_) {\\n-      return Status(errors::ResourceExhausted(\\n+      return errors::ResourceExhausted(\\n           \"Attempted to insert tensors with combined size of \\'\", bytes,\\n           \"\\' bytes into Staging Area with a memory limit of \\'\", memory_limit_,\\n-          \"\\'.\"));\\n+          \"\\'.\");\\n     }\\n \\n     return Status::OK();'}}",
+      "message_norm":"prevent nullptr deref in validation of indexes in map ops.\n\npiperorigin-revid: 387738023\nchange-id: i83d18d36a7b82ffd2a40b5124a4e5b4c72238f27",
+      "language":"en",
+      "entities":"[('prevent', 'ACTION', ''), ('nullptr', 'SECWORD', ''), ('387738023', 'SHA', 'generic_sha')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['tensorflow\/core\/kernels\/map_stage_op.cc'])",
+      "num_files":1.0,
+      "patch_content":"From 532f5c5a547126c634fefd43bbad1dc6417678ac Mon Sep 17 00:00:00 2001\nFrom: Mihai Maruseac <mihaimaruseac@google.com>\nDate: Thu, 29 Jul 2021 22:24:39 -0700\nSubject: [PATCH] Prevent nullptr deref in validation of indexes in map ops.\n\nPiperOrigin-RevId: 387738023\nChange-Id: I83d18d36a7b82ffd2a40b5124a4e5b4c72238f27\n---\n tensorflow\/core\/kernels\/map_stage_op.cc | 15 +++++++++------\n 1 file changed, 9 insertions(+), 6 deletions(-)\n\ndiff --git a\/tensorflow\/core\/kernels\/map_stage_op.cc b\/tensorflow\/core\/kernels\/map_stage_op.cc\nindex 9411792762baab..1a2f5a8fa2247d 100644\n--- a\/tensorflow\/core\/kernels\/map_stage_op.cc\n+++ b\/tensorflow\/core\/kernels\/map_stage_op.cc\n@@ -210,9 +210,9 @@ class StagingMap : public ResourceBase {\n                                    const OptionalTuple& tuple)\n       TF_EXCLUSIVE_LOCKS_REQUIRED(mu_) {\n     if (tuple[index].has_value()) {\n-      return Status(errors::InvalidArgument(\n+      return errors::InvalidArgument(\n           \"The tensor for index '\", index, \"' for key '\", key.scalar<int64>()(),\n-          \"' was already initialized '\", dtypes_.size(), \"'.\"));\n+          \"' was already initialized '\", dtypes_.size(), \"'.\");\n     }\n \n     return Status::OK();\n@@ -220,6 +220,10 @@ class StagingMap : public ResourceBase {\n \n   \/\/ Check that the indices are strictly ordered\n   Status check_index_ordering(const Tensor& indices) {\n+    if (indices.NumElements() == 0) {\n+      return errors::InvalidArgument(\"Indices are empty\");\n+    }\n+\n     auto findices = indices.flat<int>();\n \n     for (std::size_t i = 0; i < findices.dimension(0) - 1; ++i) {\n@@ -227,8 +231,7 @@ class StagingMap : public ResourceBase {\n         continue;\n       }\n \n-      return Status(\n-          errors::InvalidArgument(\"Indices are not strictly ordered\"));\n+      return errors::InvalidArgument(\"Indices are not strictly ordered\");\n     }\n \n     return Status::OK();\n@@ -238,10 +241,10 @@ class StagingMap : public ResourceBase {\n   Status check_memory_limit(std::size_t bytes)\n       TF_EXCLUSIVE_LOCKS_REQUIRED(mu_) {\n     if (has_memory_limit() && bytes > memory_limit_) {\n-      return Status(errors::ResourceExhausted(\n+      return errors::ResourceExhausted(\n           \"Attempted to insert tensors with combined size of '\", bytes,\n           \"' bytes into Staging Area with a memory limit of '\", memory_limit_,\n-          \"'.\"));\n+          \"'.\");\n     }\n \n     return Status::OK();",
+      "code_diff":"@@ -210,9 +210,9 @@ class StagingMap : public ResourceBase {\n                                    const OptionalTuple& tuple)\n       TF_EXCLUSIVE_LOCKS_REQUIRED(mu_) {\n     if (tuple[index].has_value()) {\n-      return Status(errors::InvalidArgument(\n+      return errors::InvalidArgument(\n           \"The tensor for index '\", index, \"' for key '\", key.scalar<int64>()(),\n-          \"' was already initialized '\", dtypes_.size(), \"'.\"));\n+          \"' was already initialized '\", dtypes_.size(), \"'.\");\n     }\n \n     return Status::OK();\n@@ -220,6 +220,10 @@ class StagingMap : public ResourceBase {\n \n   \/\/ Check that the indices are strictly ordered\n   Status check_index_ordering(const Tensor& indices) {\n+    if (indices.NumElements() == 0) {\n+      return errors::InvalidArgument(\"Indices are empty\");\n+    }\n+\n     auto findices = indices.flat<int>();\n \n     for (std::size_t i = 0; i < findices.dimension(0) - 1; ++i) {\n@@ -227,8 +231,7 @@ class StagingMap : public ResourceBase {\n         continue;\n       }\n \n-      return Status(\n-          errors::InvalidArgument(\"Indices are not strictly ordered\"));\n+      return errors::InvalidArgument(\"Indices are not strictly ordered\");\n     }\n \n     return Status::OK();\n@@ -238,10 +241,10 @@ class StagingMap : public ResourceBase {\n   Status check_memory_limit(std::size_t bytes)\n       TF_EXCLUSIVE_LOCKS_REQUIRED(mu_) {\n     if (has_memory_limit() && bytes > memory_limit_) {\n-      return Status(errors::ResourceExhausted(\n+      return errors::ResourceExhausted(\n           \"Attempted to insert tensors with combined size of '\", bytes,\n           \"' bytes into Staging Area with a memory limit of '\", memory_limit_,\n-          \"'.\"));\n+          \"'.\");\n     }\n \n     return Status::OK();"
+    },
+    {
+      "index":1,
+      "vuln_id":"GHSA-4f99-p9c2-3j8x",
+      "cwe_id":"{'CWE-125', 'CWE-824'}",
+      "score":7.8,
+      "chain":"{'https:\/\/github.com\/tensorflow\/tensorflow\/commit\/e6cf28c72ba2eb949ca950d834dd6d66bb01cfae'}",
+      "dataset":"osv",
+      "summary":"Undefined behavior via `nullptr` reference binding in sparse matrix multiplication ### Impact\nThe [code for sparse matrix multiplication](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/8d72537c6abf5a44103b57b9c2e22c14f5f49698\/tensorflow\/core\/kernels\/sparse_matmul_op.cc#L954-L1086) is vulnerable to undefined behavior via binding a reference to `nullptr`:\n\n```python\nimport tensorflow as tf\n  \ntf.raw_ops.SparseMatMul(\n  a=[[1.0,1.0,1.0]],\n  b=[[],[],[]],\n  transpose_a=False,\n  transpose_b=False,\n  a_is_sparse=False, \n  b_is_sparse=True)\n```\n\nThis occurs whenever the dimensions of `a` or `b` are 0 or less. In the case on one of these is 0, an empty output tensor should be allocated (to conserve the invariant that output tensors are always allocated when the operation is successful) but nothing should be written to it (that is, we should return early from the kernel implementation). Otherwise, attempts to write to this empty tensor would result in heap OOB access.\n\n### Patches\nWe have patched the issue in GitHub commit [e6cf28c72ba2eb949ca950d834dd6d66bb01cfae](https:\/\/github.com\/tensorflow\/tensorflow\/commit\/e6cf28c72ba2eb949ca950d834dd6d66bb01cfae).\n\nThe fix will be included in TensorFlow 2.7.0. We will also cherrypick this commit on TensorFlow 2.6.1, TensorFlow 2.5.2, and TensorFlow 2.4.4, as these are also affected and still in supported range.\n\n### For more information\nPlease consult [our security guide](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/master\/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n\n### Attribution\nThis vulnerability has been reported by members of the Aivul Team from Qihoo 360.",
+      "published_date":"2021-11-10",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/tensorflow\/tensorflow",
+      "commit_href":"https:\/\/github.com\/tensorflow\/tensorflow\/commit\/e6cf28c72ba2eb949ca950d834dd6d66bb01cfae",
+      "commit_sha":"e6cf28c72ba2eb949ca950d834dd6d66bb01cfae",
+      "patch":"SINGLE",
+      "chain_ord":"['e6cf28c72ba2eb949ca950d834dd6d66bb01cfae']",
+      "before_first_fix_commit":"{'d4fdd7830befb1f3aed8b4d1681471531856ae77'}",
+      "last_fix_commit":"e6cf28c72ba2eb949ca950d834dd6d66bb01cfae",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"10\/06\/2021, 04:54:15",
+      "message":"Validate that matrix dimension sizes in SparseMatMul are positive.\n\nPiperOrigin-RevId: 401149683\nChange-Id: Ib33eafc561a39c8741ece80b2edce6d4aae9a57d",
+      "author":"Penporn Koanantakool",
+      "comments":null,
+      "stats":"{'additions': 10, 'deletions': 0, 'total': 10}",
+      "files":"{'tensorflow\/core\/kernels\/sparse_matmul_op.cc': {'additions': 10, 'deletions': 0, 'changes': 10, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/tensorflow\/tensorflow\/raw\/e6cf28c72ba2eb949ca950d834dd6d66bb01cfae\/tensorflow%2Fcore%2Fkernels%2Fsparse_matmul_op.cc', 'patch': '@@ -32,6 +32,7 @@ limitations under the License.\\n #include \"tensorflow\/core\/kernels\/fill_functor.h\"\\n #include \"tensorflow\/core\/lib\/core\/blocking_counter.h\"\\n #include \"tensorflow\/core\/lib\/core\/threadpool.h\"\\n+#include \"tensorflow\/core\/platform\/errors.h\"\\n #include \"tensorflow\/core\/platform\/logging.h\"\\n #include \"tensorflow\/core\/platform\/macros.h\"\\n #include \"tensorflow\/core\/platform\/mutex.h\"\\n@@ -980,9 +981,18 @@ class SparseMatMulOp : public OpKernel {\\n                 errors::InvalidArgument(\\n                     \"Matrix size incompatible: a: \", a.shape().DebugString(),\\n                     \", b: \", b.shape().DebugString()));\\n+    OP_REQUIRES(ctx, m >= 0 && n >= 0 && k >= 0,\\n+                errors::InvalidArgument(\\n+                    \"Matrix dimensions cannot be negative: a: \",\\n+                    a.shape().DebugString(), \", b: \", b.shape().DebugString()));\\n     Tensor* output = nullptr;\\n     OP_REQUIRES_OK(ctx, ctx->allocate_output(0, TensorShape({m, n}), &output));\\n \\n+    \/\/ Return early if at least one of the output dimension size is 0.\\n+    if (m == 0 || n == 0) {\\n+      return;\\n+    }\\n+\\n     if (k == 0) {\\n       \/\/ If the inner dimension k in the matrix multiplication is zero, we fill\\n       \/\/ the output with zeros.'}}",
+      "message_norm":"validate that matrix dimension sizes in sparsematmul are positive.\n\npiperorigin-revid: 401149683\nchange-id: ib33eafc561a39c8741ece80b2edce6d4aae9a57d",
+      "language":"en",
+      "entities":"[('validate', 'ACTION', ''), ('401149683', 'SHA', 'generic_sha')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['tensorflow\/core\/kernels\/sparse_matmul_op.cc'])",
+      "num_files":1.0,
+      "patch_content":"From e6cf28c72ba2eb949ca950d834dd6d66bb01cfae Mon Sep 17 00:00:00 2001\nFrom: Penporn Koanantakool <penporn@google.com>\nDate: Tue, 5 Oct 2021 21:54:15 -0700\nSubject: [PATCH] Validate that matrix dimension sizes in SparseMatMul are\n positive.\n\nPiperOrigin-RevId: 401149683\nChange-Id: Ib33eafc561a39c8741ece80b2edce6d4aae9a57d\n---\n tensorflow\/core\/kernels\/sparse_matmul_op.cc | 10 ++++++++++\n 1 file changed, 10 insertions(+)\n\ndiff --git a\/tensorflow\/core\/kernels\/sparse_matmul_op.cc b\/tensorflow\/core\/kernels\/sparse_matmul_op.cc\nindex a02afafa33e3ad..6bf9dfa3d8bb75 100644\n--- a\/tensorflow\/core\/kernels\/sparse_matmul_op.cc\n+++ b\/tensorflow\/core\/kernels\/sparse_matmul_op.cc\n@@ -32,6 +32,7 @@ limitations under the License.\n #include \"tensorflow\/core\/kernels\/fill_functor.h\"\n #include \"tensorflow\/core\/lib\/core\/blocking_counter.h\"\n #include \"tensorflow\/core\/lib\/core\/threadpool.h\"\n+#include \"tensorflow\/core\/platform\/errors.h\"\n #include \"tensorflow\/core\/platform\/logging.h\"\n #include \"tensorflow\/core\/platform\/macros.h\"\n #include \"tensorflow\/core\/platform\/mutex.h\"\n@@ -980,9 +981,18 @@ class SparseMatMulOp : public OpKernel {\n                 errors::InvalidArgument(\n                     \"Matrix size incompatible: a: \", a.shape().DebugString(),\n                     \", b: \", b.shape().DebugString()));\n+    OP_REQUIRES(ctx, m >= 0 && n >= 0 && k >= 0,\n+                errors::InvalidArgument(\n+                    \"Matrix dimensions cannot be negative: a: \",\n+                    a.shape().DebugString(), \", b: \", b.shape().DebugString()));\n     Tensor* output = nullptr;\n     OP_REQUIRES_OK(ctx, ctx->allocate_output(0, TensorShape({m, n}), &output));\n \n+    \/\/ Return early if at least one of the output dimension size is 0.\n+    if (m == 0 || n == 0) {\n+      return;\n+    }\n+\n     if (k == 0) {\n       \/\/ If the inner dimension k in the matrix multiplication is zero, we fill\n       \/\/ the output with zeros.",
+      "code_diff":"@@ -32,6 +32,7 @@ limitations under the License.\n #include \"tensorflow\/core\/kernels\/fill_functor.h\"\n #include \"tensorflow\/core\/lib\/core\/blocking_counter.h\"\n #include \"tensorflow\/core\/lib\/core\/threadpool.h\"\n+#include \"tensorflow\/core\/platform\/errors.h\"\n #include \"tensorflow\/core\/platform\/logging.h\"\n #include \"tensorflow\/core\/platform\/macros.h\"\n #include \"tensorflow\/core\/platform\/mutex.h\"\n@@ -980,9 +981,18 @@ class SparseMatMulOp : public OpKernel {\n                 errors::InvalidArgument(\n                     \"Matrix size incompatible: a: \", a.shape().DebugString(),\n                     \", b: \", b.shape().DebugString()));\n+    OP_REQUIRES(ctx, m >= 0 && n >= 0 && k >= 0,\n+                errors::InvalidArgument(\n+                    \"Matrix dimensions cannot be negative: a: \",\n+                    a.shape().DebugString(), \", b: \", b.shape().DebugString()));\n     Tensor* output = nullptr;\n     OP_REQUIRES_OK(ctx, ctx->allocate_output(0, TensorShape({m, n}), &output));\n \n+    \/\/ Return early if at least one of the output dimension size is 0.\n+    if (m == 0 || n == 0) {\n+      return;\n+    }\n+\n     if (k == 0) {\n       \/\/ If the inner dimension k in the matrix multiplication is zero, we fill\n       \/\/ the output with zeros."
+    },
+    {
+      "index":2,
+      "vuln_id":"GHSA-v768-w7m9-2vmm",
+      "cwe_id":"{'CWE-824'}",
+      "score":7.8,
+      "chain":"{'https:\/\/github.com\/tensorflow\/tensorflow\/commit\/578e634b4f1c1c684d4b4294f9e5281b2133b3ed'}",
+      "dataset":"osv",
+      "summary":"Reference binding to nullptr in shape inference ### Impact\nAn attacker can cause undefined behavior via binding a reference to null pointer in `tf.raw_ops.SparseFillEmptyRows`:\n\n```python\nimport tensorflow as tf\n  \ntf.compat.v1.disable_v2_behavior()\ntf.raw_ops.SparseFillEmptyRows(\n  indices = tf.constant([], shape=[0, 0], dtype=tf.int64),\n  values = tf.constant([], shape=[0], dtype=tf.int64),\n  dense_shape = tf.constant([], shape=[0], dtype=tf.int64),\n  default_value = 0)\n```\n  \nThe shape inference [implementation](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/460e000de3a83278fb00b61a16d161b1964f15f4\/tensorflow\/core\/ops\/sparse_ops.cc#L608-L634) does not validate that the input arguments are not empty tensors.\n\n### Patches \nWe have patched the issue in GitHub commit [578e634b4f1c1c684d4b4294f9e5281b2133b3ed](https:\/\/github.com\/tensorflow\/tensorflow\/commit\/578e634b4f1c1c684d4b4294f9e5281b2133b3ed).\n\nThe fix will be included in TensorFlow 2.6.0. We will also cherrypick this commit on TensorFlow 2.5.1, TensorFlow 2.4.3, and TensorFlow 2.3.4, as these are also affected and still in supported range.\n\n### For more information\nPlease consult [our security guide](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/master\/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n\n### Attribution\nThis vulnerability has been reported by Yakun Zhang of Baidu Security",
+      "published_date":"2021-08-25",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/tensorflow\/tensorflow",
+      "commit_href":"https:\/\/github.com\/tensorflow\/tensorflow\/commit\/578e634b4f1c1c684d4b4294f9e5281b2133b3ed",
+      "commit_sha":"578e634b4f1c1c684d4b4294f9e5281b2133b3ed",
+      "patch":"SINGLE",
+      "chain_ord":"['578e634b4f1c1c684d4b4294f9e5281b2133b3ed']",
+      "before_first_fix_commit":"{'d7de67733925de196ec8863a33445b73f9562d1d'}",
+      "last_fix_commit":"578e634b4f1c1c684d4b4294f9e5281b2133b3ed",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"07\/30\/2021, 05:24:08",
+      "message":"Prevent a segfault in shape inference due to bad inputs.\n\nPiperOrigin-RevId: 387737970\nChange-Id: Ibd1cf3dbdce1dd2ab47fd633d5c5a57f7d8fb6e9",
+      "author":"Mihai Maruseac",
+      "comments":null,
+      "stats":"{'additions': 3, 'deletions': 0, 'total': 3}",
+      "files":"{'tensorflow\/core\/ops\/sparse_ops.cc': {'additions': 3, 'deletions': 0, 'changes': 3, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/tensorflow\/tensorflow\/raw\/578e634b4f1c1c684d4b4294f9e5281b2133b3ed\/tensorflow%2Fcore%2Fops%2Fsparse_ops.cc', 'patch': '@@ -16,6 +16,7 @@ limitations under the License.\\n #include \"tensorflow\/core\/framework\/common_shape_fns.h\"\\n #include \"tensorflow\/core\/framework\/op.h\"\\n #include \"tensorflow\/core\/framework\/shape_inference.h\"\\n+#include \"tensorflow\/core\/platform\/errors.h\"\\n \\n namespace tensorflow {\\n \\n@@ -619,6 +620,8 @@ REGISTER_OP(\"SparseFillEmptyRows\")\\n       DimensionHandle unused_dim;\\n       TF_RETURN_IF_ERROR(c->Merge(c->Dim(input_indices, 1),\\n                                   c->Dim(input_shape, 0), &unused_dim));\\n+      if (c->Value(c->NumElements(input_shape)) == 0)\\n+        return errors::InvalidArgument(\"dense_shape must not be empty\");\\n       ShapeHandle output_indices =\\n           c->Matrix(InferenceContext::kUnknownDim, c->NumElements(input_shape));\\n       ShapeHandle output_values = c->Vector(InferenceContext::kUnknownDim);'}}",
+      "message_norm":"prevent a segfault in shape inference due to bad inputs.\n\npiperorigin-revid: 387737970\nchange-id: ibd1cf3dbdce1dd2ab47fd633d5c5a57f7d8fb6e9",
+      "language":"en",
+      "entities":"[('prevent', 'ACTION', ''), ('segfault', 'SECWORD', ''), ('387737970', 'SHA', 'generic_sha')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['tensorflow\/core\/ops\/sparse_ops.cc'])",
+      "num_files":1.0,
+      "patch_content":"From 578e634b4f1c1c684d4b4294f9e5281b2133b3ed Mon Sep 17 00:00:00 2001\nFrom: Mihai Maruseac <mihaimaruseac@google.com>\nDate: Thu, 29 Jul 2021 22:24:08 -0700\nSubject: [PATCH] Prevent a segfault in shape inference due to bad inputs.\n\nPiperOrigin-RevId: 387737970\nChange-Id: Ibd1cf3dbdce1dd2ab47fd633d5c5a57f7d8fb6e9\n---\n tensorflow\/core\/ops\/sparse_ops.cc | 3 +++\n 1 file changed, 3 insertions(+)\n\ndiff --git a\/tensorflow\/core\/ops\/sparse_ops.cc b\/tensorflow\/core\/ops\/sparse_ops.cc\nindex 906cef1f5ecafe..b1e40e66af8929 100644\n--- a\/tensorflow\/core\/ops\/sparse_ops.cc\n+++ b\/tensorflow\/core\/ops\/sparse_ops.cc\n@@ -16,6 +16,7 @@ limitations under the License.\n #include \"tensorflow\/core\/framework\/common_shape_fns.h\"\n #include \"tensorflow\/core\/framework\/op.h\"\n #include \"tensorflow\/core\/framework\/shape_inference.h\"\n+#include \"tensorflow\/core\/platform\/errors.h\"\n \n namespace tensorflow {\n \n@@ -619,6 +620,8 @@ REGISTER_OP(\"SparseFillEmptyRows\")\n       DimensionHandle unused_dim;\n       TF_RETURN_IF_ERROR(c->Merge(c->Dim(input_indices, 1),\n                                   c->Dim(input_shape, 0), &unused_dim));\n+      if (c->Value(c->NumElements(input_shape)) == 0)\n+        return errors::InvalidArgument(\"dense_shape must not be empty\");\n       ShapeHandle output_indices =\n           c->Matrix(InferenceContext::kUnknownDim, c->NumElements(input_shape));\n       ShapeHandle output_values = c->Vector(InferenceContext::kUnknownDim);",
+      "code_diff":"@@ -16,6 +16,7 @@ limitations under the License.\n #include \"tensorflow\/core\/framework\/common_shape_fns.h\"\n #include \"tensorflow\/core\/framework\/op.h\"\n #include \"tensorflow\/core\/framework\/shape_inference.h\"\n+#include \"tensorflow\/core\/platform\/errors.h\"\n \n namespace tensorflow {\n \n@@ -619,6 +620,8 @@ REGISTER_OP(\"SparseFillEmptyRows\")\n       DimensionHandle unused_dim;\n       TF_RETURN_IF_ERROR(c->Merge(c->Dim(input_indices, 1),\n                                   c->Dim(input_shape, 0), &unused_dim));\n+      if (c->Value(c->NumElements(input_shape)) == 0)\n+        return errors::InvalidArgument(\"dense_shape must not be empty\");\n       ShapeHandle output_indices =\n           c->Matrix(InferenceContext::kUnknownDim, c->NumElements(input_shape));\n       ShapeHandle output_values = c->Vector(InferenceContext::kUnknownDim);"
+    },
+    {
+      "index":3,
+      "vuln_id":"GHSA-5xwc-mrhx-5g3m",
+      "cwe_id":"{'CWE-824'}",
+      "score":7.1,
+      "chain":"{'https:\/\/github.com\/tensorflow\/tensorflow\/commit\/f2a673bd34f0d64b8e40a551ac78989d16daad09'}",
+      "dataset":"osv",
+      "summary":"Reference binding to nullptr in `MatrixDiagV*` ops ### Impact\nAn attacker can cause undefined behavior via binding a reference to null pointer in all operations of type `tf.raw_ops.MatrixDiagV*`:\n\n```python\nimport tensorflow as tf\n\ntf.raw_ops.MatrixDiagV3(\n  diagonal=[1,0],\n  k=[],\n  num_rows=[1,2,3],\n  num_cols=[4,5],\n  padding_value=[],\n  align='RIGHT_RIGHT')\n``` \n\nThe [implementation](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/84d053187cb80d975ef2b9684d4b61981bca0c41\/tensorflow\/core\/kernels\/linalg\/matrix_diag_op.cc) has incomplete validation that the value of `k` is a valid tensor. We have check that this value is either a scalar or a vector, but there is no check for the number of elements. If this is an empty tensor, then code that accesses the first element of the tensor is wrong:\n\n```cc\n  auto& diag_index = context->input(1);\n  ...\n  lower_diag_index = diag_index.flat<int32>()(0);\n```\n\n### Patches\nWe have patched the issue in GitHub commit [f2a673bd34f0d64b8e40a551ac78989d16daad09](https:\/\/github.com\/tensorflow\/tensorflow\/commit\/f2a673bd34f0d64b8e40a551ac78989d16daad09).\n\nThe fix will be included in TensorFlow 2.6.0. We will also cherrypick this commit on TensorFlow 2.5.1, TensorFlow 2.4.3, and TensorFlow 2.3.4, as these are also affected and still in supported range.\n\n### For more information\nPlease consult [our security guide](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/master\/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n\n### Attribution\nThis vulnerability has been reported by members of the Aivul Team from Qihoo 360.",
+      "published_date":"2021-08-25",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/tensorflow\/tensorflow",
+      "commit_href":"https:\/\/github.com\/tensorflow\/tensorflow\/commit\/f2a673bd34f0d64b8e40a551ac78989d16daad09",
+      "commit_sha":"f2a673bd34f0d64b8e40a551ac78989d16daad09",
+      "patch":"SINGLE",
+      "chain_ord":"['f2a673bd34f0d64b8e40a551ac78989d16daad09']",
+      "before_first_fix_commit":"{'ff8894044dfae5568ecbf2ed514c1a37dc394f1b'}",
+      "last_fix_commit":"f2a673bd34f0d64b8e40a551ac78989d16daad09",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"07\/31\/2021, 02:00:00",
+      "message":"Add missing validation to `matrix_diag_op.cc`\n\nPiperOrigin-RevId: 387923533\nChange-Id: Idfffeb328d5f9c6748d992d28a56d6e9e45103a0",
+      "author":"Mihai Maruseac",
+      "comments":null,
+      "stats":"{'additions': 6, 'deletions': 0, 'total': 6}",
+      "files":"{'tensorflow\/core\/kernels\/linalg\/matrix_diag_op.cc': {'additions': 6, 'deletions': 0, 'changes': 6, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/tensorflow\/tensorflow\/raw\/f2a673bd34f0d64b8e40a551ac78989d16daad09\/tensorflow%2Fcore%2Fkernels%2Flinalg%2Fmatrix_diag_op.cc', 'patch': '@@ -73,6 +73,9 @@ class MatrixDiagPartOp : public OpKernel {\\n                   errors::InvalidArgument(\\n                       \"diag_index must be a scalar or vector, received shape: \",\\n                       diag_index.shape().DebugString()));\\n+      OP_REQUIRES(context, diag_index.NumElements() > 0,\\n+                  errors::InvalidArgument(\\n+                      \"Expected diag_index to have at least 1 element\"));\\n       lower_diag_index = diag_index.flat<int32>()(0);\\n       upper_diag_index = lower_diag_index;\\n       if (TensorShapeUtils::IsVector(diag_index.shape())) {\\n@@ -179,6 +182,9 @@ class MatrixDiagOp : public OpKernel {\\n                   errors::InvalidArgument(\\n                       \"diag_index must be a scalar or vector, received shape: \",\\n                       diag_index.shape().DebugString()));\\n+      OP_REQUIRES(context, diag_index.NumElements() > 0,\\n+                  errors::InvalidArgument(\\n+                      \"Expected diag_index to have at least 1 element\"));\\n       lower_diag_index = diag_index.flat<int32>()(0);\\n       upper_diag_index = lower_diag_index;\\n       if (TensorShapeUtils::IsVector(diag_index.shape())) {'}}",
+      "message_norm":"add missing validation to `matrix_diag_op.cc`\n\npiperorigin-revid: 387923533\nchange-id: idfffeb328d5f9c6748d992d28a56d6e9e45103a0",
+      "language":"en",
+      "entities":"[('add', 'ACTION', ''), ('missing validation', 'SECWORD', ''), ('387923533', 'SHA', 'generic_sha')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['tensorflow\/core\/kernels\/linalg\/matrix_diag_op.cc'])",
+      "num_files":1.0,
+      "patch_content":"From f2a673bd34f0d64b8e40a551ac78989d16daad09 Mon Sep 17 00:00:00 2001\nFrom: Mihai Maruseac <mihaimaruseac@google.com>\nDate: Fri, 30 Jul 2021 19:00:00 -0700\nSubject: [PATCH] Add missing validation to `matrix_diag_op.cc`\n\nPiperOrigin-RevId: 387923533\nChange-Id: Idfffeb328d5f9c6748d992d28a56d6e9e45103a0\n---\n tensorflow\/core\/kernels\/linalg\/matrix_diag_op.cc | 6 ++++++\n 1 file changed, 6 insertions(+)\n\ndiff --git a\/tensorflow\/core\/kernels\/linalg\/matrix_diag_op.cc b\/tensorflow\/core\/kernels\/linalg\/matrix_diag_op.cc\nindex 2fd361e715b9b1..b61dbe96a5d6a5 100644\n--- a\/tensorflow\/core\/kernels\/linalg\/matrix_diag_op.cc\n+++ b\/tensorflow\/core\/kernels\/linalg\/matrix_diag_op.cc\n@@ -73,6 +73,9 @@ class MatrixDiagPartOp : public OpKernel {\n                   errors::InvalidArgument(\n                       \"diag_index must be a scalar or vector, received shape: \",\n                       diag_index.shape().DebugString()));\n+      OP_REQUIRES(context, diag_index.NumElements() > 0,\n+                  errors::InvalidArgument(\n+                      \"Expected diag_index to have at least 1 element\"));\n       lower_diag_index = diag_index.flat<int32>()(0);\n       upper_diag_index = lower_diag_index;\n       if (TensorShapeUtils::IsVector(diag_index.shape())) {\n@@ -179,6 +182,9 @@ class MatrixDiagOp : public OpKernel {\n                   errors::InvalidArgument(\n                       \"diag_index must be a scalar or vector, received shape: \",\n                       diag_index.shape().DebugString()));\n+      OP_REQUIRES(context, diag_index.NumElements() > 0,\n+                  errors::InvalidArgument(\n+                      \"Expected diag_index to have at least 1 element\"));\n       lower_diag_index = diag_index.flat<int32>()(0);\n       upper_diag_index = lower_diag_index;\n       if (TensorShapeUtils::IsVector(diag_index.shape())) {",
+      "code_diff":"@@ -73,6 +73,9 @@ class MatrixDiagPartOp : public OpKernel {\n                   errors::InvalidArgument(\n                       \"diag_index must be a scalar or vector, received shape: \",\n                       diag_index.shape().DebugString()));\n+      OP_REQUIRES(context, diag_index.NumElements() > 0,\n+                  errors::InvalidArgument(\n+                      \"Expected diag_index to have at least 1 element\"));\n       lower_diag_index = diag_index.flat<int32>()(0);\n       upper_diag_index = lower_diag_index;\n       if (TensorShapeUtils::IsVector(diag_index.shape())) {\n@@ -179,6 +182,9 @@ class MatrixDiagOp : public OpKernel {\n                   errors::InvalidArgument(\n                       \"diag_index must be a scalar or vector, received shape: \",\n                       diag_index.shape().DebugString()));\n+      OP_REQUIRES(context, diag_index.NumElements() > 0,\n+                  errors::InvalidArgument(\n+                      \"Expected diag_index to have at least 1 element\"));\n       lower_diag_index = diag_index.flat<int32>()(0);\n       upper_diag_index = lower_diag_index;\n       if (TensorShapeUtils::IsVector(diag_index.shape())) {"
+    },
+    {
+      "index":4,
+      "vuln_id":"GHSA-w4xf-2pqw-5mq7",
+      "cwe_id":"{'CWE-824'}",
+      "score":7.8,
+      "chain":"{'https:\/\/github.com\/tensorflow\/tensorflow\/commit\/be7a4de6adfbd303ce08be4332554dff70362612'}",
+      "dataset":"osv",
+      "summary":"Reference binding to nullptr in `RaggedTensorToVariant` ### Impact\nAn attacker can cause undefined behavior via binding a reference to null pointer in `tf.raw_ops.RaggedTensorToVariant`:\n\n```python\nimport tensorflow as tf\n\ntf.raw_ops.RaggedTensorToVariant(\n  rt_nested_splits=[],\n  rt_dense_values=[1,2,3],\n  batched_input=True)\n```\n  \nThe [implementation](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/460e000de3a83278fb00b61a16d161b1964f15f4\/tensorflow\/core\/kernels\/ragged_tensor_to_variant_op.cc#L129) has an incomplete validation of the splits values, missing the case when the argument would be empty.\n\n### Patches\nWe have patched the issue in GitHub commit [be7a4de6adfbd303ce08be4332554dff70362612](https:\/\/github.com\/tensorflow\/tensorflow\/commit\/be7a4de6adfbd303ce08be4332554dff70362612).\n\nThe fix will be included in TensorFlow 2.6.0. We will also cherrypick this commit on TensorFlow 2.5.1, TensorFlow 2.4.3, and TensorFlow 2.3.4, as these are also affected and still in supported range.\n\n### For more information\nPlease consult [our security guide](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/master\/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n  \n### Attribution\nThis vulnerability has been reported by members of the Aivul Team from Qihoo 360.",
+      "published_date":"2021-08-25",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/tensorflow\/tensorflow",
+      "commit_href":"https:\/\/github.com\/tensorflow\/tensorflow\/commit\/be7a4de6adfbd303ce08be4332554dff70362612",
+      "commit_sha":"be7a4de6adfbd303ce08be4332554dff70362612",
+      "patch":"SINGLE",
+      "chain_ord":"['be7a4de6adfbd303ce08be4332554dff70362612']",
+      "before_first_fix_commit":"{'ffbdacfce0c9c8f627d0ce89d9d4db8fd0a7cfd1'}",
+      "last_fix_commit":"be7a4de6adfbd303ce08be4332554dff70362612",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"07\/29\/2021, 21:05:34",
+      "message":"Ensure non-empty rt_nested_splits in tf.raw_ops.RaggedTensorToVariant\n\nPiperOrigin-RevId: 387664237\nChange-Id: Ia1700c34b5610873d63561abc86e23b46ead93b3",
+      "author":"Laura Pak",
+      "comments":null,
+      "stats":"{'additions': 6, 'deletions': 0, 'total': 6}",
+      "files":"{'tensorflow\/core\/kernels\/ragged_tensor_to_variant_op.cc': {'additions': 6, 'deletions': 0, 'changes': 6, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/tensorflow\/tensorflow\/raw\/be7a4de6adfbd303ce08be4332554dff70362612\/tensorflow%2Fcore%2Fkernels%2Fragged_tensor_to_variant_op.cc', 'patch': '@@ -157,6 +157,12 @@ class RaggedTensorToVariantOp : public OpKernel {\\n       return;\\n     }\\n \\n+    \/\/ Checked here instead of at input in case batched_input_ is false\\n+    OP_REQUIRES(context, ragged_nested_splits_len > 0,\\n+                errors::InvalidArgument(\\n+                    \"rt_nested_splits must be a list of one or more, but \"\\n+                    \"received rt_nested_splits of length 0.\"));\\n+\\n     \/\/ Unbatch the Ragged Tensor and encode the components.\\n     std::vector<RaggedTensorVariant> unbatched_ragged_input;\\n     auto batched_splits_top_vec ='}}",
+      "message_norm":"ensure non-empty rt_nested_splits in tf.raw_ops.raggedtensortovariant\n\npiperorigin-revid: 387664237\nchange-id: ia1700c34b5610873d63561abc86e23b46ead93b3",
+      "language":"en",
+      "entities":"[('ensure', 'ACTION', ''), ('387664237', 'SHA', 'generic_sha')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['tensorflow\/core\/kernels\/ragged_tensor_to_variant_op.cc'])",
+      "num_files":1.0,
+      "patch_content":"From be7a4de6adfbd303ce08be4332554dff70362612 Mon Sep 17 00:00:00 2001\nFrom: Laura Pak <lpak@google.com>\nDate: Thu, 29 Jul 2021 14:05:34 -0700\nSubject: [PATCH] Ensure non-empty rt_nested_splits in\n tf.raw_ops.RaggedTensorToVariant\n\nPiperOrigin-RevId: 387664237\nChange-Id: Ia1700c34b5610873d63561abc86e23b46ead93b3\n---\n tensorflow\/core\/kernels\/ragged_tensor_to_variant_op.cc | 6 ++++++\n 1 file changed, 6 insertions(+)\n\ndiff --git a\/tensorflow\/core\/kernels\/ragged_tensor_to_variant_op.cc b\/tensorflow\/core\/kernels\/ragged_tensor_to_variant_op.cc\nindex 687289cd38077a..ab86863e3a987f 100644\n--- a\/tensorflow\/core\/kernels\/ragged_tensor_to_variant_op.cc\n+++ b\/tensorflow\/core\/kernels\/ragged_tensor_to_variant_op.cc\n@@ -157,6 +157,12 @@ class RaggedTensorToVariantOp : public OpKernel {\n       return;\n     }\n \n+    \/\/ Checked here instead of at input in case batched_input_ is false\n+    OP_REQUIRES(context, ragged_nested_splits_len > 0,\n+                errors::InvalidArgument(\n+                    \"rt_nested_splits must be a list of one or more, but \"\n+                    \"received rt_nested_splits of length 0.\"));\n+\n     \/\/ Unbatch the Ragged Tensor and encode the components.\n     std::vector<RaggedTensorVariant> unbatched_ragged_input;\n     auto batched_splits_top_vec =",
+      "code_diff":"@@ -157,6 +157,12 @@ class RaggedTensorToVariantOp : public OpKernel {\n       return;\n     }\n \n+    \/\/ Checked here instead of at input in case batched_input_ is false\n+    OP_REQUIRES(context, ragged_nested_splits_len > 0,\n+                errors::InvalidArgument(\n+                    \"rt_nested_splits must be a list of one or more, but \"\n+                    \"received rt_nested_splits of length 0.\"));\n+\n     \/\/ Unbatch the Ragged Tensor and encode the components.\n     std::vector<RaggedTensorVariant> unbatched_ragged_input;\n     auto batched_splits_top_vec ="
+    }
+  ]
+}

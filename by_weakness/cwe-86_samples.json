@@ -1,0 +1,480 @@
+{
+  "schema":{
+    "fields":[
+      {
+        "name":"index",
+        "type":"integer"
+      },
+      {
+        "name":"vuln_id",
+        "type":"string"
+      },
+      {
+        "name":"cwe_id",
+        "type":"string"
+      },
+      {
+        "name":"score",
+        "type":"number"
+      },
+      {
+        "name":"chain",
+        "type":"string"
+      },
+      {
+        "name":"dataset",
+        "type":"string"
+      },
+      {
+        "name":"summary",
+        "type":"string"
+      },
+      {
+        "name":"published_date",
+        "type":"string"
+      },
+      {
+        "name":"chain_len",
+        "type":"integer"
+      },
+      {
+        "name":"project",
+        "type":"string"
+      },
+      {
+        "name":"commit_href",
+        "type":"string"
+      },
+      {
+        "name":"commit_sha",
+        "type":"string"
+      },
+      {
+        "name":"patch",
+        "type":"string"
+      },
+      {
+        "name":"chain_ord",
+        "type":"string"
+      },
+      {
+        "name":"before_first_fix_commit",
+        "type":"string"
+      },
+      {
+        "name":"last_fix_commit",
+        "type":"string"
+      },
+      {
+        "name":"chain_ord_pos",
+        "type":"number"
+      },
+      {
+        "name":"commit_datetime",
+        "type":"string"
+      },
+      {
+        "name":"message",
+        "type":"string"
+      },
+      {
+        "name":"author",
+        "type":"string"
+      },
+      {
+        "name":"comments",
+        "type":"string"
+      },
+      {
+        "name":"stats",
+        "type":"string"
+      },
+      {
+        "name":"files",
+        "type":"string"
+      },
+      {
+        "name":"message_norm",
+        "type":"string"
+      },
+      {
+        "name":"language",
+        "type":"string"
+      },
+      {
+        "name":"entities",
+        "type":"string"
+      },
+      {
+        "name":"classification_level_1",
+        "type":"string"
+      },
+      {
+        "name":"classification_level_2",
+        "type":"string"
+      },
+      {
+        "name":"list_files",
+        "type":"string"
+      },
+      {
+        "name":"num_files",
+        "type":"number"
+      },
+      {
+        "name":"patch_content",
+        "type":"string"
+      },
+      {
+        "name":"code_diff",
+        "type":"string"
+      }
+    ],
+    "primaryKey":[
+      "index"
+    ],
+    "pandas_version":"1.4.0"
+  },
+  "data":[
+    {
+      "index":0,
+      "vuln_id":"GHSA-9vwf-54m9-gc4f",
+      "cwe_id":"{'CWE-862', 'CWE-284'}",
+      "score":4.3,
+      "chain":"{'https:\/\/github.com\/snipe\/snipe-it\/commit\/1699c09758e56f740437674a8d6ba36443399f24'}",
+      "dataset":"osv",
+      "summary":"snipe-it is vulnerable to Improper Access Control snipe-it prior to version 5.3.4 is vulnerable to Improper Access Control. Regular users with `DENY` set to all models permissions can still view model information via the \/models\/{id}\/clone endpoint due to no authorize('view') permission being set.",
+      "published_date":"2021-12-16",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/snipe\/snipe-it",
+      "commit_href":"https:\/\/github.com\/snipe\/snipe-it\/commit\/1699c09758e56f740437674a8d6ba36443399f24",
+      "commit_sha":"1699c09758e56f740437674a8d6ba36443399f24",
+      "patch":"SINGLE",
+      "chain_ord":"['1699c09758e56f740437674a8d6ba36443399f24']",
+      "before_first_fix_commit":"{'918e7c8dae4d41935f534901a582ea8488bbf603'}",
+      "last_fix_commit":"1699c09758e56f740437674a8d6ba36443399f24",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"12\/09\/2021, 13:42:18",
+      "message":"Update AssetModelsController.php",
+      "author":"Haxatron",
+      "comments":null,
+      "stats":"{'additions': 1, 'deletions': 1, 'total': 2}",
+      "files":"{'app\/Http\/Controllers\/AssetModelsController.php': {'additions': 1, 'deletions': 1, 'changes': 2, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/snipe\/snipe-it\/raw\/1699c09758e56f740437674a8d6ba36443399f24\/app%2FHttp%2FControllers%2FAssetModelsController.php', 'patch': \"@@ -269,7 +269,7 @@ public function show($modelId = null)\\n     *\/\\n     public function getClone($modelId = null)\\n     {\\n-        $this->authorize('view', AssetModel::class);\\n+        $this->authorize('create', AssetModel::class);\\n         \/\/ Check if the model exists\\n         if (is_null($model_to_clone = AssetModel::find($modelId))) {\\n             return redirect()->route('models.index')->with('error', trans('admin\/models\/message.does_not_exist'));\"}}",
+      "message_norm":"update assetmodelscontroller.php",
+      "language":"it",
+      "entities":"[('update', 'ACTION', '')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['app\/Http\/Controllers\/AssetModelsController.php'])",
+      "num_files":1.0,
+      "patch_content":"From 1699c09758e56f740437674a8d6ba36443399f24 Mon Sep 17 00:00:00 2001\nFrom: Haxatron <76475453+Haxatron@users.noreply.github.com>\nDate: Thu, 9 Dec 2021 21:42:18 +0800\nSubject: [PATCH] Update AssetModelsController.php\n\n---\n app\/Http\/Controllers\/AssetModelsController.php | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)\n\ndiff --git a\/app\/Http\/Controllers\/AssetModelsController.php b\/app\/Http\/Controllers\/AssetModelsController.php\nindex 05fd8257d064..8d57346079b0 100755\n--- a\/app\/Http\/Controllers\/AssetModelsController.php\n+++ b\/app\/Http\/Controllers\/AssetModelsController.php\n@@ -269,7 +269,7 @@ public function show($modelId = null)\n     *\/\n     public function getClone($modelId = null)\n     {\n-        $this->authorize('view', AssetModel::class);\n+        $this->authorize('create', AssetModel::class);\n         \/\/ Check if the model exists\n         if (is_null($model_to_clone = AssetModel::find($modelId))) {\n             return redirect()->route('models.index')->with('error', trans('admin\/models\/message.does_not_exist'));",
+      "code_diff":"@@ -269,7 +269,7 @@ public function show($modelId = null)\n     *\/\n     public function getClone($modelId = null)\n     {\n-        $this->authorize('view', AssetModel::class);\n+        $this->authorize('create', AssetModel::class);\n         \/\/ Check if the model exists\n         if (is_null($model_to_clone = AssetModel::find($modelId))) {\n             return redirect()->route('models.index')->with('error', trans('admin\/models\/message.does_not_exist'));"
+    },
+    {
+      "index":1,
+      "vuln_id":"GHSA-67j9-c52g-w2q9",
+      "cwe_id":"{'CWE-863'}",
+      "score":4.9,
+      "chain":"{'https:\/\/github.com\/spiral-project\/ihatemoney\/commit\/8d77cf5d5646e1d2d8ded13f0660638f57e98471'}",
+      "dataset":"osv",
+      "summary":"Authorization Bypass in I hate money ### Impact\nAn authenticated member of one project can modify and delete members of another project, without knowledge of this other project's private code. This can be further exploited to access all bills of another project without knowledge of this other project's private code.\n\nWith the default configuration, anybody is allowed to create a new project. An attacker can create a new project and then use it to become authenticated and exploit this flaw. As such, the exposure is similar to an unauthenticated attack, because it is trivial to become authenticated.\n\n### Patches\n```diff\n ihatemoney\/models.py | 4 ++--\n 1 file changed, 2 insertions(+), 2 deletions(-)\n\ndiff --git a\/ihatemoney\/models.py b\/ihatemoney\/models.py\nindex fe7b519..5691c75 100644\n--- a\/ihatemoney\/models.py\n+++ b\/ihatemoney\/models.py\n@@ -380,7 +380,7 @@ class Person(db.Model):\n         def get_by_name(self, name, project):\n             return (\n                 Person.query.filter(Person.name == name)\n-                .filter(Project.id == project.id)\n+                .filter(Person.project_id == project.id)\n                 .one()\n             )\n \n@@ -389,7 +389,7 @@ class Person(db.Model):\n                 project = g.project\n             return (\n                 Person.query.filter(Person.id == id)\n-                .filter(Project.id == project.id)\n+                .filter(Person.project_id == project.id)\n                 .one()\n             )\n \n```\n\n### Workarounds\n\nTo limit the impact, it is possible to disable public project creation by setting `ALLOW_PUBLIC_PROJECT_CREATION = False` in the configuration (see [documentation](https:\/\/ihatemoney.readthedocs.io\/en\/latest\/configuration.html)). Existing users will still be able to exploit the flaw, but this will prevent an external attacker from creating a new project.\n\n### For more information\n\n`Person.query.get()` and `Person.query.get_by_name()` were mistakenly running a database join on the Project table without constraining the result.\n\nAs a result, `Person.query.get(42, \"projectfoo\")` would return the Person with id=42, even if it is not associated to the project \"projectfoo\".  The only condition is that \"projectfoo\" must exist.\n\nThis flaw can be exploited in several places:\n\n1) API: PUT requests to `\/api\/projects\/<project>\/members\/<personID>` will succeed even though `<personID>` is not a member of `<project>`.\n\n   This allows an authenticated attacker to alter the state of a member (name, weight, activated) in any project.  In addition, the altered member will no longer be associated with its original project but will be associated to the attacker project instead, breaking many features of IHateMoney.  For instance, bills referencing the altered member will no longer be visible in the original project.\n\n   This causes an additional information disclosure and loss of integrity on bills: the attacker will now be able to see, edit and delete bills belonging to the altered member, because IHateMoney now believes that these bills are associated to the attacker project through the altered member.\n\n   For instance, assume that `Person(id=42)` is a member of project \"targetProject\", and that the attacker has access to another project \"attackerProject\" with the private code \"attackerPassword\".  The attacker can modify `Person(id=42)` with this command:\n\n     $ curl -X PUT -d \"name=Pwn3d&activated=1\" --basic -u attackerProject:attackerPassword http:\/\/$SERVER\/api\/projects\/attackerProject\/members\/42\n\n   The attacker can now see, edit and delete bills paid by `Person(id=42)` by simply browsing to http:\/\/$SERVER\/attackerProject\/\n\n2) Editing a member through the web interface at `\/<project>\/members\/<personID>\/edit` will succeed even though `<personID>` is not a member of `<project>`.\n\n   This is very similar to the PUT exploit.  Reusing the same example, the attacker needs to login to its \"attackerProject\" project with the private code \"attackerPassword\".  It can then alter the state of `Person(id=42)` by accessing the edit form at the following URL:\n\n     http:\/\/$SERVER\/attackerProject\/members\/42\/edit\n\n   Again, as a result of the alteration, the altered member will become associated to the project \"attackerProject\", resulting in the same information disclosure and loss of integrity on bills.\n\n3) API: DELETE requests to `\/api\/projects\/<project>\/members\/<personID>` will similarly allow to delete the member `<personID>` even if it belongs to a different project than `<project>`.\n\n     $ curl -X DELETE --basic -u attackerProject:attackerPassword http:\/\/$SERVER\/api\/projects\/attackerProject\/members\/42\n\n   The impact is less serious than with PUT, because DELETE only deactivates a member (it does not really delete it).\n\nAll these exploits require authentication: an attacker needs to know a valid project name and its associated \"private code\".  Once this requirement is fullfilled, the attacker can exploit this flaw to alter the state of members in any other project, without needing to know the target project name or its private code.\n\n`Person.query.get_by_name()` suffers from the same issue as `Person.query.get()`.  It has an additional issue: if multiple Person objects with the same name exist (this is possible if they are associated to different projects), `get_by_name()` will crash with `MultipleResultsFound` because of the call to `one()`.\n\nHowever, since `Person.query.get_by_name()` is currently not used anywhere in IHateMoney, the bug affecting this function has no impact and is not exploitable.",
+      "published_date":"2020-07-27",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/spiral-project\/ihatemoney",
+      "commit_href":"https:\/\/github.com\/spiral-project\/ihatemoney\/commit\/8d77cf5d5646e1d2d8ded13f0660638f57e98471",
+      "commit_sha":"8d77cf5d5646e1d2d8ded13f0660638f57e98471",
+      "patch":"SINGLE",
+      "chain_ord":"['8d77cf5d5646e1d2d8ded13f0660638f57e98471']",
+      "before_first_fix_commit":"{'040d76af83411fb58ab400dc4eac909191a3e5fa'}",
+      "last_fix_commit":"8d77cf5d5646e1d2d8ded13f0660638f57e98471",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"07\/17\/2020, 15:43:33",
+      "message":"Fix unauthorized access and modification of project data (CVE-2020-15120)\n\nAn authenticated member of one project can modify and delete members of\nanother project, without knowledge of this other project's private\ncode. This can be further exploited to access all bills of another project\nwithout knowledge of this other project's private code.\n\nWith the default configuration, anybody is allowed to create a new\nproject. An attacker can create a new project and then use it to become\nauthenticated and exploit this flaw. As such, the exposure is similar to\nan unauthenticated attack, because it is trivial to become authenticated.\n\nThis issue was caused by a wrong database queries in PersonQuery.\n\nFor more details, see https:\/\/github.com\/spiral-project\/ihatemoney\/security\/advisories\/GHSA-67j9-c52g-w2q9",
+      "author":"Baptiste Jonglez",
+      "comments":null,
+      "stats":"{'additions': 2, 'deletions': 2, 'total': 4}",
+      "files":"{'ihatemoney\/models.py': {'additions': 2, 'deletions': 2, 'changes': 4, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/spiral-project\/ihatemoney\/raw\/8d77cf5d5646e1d2d8ded13f0660638f57e98471\/ihatemoney%2Fmodels.py', 'patch': '@@ -380,7 +380,7 @@ class PersonQuery(BaseQuery):\\n         def get_by_name(self, name, project):\\n             return (\\n                 Person.query.filter(Person.name == name)\\n-                .filter(Project.id == project.id)\\n+                .filter(Person.project_id == project.id)\\n                 .one()\\n             )\\n \\n@@ -389,7 +389,7 @@ def get(self, id, project=None):\\n                 project = g.project\\n             return (\\n                 Person.query.filter(Person.id == id)\\n-                .filter(Project.id == project.id)\\n+                .filter(Person.project_id == project.id)\\n                 .one()\\n             )'}}",
+      "message_norm":"fix unauthorized access and modification of project data (cve-2020-15120)\n\nan authenticated member of one project can modify and delete members of\nanother project, without knowledge of this other project's private\ncode. this can be further exploited to access all bills of another project\nwithout knowledge of this other project's private code.\n\nwith the default configuration, anybody is allowed to create a new\nproject. an attacker can create a new project and then use it to become\nauthenticated and exploit this flaw. as such, the exposure is similar to\nan unauthenticated attack, because it is trivial to become authenticated.\n\nthis issue was caused by a wrong database queries in personquery.\n\nfor more details, see https:\/\/github.com\/spiral-project\/ihatemoney\/security\/advisories\/ghsa-67j9-c52g-w2q9",
+      "language":"en",
+      "entities":"[('fix', 'ACTION', ''), ('cve-2020-15120', 'VULNID', 'CVE'), ('exploited', 'SECWORD', ''), ('attacker', 'FLAW', ''), ('exploit', 'SECWORD', ''), ('flaw', 'FLAW', ''), ('unauthenticated', 'SECWORD', ''), ('attack', 'FLAW', ''), ('issue', 'FLAW', ''), ('https:\/\/github.com\/spiral-project\/ihatemoney\/security\/advisories\/ghsa-67j9-c52g-w2q9', 'URL', '')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['ihatemoney\/models.py'])",
+      "num_files":1.0,
+      "patch_content":"From 8d77cf5d5646e1d2d8ded13f0660638f57e98471 Mon Sep 17 00:00:00 2001\nFrom: Baptiste Jonglez <git@bitsofnetworks.org>\nDate: Fri, 17 Jul 2020 17:43:33 +0200\nSubject: [PATCH] Fix unauthorized access and modification of project data\n (CVE-2020-15120)\n\nAn authenticated member of one project can modify and delete members of\nanother project, without knowledge of this other project's private\ncode. This can be further exploited to access all bills of another project\nwithout knowledge of this other project's private code.\n\nWith the default configuration, anybody is allowed to create a new\nproject. An attacker can create a new project and then use it to become\nauthenticated and exploit this flaw. As such, the exposure is similar to\nan unauthenticated attack, because it is trivial to become authenticated.\n\nThis issue was caused by a wrong database queries in PersonQuery.\n\nFor more details, see https:\/\/github.com\/spiral-project\/ihatemoney\/security\/advisories\/GHSA-67j9-c52g-w2q9\n---\n ihatemoney\/models.py | 4 ++--\n 1 file changed, 2 insertions(+), 2 deletions(-)\n\ndiff --git a\/ihatemoney\/models.py b\/ihatemoney\/models.py\nindex fe7b5196d..5691c75ed 100644\n--- a\/ihatemoney\/models.py\n+++ b\/ihatemoney\/models.py\n@@ -380,7 +380,7 @@ class PersonQuery(BaseQuery):\n         def get_by_name(self, name, project):\n             return (\n                 Person.query.filter(Person.name == name)\n-                .filter(Project.id == project.id)\n+                .filter(Person.project_id == project.id)\n                 .one()\n             )\n \n@@ -389,7 +389,7 @@ def get(self, id, project=None):\n                 project = g.project\n             return (\n                 Person.query.filter(Person.id == id)\n-                .filter(Project.id == project.id)\n+                .filter(Person.project_id == project.id)\n                 .one()\n             )",
+      "code_diff":"@@ -380,7 +380,7 @@ class PersonQuery(BaseQuery):\n         def get_by_name(self, name, project):\n             return (\n                 Person.query.filter(Person.name == name)\n-                .filter(Project.id == project.id)\n+                .filter(Person.project_id == project.id)\n                 .one()\n             )\n \n@@ -389,7 +389,7 @@ def get(self, id, project=None):\n                 project = g.project\n             return (\n                 Person.query.filter(Person.id == id)\n-                .filter(Project.id == project.id)\n+                .filter(Person.project_id == project.id)\n                 .one()\n             )"
+    },
+    {
+      "index":2,
+      "vuln_id":"GHSA-xr38-w74q-r8jv",
+      "cwe_id":"{'CWE-862', 'CWE-863'}",
+      "score":6.4,
+      "chain":"{'https:\/\/github.com\/inveniosoftware\/invenio-drafts-resources\/commit\/039b0cff1ad4b952000f4d8c3a93f347108b6626'}",
+      "dataset":"osv",
+      "summary":"Permissions not properly checked in Invenio-Drafts-Resources ### Impact\n\nInvenio-Drafts-Resources does not properly check permissions when a record is published. The vulnerability is exploitable in a default installation of InvenioRDM. An authenticated user is able via REST API calls to publish draft records of other users if they know the record identifier and the draft validates (e.g. all require fields filled out). An attacker is not able to modify the data in the record, and thus e.g. *cannot* change a record from restricted to public.\n\n### Details\n\nThe service's ``publish()`` method contains the following permission check:\n\n```python\ndef publish(..):\n    self.require_permission(identity, \"publish\")\n```\nHowever, the record should have been passed into the permission check so that the need generators have access to e.g. the record owner.\n\n```python\ndef publish(..):\n    self.require_permission(identity, \"publish\", record=record)\n```\nThe bug is activated in Invenio-RDM-Records which has a need generator called ``RecordOwners()``, which when no record is passed in defaults to allow any authenticated user:\n\n```python\nclass RecordOwners(Generator):\n    def needs(self, record=None, **kwargs):\n        if record is None:\n            return [authenticated_user]\n    # ...\n```\n\n### Patches\n\nThe problem is patched in Invenio-Drafts-Resources v0.13.7 and 0.14.6+, which is part of InvenioRDM v6.0.1 and InvenioRDM v7.0 respectively.\n\nYou can verify the version installed of Invenio-Drafts-Resources via PIP:\n\n```console\ncd ~\/src\/my-site\npipenv run pip freeze | grep invenio-drafts-resources\n```\n\n### References\n\n- [Security policy](https:\/\/invenio.readthedocs.io\/en\/latest\/community\/security-policy.html)\n\n### For more information\n\nIf you have any questions or comments about this advisory:\n* Chat with us on Discord: https:\/\/discord.gg\/8qatqBC",
+      "published_date":"2021-12-06",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/inveniosoftware\/invenio-drafts-resources",
+      "commit_href":"https:\/\/github.com\/inveniosoftware\/invenio-drafts-resources\/commit\/039b0cff1ad4b952000f4d8c3a93f347108b6626",
+      "commit_sha":"039b0cff1ad4b952000f4d8c3a93f347108b6626",
+      "patch":"SINGLE",
+      "chain_ord":"['039b0cff1ad4b952000f4d8c3a93f347108b6626']",
+      "before_first_fix_commit":"{'998ede99c377c84f11fe22c07c20f90c88c463dc'}",
+      "last_fix_commit":"039b0cff1ad4b952000f4d8c3a93f347108b6626",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"11\/24\/2021, 14:32:41",
+      "message":"security: fix missing permission check of publish\n\n* Invenio-Drafts-Resources does not properly check permissions when a\n  record is published. The vulnerability is exploitable in a default\n  installation of InvenioRDM. An authenticated a user is able via REST\n  API calls to publish draft records of other users if they know the\n  record identifier and the draft validates (e.g. all require fields\n  filled out). An attacker is not able to modify the data in the record,\n  and thus e.g. cannot change a record from restricted to public.",
+      "author":"Lars Holm Nielsen",
+      "comments":null,
+      "stats":"{'additions': 1, 'deletions': 2, 'total': 3}",
+      "files":"{'invenio_drafts_resources\/services\/records\/service.py': {'additions': 1, 'deletions': 2, 'changes': 3, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/inveniosoftware\/invenio-drafts-resources\/raw\/039b0cff1ad4b952000f4d8c3a93f347108b6626\/invenio_drafts_resources%2Fservices%2Frecords%2Fservice.py', 'patch': '@@ -267,10 +267,9 @@ def publish(self, id_, identity, uow=None):\\n               into records)\\n             - Create or update associated (published) record with data\\n         \"\"\"\\n-        self.require_permission(identity, \"publish\")\\n-\\n         # Get the draft\\n         draft = self.draft_cls.pid.resolve(id_, registered_only=False)\\n+        self.require_permission(identity, \"publish\", record=draft)\\n \\n         # Validate the draft strictly - since a draft can be saved with errors\\n         # we do a strict validation here to make sure only valid drafts can be'}}",
+      "message_norm":"security: fix missing permission check of publish\n\n* invenio-drafts-resources does not properly check permissions when a\n  record is published. the vulnerability is exploitable in a default\n  installation of inveniordm. an authenticated a user is able via rest\n  api calls to publish draft records of other users if they know the\n  record identifier and the draft validates (e.g. all require fields\n  filled out). an attacker is not able to modify the data in the record,\n  and thus e.g. cannot change a record from restricted to public.",
+      "language":"en",
+      "entities":"[('security', 'SECWORD', ''), ('fix', 'ACTION', ''), ('permission', 'SECWORD', ''), ('permissions', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('validates', 'ACTION', ''), ('attacker', 'FLAW', ''), ('change', 'ACTION', '')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['invenio_drafts_resources\/services\/records\/service.py'])",
+      "num_files":1.0,
+      "patch_content":"From 039b0cff1ad4b952000f4d8c3a93f347108b6626 Mon Sep 17 00:00:00 2001\nFrom: Lars Holm Nielsen <lars.holm.nielsen@cern.ch>\nDate: Wed, 24 Nov 2021 15:32:41 +0100\nSubject: [PATCH] security: fix missing permission check of publish\n\n* Invenio-Drafts-Resources does not properly check permissions when a\n  record is published. The vulnerability is exploitable in a default\n  installation of InvenioRDM. An authenticated a user is able via REST\n  API calls to publish draft records of other users if they know the\n  record identifier and the draft validates (e.g. all require fields\n  filled out). An attacker is not able to modify the data in the record,\n  and thus e.g. cannot change a record from restricted to public.\n---\n invenio_drafts_resources\/services\/records\/service.py | 3 +--\n 1 file changed, 1 insertion(+), 2 deletions(-)\n\ndiff --git a\/invenio_drafts_resources\/services\/records\/service.py b\/invenio_drafts_resources\/services\/records\/service.py\nindex 20e367dc..c9ee5dfa 100644\n--- a\/invenio_drafts_resources\/services\/records\/service.py\n+++ b\/invenio_drafts_resources\/services\/records\/service.py\n@@ -267,10 +267,9 @@ def publish(self, id_, identity, uow=None):\n               into records)\n             - Create or update associated (published) record with data\n         \"\"\"\n-        self.require_permission(identity, \"publish\")\n-\n         # Get the draft\n         draft = self.draft_cls.pid.resolve(id_, registered_only=False)\n+        self.require_permission(identity, \"publish\", record=draft)\n \n         # Validate the draft strictly - since a draft can be saved with errors\n         # we do a strict validation here to make sure only valid drafts can be",
+      "code_diff":"@@ -267,10 +267,9 @@ def publish(self, id_, identity, uow=None):\n               into records)\n             - Create or update associated (published) record with data\n         \"\"\"\n-        self.require_permission(identity, \"publish\")\n-\n         # Get the draft\n         draft = self.draft_cls.pid.resolve(id_, registered_only=False)\n+        self.require_permission(identity, \"publish\", record=draft)\n \n         # Validate the draft strictly - since a draft can be saved with errors\n         # we do a strict validation here to make sure only valid drafts can be"
+    },
+    {
+      "index":3,
+      "vuln_id":"GHSA-73rp-q4rx-5grc",
+      "cwe_id":"{'CWE-284', 'CWE-863'}",
+      "score":8.8,
+      "chain":"{'https:\/\/github.com\/microweber\/microweber\/commit\/c162dfffb9bfd264d232aaaf5bb3daee16a3cb38'}",
+      "dataset":"osv",
+      "summary":"Incorrect Authorization in microweber Users Account Pre-Takeover or Users Account Takeover. in GitHub repository microweber\/microweber prior to 1.2.15. Victim Account Take Over. Since, there is no email confirmation, an attacker can easily create an account in the application using the Victim\u2019s Email. This allows an attacker to gain pre-authentication to the victim\u2019s account. Further, due to the lack of proper validation of email coming from Social Login and failing to check if an account already exists, the victim will not identify if an account is already existing. Hence, the attacker\u2019s persistence will remain. An attacker would be able to see all the activities performed by the victim user impacting the confidentiality and attempt to modify\/corrupt the data impacting the integrity and availability factor. This attack becomes more interesting when an attacker can register an account from an employee\u2019s email address. Assuming the organization uses G-Suite, it is much more impactful to hijack into an employee\u2019s account.",
+      "published_date":"2022-05-10",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/microweber\/microweber",
+      "commit_href":"https:\/\/github.com\/microweber\/microweber\/commit\/c162dfffb9bfd264d232aaaf5bb3daee16a3cb38",
+      "commit_sha":"c162dfffb9bfd264d232aaaf5bb3daee16a3cb38",
+      "patch":"SINGLE",
+      "chain_ord":"['c162dfffb9bfd264d232aaaf5bb3daee16a3cb38']",
+      "before_first_fix_commit":"{'12c0316b3bde8ff6a6adc5d2a05f6409b03c9556'}",
+      "last_fix_commit":"c162dfffb9bfd264d232aaaf5bb3daee16a3cb38",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"05\/09\/2022, 12:54:29",
+      "message":"Update index.blade.php",
+      "author":"Bozhidar Slaveykov",
+      "comments":null,
+      "stats":"{'additions': 4, 'deletions': 2, 'total': 6}",
+      "files":"{'src\/MicroweberPackages\/Shop\/resources\/views\/index.blade.php': {'additions': 4, 'deletions': 2, 'changes': 6, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/microweber\/microweber\/raw\/c162dfffb9bfd264d232aaaf5bb3daee16a3cb38\/src%2FMicroweberPackages%2FShop%2Fresources%2Fviews%2Findex.blade.php', 'patch': '@@ -46,9 +46,11 @@\\n                         <div class=\"d-flex\">\\n                             <p class=\"col-6 mb-0\">\\n                                 @if($product->hasSpecialPrice())\\n-                                    <span class=\"price-old\"><?php print currency_format($product->specialPrice); ?><\/span>\\n+                                    <span class=\"price-old\"><?php print currency_format($product->price); ?><\/span>\\n+                                    <span class=\"money\"><?php print currency_format($product->specialPrice); ?><\/span>\\n+                                @else\\n+                                    <span class=\"money\"><?php print currency_format($product->price); ?><\/span>\\n                                 @endif\\n-                                <span class=\"money\"><?php print currency_format($product->price); ?><\/span>\\n                             <\/p>\\n \\n                             <a class=\"col-6 text-end text-right align-self-center\" href=\"{{content_link($product->id)}}\"> View<\/a>'}}",
+      "message_norm":"update index.blade.php",
+      "language":"sv",
+      "entities":"[('update', 'ACTION', '')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['src\/MicroweberPackages\/Shop\/resources\/views\/index.blade.php'])",
+      "num_files":1.0,
+      "patch_content":"From c162dfffb9bfd264d232aaaf5bb3daee16a3cb38 Mon Sep 17 00:00:00 2001\nFrom: Bozhidar Slaveykov <bobi@microweber.com>\nDate: Mon, 9 May 2022 15:54:29 +0300\nSubject: [PATCH] Update index.blade.php\n\n---\n src\/MicroweberPackages\/Shop\/resources\/views\/index.blade.php | 6 ++++--\n 1 file changed, 4 insertions(+), 2 deletions(-)\n\ndiff --git a\/src\/MicroweberPackages\/Shop\/resources\/views\/index.blade.php b\/src\/MicroweberPackages\/Shop\/resources\/views\/index.blade.php\nindex bfdeb89dacd..d7a0036ecdc 100644\n--- a\/src\/MicroweberPackages\/Shop\/resources\/views\/index.blade.php\n+++ b\/src\/MicroweberPackages\/Shop\/resources\/views\/index.blade.php\n@@ -46,9 +46,11 @@\n                         <div class=\"d-flex\">\n                             <p class=\"col-6 mb-0\">\n                                 @if($product->hasSpecialPrice())\n-                                    <span class=\"price-old\"><?php print currency_format($product->specialPrice); ?><\/span>\n+                                    <span class=\"price-old\"><?php print currency_format($product->price); ?><\/span>\n+                                    <span class=\"money\"><?php print currency_format($product->specialPrice); ?><\/span>\n+                                @else\n+                                    <span class=\"money\"><?php print currency_format($product->price); ?><\/span>\n                                 @endif\n-                                <span class=\"money\"><?php print currency_format($product->price); ?><\/span>\n                             <\/p>\n \n                             <a class=\"col-6 text-end text-right align-self-center\" href=\"{{content_link($product->id)}}\"> View<\/a>",
+      "code_diff":"@@ -46,9 +46,11 @@\n                         <div class=\"d-flex\">\n                             <p class=\"col-6 mb-0\">\n                                 @if($product->hasSpecialPrice())\n-                                    <span class=\"price-old\"><?php print currency_format($product->specialPrice); ?><\/span>\n+                                    <span class=\"price-old\"><?php print currency_format($product->price); ?><\/span>\n+                                    <span class=\"money\"><?php print currency_format($product->specialPrice); ?><\/span>\n+                                @else\n+                                    <span class=\"money\"><?php print currency_format($product->price); ?><\/span>\n                                 @endif\n-                                <span class=\"money\"><?php print currency_format($product->price); ?><\/span>\n                             <\/p>\n \n                             <a class=\"col-6 text-end text-right align-self-center\" href=\"{{content_link($product->id)}}\"> View<\/a>"
+    },
+    {
+      "index":4,
+      "vuln_id":"GHSA-65f3-3278-7m65",
+      "cwe_id":"{'CWE-285', 'CWE-863'}",
+      "score":8.2,
+      "chain":"{'https:\/\/github.com\/gogs\/gogs\/commit\/64102be2c90e1b47dbdd379873ba76c80d4b0e78'}",
+      "dataset":"osv",
+      "summary":"Improper Authorization in Gogs ### Impact\n\nExpired PAM accounts and accounts with expired passwords are continued to be seen as valid. Installations use PAM as authentication sources are affected.\n\n### Patches\n\nExpired PAM accounts and accounts with expired passwords are no longer being seen as valid. Users should upgrade to 0.12.5 or the latest 0.13.0+dev.\n\n### Workarounds\n\nIn addition to marking PAM accounts as expired, also disable\/lock them. Running `usermod -L <username>` will add an exclamation mark to the password hash and would result in wrong passwords responses when trying to login. \n\n### References\n\nhttps:\/\/huntr.dev\/bounties\/ea82cfc9-b55c-41fe-ae58-0d0e0bd7ab62\/\n\n### For more information\n\nIf you have any questions or comments about this advisory, please post on https:\/\/github.com\/gogs\/gogs\/issues\/6810.",
+      "published_date":"2022-03-12",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/gogs\/gogs",
+      "commit_href":"https:\/\/github.com\/gogs\/gogs\/commit\/64102be2c90e1b47dbdd379873ba76c80d4b0e78",
+      "commit_sha":"64102be2c90e1b47dbdd379873ba76c80d4b0e78",
+      "patch":"SINGLE",
+      "chain_ord":"['64102be2c90e1b47dbdd379873ba76c80d4b0e78']",
+      "before_first_fix_commit":"{'91f2cde5e95f146bfe4765e837e7282df6c7cabb'}",
+      "last_fix_commit":"64102be2c90e1b47dbdd379873ba76c80d4b0e78",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"03\/08\/2022, 12:02:01",
+      "message":"security: fix improper PAM authorization handling (#6819)\n\nCo-authored-by: Joe Chen <jc@unknwon.io>\n# Conflicts:\n#\tCHANGELOG.md\n#\tinternal\/auth\/pam\/pam.go",
+      "author":"ysf",
+      "comments":null,
+      "stats":"{'additions': 3, 'deletions': 3, 'total': 6}",
+      "files":"{'internal\/auth\/pam\/pam.go': {'additions': 3, 'deletions': 3, 'changes': 6, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/gogs\/gogs\/raw\/64102be2c90e1b47dbdd379873ba76c80d4b0e78\/internal%2Fauth%2Fpam%2Fpam.go', 'patch': '@@ -27,9 +27,9 @@ func PAMAuth(serviceName, userName, passwd string) error {\\n \\t\\treturn err\\n \\t}\\n \\n-\\tif err = t.Authenticate(0); err != nil {\\n+\\terr = t.Authenticate(0)\\n+\\tif err != nil {\\n \\t\\treturn err\\n \\t}\\n-\\n-\\treturn nil\\n+\\treturn t.AcctMgmt(0)\\n }'}}",
+      "message_norm":"security: fix improper pam authorization handling (#6819)\n\nco-authored-by: joe chen <jc@unknwon.io>\n# conflicts:\n#\tchangelog.md\n#\tinternal\/auth\/pam\/pam.go",
+      "language":"en",
+      "entities":"[('security', 'SECWORD', ''), ('fix', 'ACTION', ''), ('#6819', 'ISSUE', ''), ('jc@unknwon.io', 'EMAIL', ''), ('auth', 'SECWORD', '')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['internal\/auth\/pam\/pam.go'])",
+      "num_files":1.0,
+      "patch_content":"From 64102be2c90e1b47dbdd379873ba76c80d4b0e78 Mon Sep 17 00:00:00 2001\nFrom: ysf <34326+ysf@users.noreply.github.com>\nDate: Tue, 8 Mar 2022 13:02:01 +0100\nSubject: [PATCH] security: fix improper PAM authorization handling (#6819)\n\nCo-authored-by: Joe Chen <jc@unknwon.io>\n# Conflicts:\n#\tCHANGELOG.md\n#\tinternal\/auth\/pam\/pam.go\n---\n internal\/auth\/pam\/pam.go | 6 +++---\n 1 file changed, 3 insertions(+), 3 deletions(-)\n\ndiff --git a\/internal\/auth\/pam\/pam.go b\/internal\/auth\/pam\/pam.go\nindex 7f326d42f55..95f44b4f82e 100644\n--- a\/internal\/auth\/pam\/pam.go\n+++ b\/internal\/auth\/pam\/pam.go\n@@ -27,9 +27,9 @@ func PAMAuth(serviceName, userName, passwd string) error {\n \t\treturn err\n \t}\n \n-\tif err = t.Authenticate(0); err != nil {\n+\terr = t.Authenticate(0)\n+\tif err != nil {\n \t\treturn err\n \t}\n-\n-\treturn nil\n+\treturn t.AcctMgmt(0)\n }",
+      "code_diff":"@@ -27,9 +27,9 @@ func PAMAuth(serviceName, userName, passwd string) error {\n \t\treturn err\n \t}\n \n-\tif err = t.Authenticate(0); err != nil {\n+\terr = t.Authenticate(0)\n+\tif err != nil {\n \t\treturn err\n \t}\n-\n-\treturn nil\n+\treturn t.AcctMgmt(0)\n }"
+    },
+    {
+      "index":5,
+      "vuln_id":"GHSA-p2vw-f87c-q597",
+      "cwe_id":"{'CWE-863'}",
+      "score":6.5,
+      "chain":"{'https:\/\/github.com\/snipe\/snipe-it\/commit\/2e9cf8fa87a025c0eac9f79f4864b3fdd33a950c'}",
+      "dataset":"osv",
+      "summary":"Improper Access Control in snipe\/snipe-it Improper Access Control in GitHub repository snipe\/snipe-it prior to 5.4.4.",
+      "published_date":"2022-04-29",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/snipe\/snipe-it",
+      "commit_href":"https:\/\/github.com\/snipe\/snipe-it\/commit\/2e9cf8fa87a025c0eac9f79f4864b3fdd33a950c",
+      "commit_sha":"2e9cf8fa87a025c0eac9f79f4864b3fdd33a950c",
+      "patch":"SINGLE",
+      "chain_ord":"['2e9cf8fa87a025c0eac9f79f4864b3fdd33a950c']",
+      "before_first_fix_commit":"{'126bb486b5146975f562d51b8f75dd2e30bee74d'}",
+      "last_fix_commit":"2e9cf8fa87a025c0eac9f79f4864b3fdd33a950c",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"04\/28\/2022, 14:45:37",
+      "message":"Added access gate to the requested assets index\n\nSigned-off-by: snipe <snipe@snipe.net>",
+      "author":"snipe",
+      "comments":null,
+      "stats":"{'additions': 1, 'deletions': 0, 'total': 1}",
+      "files":"{'app\/Http\/Controllers\/Assets\/AssetsController.php': {'additions': 1, 'deletions': 0, 'changes': 1, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/snipe\/snipe-it\/raw\/2e9cf8fa87a025c0eac9f79f4864b3fdd33a950c\/app%2FHttp%2FControllers%2FAssets%2FAssetsController.php', 'patch': \"@@ -861,6 +861,7 @@ public function auditStore(Request $request, $id)\\n \\n     public function getRequestedIndex($user_id = null)\\n     {\\n+        $this->authorize('index', Asset::class);\\n         $requestedItems = CheckoutRequest::with('user', 'requestedItem')->whereNull('canceled_at')->with('user', 'requestedItem');\\n \\n         if ($user_id) {\"}}",
+      "message_norm":"added access gate to the requested assets index\n\nsigned-off-by: snipe <snipe@snipe.net>",
+      "language":"en",
+      "entities":"[('added', 'ACTION', ''), ('snipe@snipe.net', 'EMAIL', '')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['app\/Http\/Controllers\/Assets\/AssetsController.php'])",
+      "num_files":1.0,
+      "patch_content":"From 2e9cf8fa87a025c0eac9f79f4864b3fdd33a950c Mon Sep 17 00:00:00 2001\nFrom: snipe <snipe@snipe.net>\nDate: Thu, 28 Apr 2022 15:45:37 +0100\nSubject: [PATCH] Added access gate to the requested assets index\n\nSigned-off-by: snipe <snipe@snipe.net>\n---\n app\/Http\/Controllers\/Assets\/AssetsController.php | 1 +\n 1 file changed, 1 insertion(+)\n\ndiff --git a\/app\/Http\/Controllers\/Assets\/AssetsController.php b\/app\/Http\/Controllers\/Assets\/AssetsController.php\nindex 069664a7f68c..d0f90f9fa8fa 100755\n--- a\/app\/Http\/Controllers\/Assets\/AssetsController.php\n+++ b\/app\/Http\/Controllers\/Assets\/AssetsController.php\n@@ -861,6 +861,7 @@ public function auditStore(Request $request, $id)\n \n     public function getRequestedIndex($user_id = null)\n     {\n+        $this->authorize('index', Asset::class);\n         $requestedItems = CheckoutRequest::with('user', 'requestedItem')->whereNull('canceled_at')->with('user', 'requestedItem');\n \n         if ($user_id) {",
+      "code_diff":"@@ -861,6 +861,7 @@ public function auditStore(Request $request, $id)\n \n     public function getRequestedIndex($user_id = null)\n     {\n+        $this->authorize('index', Asset::class);\n         $requestedItems = CheckoutRequest::with('user', 'requestedItem')->whereNull('canceled_at')->with('user', 'requestedItem');\n \n         if ($user_id) {"
+    },
+    {
+      "index":6,
+      "vuln_id":"GHSA-x2p8-rgfm-qw3v",
+      "cwe_id":"{'CWE-863'}",
+      "score":9.8,
+      "chain":"{'https:\/\/github.com\/stanfordnlp\/CoreNLP\/commit\/5ee097dbede547023e88f60ed3f430ff09398b87'}",
+      "dataset":"osv",
+      "summary":"Access Control vulnerability within CoreNLP An Incorrect Access Control vulnerability exists in CoreNLP 4.3.2 via the classifier in NERServlet.java (lines 158 and 159).",
+      "published_date":"2022-02-25",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/stanfordnlp\/CoreNLP",
+      "commit_href":"https:\/\/github.com\/stanfordnlp\/CoreNLP\/commit\/5ee097dbede547023e88f60ed3f430ff09398b87",
+      "commit_sha":"5ee097dbede547023e88f60ed3f430ff09398b87",
+      "patch":"SINGLE",
+      "chain_ord":"['5ee097dbede547023e88f60ed3f430ff09398b87']",
+      "before_first_fix_commit":"{'85e305bf63b3954e6266801175579a8b81769709'}",
+      "last_fix_commit":"5ee097dbede547023e88f60ed3f430ff09398b87",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"11\/26\/2021, 22:07:33",
+      "message":"Address issue #1222: verify that classifier and outputFormat are valid values before returning them in headers.  Should sanitize malicious output",
+      "author":"John Bauer",
+      "comments":null,
+      "stats":"{'additions': 15, 'deletions': 7, 'total': 22}",
+      "files":"{'src\/edu\/stanford\/nlp\/ie\/ner\/webapp\/NERServlet.java': {'additions': 15, 'deletions': 7, 'changes': 22, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/stanfordnlp\/CoreNLP\/raw\/5ee097dbede547023e88f60ed3f430ff09398b87\/src%2Fedu%2Fstanford%2Fnlp%2Fie%2Fner%2Fwebapp%2FNERServlet.java', 'patch': '@@ -63,9 +63,9 @@ public void init() throws ServletException {\\n       log(classifier);\\n     }\\n \\n-    ners = Generics.newHashMap();\\n+    ners = new HashMap<>();\\n     for (String classifier : classifiers) {\\n-      CRFClassifier model = null;\\n+      CRFClassifier<CoreMap> model = null;\\n       String filename = \"\/WEB-INF\/data\/models\/\" + classifier;\\n       InputStream is = getServletConfig().getServletContext().getResourceAsStream(filename);\\n \\n@@ -154,15 +154,23 @@ private void addResults(HttpServletRequest request,\\n       classifier = this.defaultClassifier;\\n     }\\n \\n-    response.addHeader(\"classifier\", classifier);\\n-    response.addHeader(\"outputFormat\", outputFormat);\\n-    response.addHeader(\"preserveSpacing\", String.valueOf(preserveSpacing));\\n+    CRFClassifier<CoreMap> nerModel = ners.get(classifier);\\n+    \/\/ check that we weren\\'t asked for a classifier that doesn\\'t exist\\n+    if (nerModel == null) {\\n+      out.print(StringEscapeUtils.escapeHtml4(\"Unknown model \" + classifier));\\n+      return;\\n+    }\\n \\n     if (outputFormat.equals(\"highlighted\")) {\\n-      outputHighlighting(out, ners.get(classifier), input);\\n+      outputHighlighting(out, nerModel, input);\\n     } else {\\n-      out.print(StringEscapeUtils.escapeHtml4(ners.get(classifier).classifyToString(input, outputFormat, preserveSpacing)));\\n+      out.print(StringEscapeUtils.escapeHtml4(nerModel.classifyToString(input, outputFormat, preserveSpacing)));\\n     }\\n+\\n+    response.addHeader(\"classifier\", classifier);\\n+    \/\/ a non-existent outputFormat would have just thrown an exception\\n+    response.addHeader(\"outputFormat\", outputFormat);\\n+    response.addHeader(\"preserveSpacing\", String.valueOf(preserveSpacing));\\n   }\\n \\n   private static void outputHighlighting(PrintWriter out,'}}",
+      "message_norm":"address issue #1222: verify that classifier and outputformat are valid values before returning them in headers.  should sanitize malicious output",
+      "language":"en",
+      "entities":"[('issue', 'FLAW', ''), ('#1222', 'ISSUE', ''), ('verify', 'ACTION', ''), ('sanitize', 'SECWORD', ''), ('malicious', 'SECWORD', '')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['src\/edu\/stanford\/nlp\/ie\/ner\/webapp\/NERServlet.java'])",
+      "num_files":1.0,
+      "patch_content":"From 5ee097dbede547023e88f60ed3f430ff09398b87 Mon Sep 17 00:00:00 2001\nFrom: John Bauer <horatio@gmail.com>\nDate: Fri, 26 Nov 2021 14:07:33 -0800\nSubject: [PATCH] Address issue #1222: verify that classifier and outputFormat\n are valid values before returning them in headers.  Should sanitize malicious\n output\n\n---\n ...\/nlp\/ie\/ner\/webapp\/NERServlet.java         | 22 +++++++++++++------\n 1 file changed, 15 insertions(+), 7 deletions(-)\n\ndiff --git a\/src\/edu\/stanford\/nlp\/ie\/ner\/webapp\/NERServlet.java b\/src\/edu\/stanford\/nlp\/ie\/ner\/webapp\/NERServlet.java\nindex 4236f14ea2..f67edb4103 100644\n--- a\/src\/edu\/stanford\/nlp\/ie\/ner\/webapp\/NERServlet.java\n+++ b\/src\/edu\/stanford\/nlp\/ie\/ner\/webapp\/NERServlet.java\n@@ -63,9 +63,9 @@ public void init() throws ServletException {\n       log(classifier);\n     }\n \n-    ners = Generics.newHashMap();\n+    ners = new HashMap<>();\n     for (String classifier : classifiers) {\n-      CRFClassifier model = null;\n+      CRFClassifier<CoreMap> model = null;\n       String filename = \"\/WEB-INF\/data\/models\/\" + classifier;\n       InputStream is = getServletConfig().getServletContext().getResourceAsStream(filename);\n \n@@ -154,15 +154,23 @@ private void addResults(HttpServletRequest request,\n       classifier = this.defaultClassifier;\n     }\n \n-    response.addHeader(\"classifier\", classifier);\n-    response.addHeader(\"outputFormat\", outputFormat);\n-    response.addHeader(\"preserveSpacing\", String.valueOf(preserveSpacing));\n+    CRFClassifier<CoreMap> nerModel = ners.get(classifier);\n+    \/\/ check that we weren't asked for a classifier that doesn't exist\n+    if (nerModel == null) {\n+      out.print(StringEscapeUtils.escapeHtml4(\"Unknown model \" + classifier));\n+      return;\n+    }\n \n     if (outputFormat.equals(\"highlighted\")) {\n-      outputHighlighting(out, ners.get(classifier), input);\n+      outputHighlighting(out, nerModel, input);\n     } else {\n-      out.print(StringEscapeUtils.escapeHtml4(ners.get(classifier).classifyToString(input, outputFormat, preserveSpacing)));\n+      out.print(StringEscapeUtils.escapeHtml4(nerModel.classifyToString(input, outputFormat, preserveSpacing)));\n     }\n+\n+    response.addHeader(\"classifier\", classifier);\n+    \/\/ a non-existent outputFormat would have just thrown an exception\n+    response.addHeader(\"outputFormat\", outputFormat);\n+    response.addHeader(\"preserveSpacing\", String.valueOf(preserveSpacing));\n   }\n \n   private static void outputHighlighting(PrintWriter out,",
+      "code_diff":"@@ -63,9 +63,9 @@ public void init() throws ServletException {\n       log(classifier);\n     }\n \n-    ners = Generics.newHashMap();\n+    ners = new HashMap<>();\n     for (String classifier : classifiers) {\n-      CRFClassifier model = null;\n+      CRFClassifier<CoreMap> model = null;\n       String filename = \"\/WEB-INF\/data\/models\/\" + classifier;\n       InputStream is = getServletConfig().getServletContext().getResourceAsStream(filename);\n \n@@ -154,15 +154,23 @@ private void addResults(HttpServletRequest request,\n       classifier = this.defaultClassifier;\n     }\n \n-    response.addHeader(\"classifier\", classifier);\n-    response.addHeader(\"outputFormat\", outputFormat);\n-    response.addHeader(\"preserveSpacing\", String.valueOf(preserveSpacing));\n+    CRFClassifier<CoreMap> nerModel = ners.get(classifier);\n+    \/\/ check that we weren't asked for a classifier that doesn't exist\n+    if (nerModel == null) {\n+      out.print(StringEscapeUtils.escapeHtml4(\"Unknown model \" + classifier));\n+      return;\n+    }\n \n     if (outputFormat.equals(\"highlighted\")) {\n-      outputHighlighting(out, ners.get(classifier), input);\n+      outputHighlighting(out, nerModel, input);\n     } else {\n-      out.print(StringEscapeUtils.escapeHtml4(ners.get(classifier).classifyToString(input, outputFormat, preserveSpacing)));\n+      out.print(StringEscapeUtils.escapeHtml4(nerModel.classifyToString(input, outputFormat, preserveSpacing)));\n     }\n+\n+    response.addHeader(\"classifier\", classifier);\n+    \/\/ a non-existent outputFormat would have just thrown an exception\n+    response.addHeader(\"outputFormat\", outputFormat);\n+    response.addHeader(\"preserveSpacing\", String.valueOf(preserveSpacing));\n   }\n \n   private static void outputHighlighting(PrintWriter out,"
+    },
+    {
+      "index":7,
+      "vuln_id":"GHSA-6jv7-28mv-qp9c",
+      "cwe_id":"{'CWE-862'}",
+      "score":4.3,
+      "chain":"{'https:\/\/github.com\/jenkinsci\/autonomiq-plugin\/commit\/e06b1ff67664a90819c9561bbc12f4c6e593d1dc'}",
+      "dataset":"osv",
+      "summary":"Missing permission check in Jenkins autonomiq Plugin A missing permission check in Jenkins autonomiq Plugin 1.15 and earlier allows attackers with Overall\/Read permission to connect to an attacker-specified URL using attacker-specified credentials.",
+      "published_date":"2022-02-16",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/jenkinsci\/autonomiq-plugin",
+      "commit_href":"https:\/\/github.com\/jenkinsci\/autonomiq-plugin\/commit\/e06b1ff67664a90819c9561bbc12f4c6e593d1dc",
+      "commit_sha":"e06b1ff67664a90819c9561bbc12f4c6e593d1dc",
+      "patch":"SINGLE",
+      "chain_ord":"['e06b1ff67664a90819c9561bbc12f4c6e593d1dc']",
+      "before_first_fix_commit":"{'abfbe8a84d54ec7708c8ef073d56b128baffb1f5'}",
+      "last_fix_commit":"e06b1ff67664a90819c9561bbc12f4c6e593d1dc",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"02\/09\/2022, 07:16:27",
+      "message":"added permission and csrf protection",
+      "author":"jameeluddin",
+      "comments":null,
+      "stats":"{'additions': 17, 'deletions': 0, 'total': 17}",
+      "files":"{'src\/main\/java\/io\/jenkins\/plugins\/autonomiq\/AutonomiqBuilder.java': {'additions': 17, 'deletions': 0, 'changes': 17, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/jenkinsci\/autonomiq-plugin\/raw\/e06b1ff67664a90819c9561bbc12f4c6e593d1dc\/src%2Fmain%2Fjava%2Fio%2Fjenkins%2Fplugins%2Fautonomiq%2FAutonomiqBuilder.java', 'patch': '@@ -653,6 +653,7 @@ public String getDisplayName() {\\n         }\\n \\n         @SuppressWarnings(\"unused\")\\n+        @POST\\n         public ListBoxModel doFillProjectItems(@QueryParameter String aiqUrl,\\n                                                @QueryParameter String login,\\n                                                @QueryParameter Secret password,\\n@@ -661,6 +662,8 @@ public ListBoxModel doFillProjectItems(@QueryParameter String aiqUrl,\\n                                                @QueryParameter String proxyUser,\\n                                                @QueryParameter Secret proxyPassword,\\n                                                @QueryParameter Boolean httpProxy) {\\n+        \\tJenkins.get().checkPermission(Jenkins.ADMINISTER);\\n+\\n \\n             \/\/ make sure other fields have been filled in\\n             if (aiqUrl.length() > 0 && login.length() > 0 && Secret.toString(password).length() > 0) {\\n@@ -681,7 +684,10 @@ public ListBoxModel doFillProjectItems(@QueryParameter String aiqUrl,\\n         }\\n \\n         @SuppressWarnings(\"unused\")\\n+        @POST\\n         public ListBoxModel doFillPlatformTestCasesItems() {\\n+        \\tJenkins.get().checkPermission(Jenkins.ADMINISTER);\\n+\\n \\n             String[] values = {\"Linux\"};  \/\/, \"Windows\"};\\n \\n@@ -690,7 +696,10 @@ public ListBoxModel doFillPlatformTestCasesItems() {\\n             return new ListBoxModel(options);\\n         }\\n         @SuppressWarnings(\"unused\")\\n+        @POST\\n         public ListBoxModel doFillPlatformTestSuitesItems() {\\n+        \\tJenkins.get().checkPermission(Jenkins.ADMINISTER);\\n+\\n \\n             String[] values = {\"Linux\"};  \/\/, \"Windows\"};\\n \\n@@ -701,7 +710,10 @@ public ListBoxModel doFillPlatformTestSuitesItems() {\\n \\n \\n         @SuppressWarnings(\"unused\")\\n+        @POST\\n         public ListBoxModel doFillBrowserTestCasesItems() {\\n+        \\tJenkins.get().checkPermission(Jenkins.ADMINISTER);\\n+\\n \\n             String[] values = {\"Chrome\", \"Firefox\"};\\n \\n@@ -710,7 +722,9 @@ public ListBoxModel doFillBrowserTestCasesItems() {\\n             return new ListBoxModel(options);\\n         }\\n         @SuppressWarnings(\"unused\")\\n+        @POST\\n         public ListBoxModel doFillBrowserTestSuitesItems() {\\n+        \\tJenkins.get().checkPermission(Jenkins.ADMINISTER);\\n \\n             String[] values = {\"Chrome\", \"Firefox\"};\\n \\n@@ -720,7 +734,10 @@ public ListBoxModel doFillBrowserTestSuitesItems() {\\n         }\\n \\n         @SuppressWarnings(\"unused\")\\n+        @POST\\n         public ListBoxModel doFillExecutionModeItems() {\\n+        \\tJenkins.get().checkPermission(Jenkins.ADMINISTER);\\n+\\n \\n             String[] values = {\"serial\", \"parallel\"};'}}",
+      "message_norm":"added permission and csrf protection",
+      "language":"en",
+      "entities":"[('added', 'ACTION', ''), ('permission', 'SECWORD', ''), ('csrf', 'SECWORD', ''), ('protection', 'SECWORD', '')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['src\/main\/java\/io\/jenkins\/plugins\/autonomiq\/AutonomiqBuilder.java'])",
+      "num_files":1.0,
+      "patch_content":"From e06b1ff67664a90819c9561bbc12f4c6e593d1dc Mon Sep 17 00:00:00 2001\nFrom: jameeluddin <jameeluddin30@gmail.com>\nDate: Wed, 9 Feb 2022 12:46:27 +0530\nSubject: [PATCH] added permission and csrf protection\n\n---\n ...\/plugins\/autonomiq\/AutonomiqBuilder.java     | 17 +++++++++++++++++\n 1 file changed, 17 insertions(+)\n\ndiff --git a\/src\/main\/java\/io\/jenkins\/plugins\/autonomiq\/AutonomiqBuilder.java b\/src\/main\/java\/io\/jenkins\/plugins\/autonomiq\/AutonomiqBuilder.java\nindex 5ff9b91..2fa4ade 100644\n--- a\/src\/main\/java\/io\/jenkins\/plugins\/autonomiq\/AutonomiqBuilder.java\n+++ b\/src\/main\/java\/io\/jenkins\/plugins\/autonomiq\/AutonomiqBuilder.java\n@@ -653,6 +653,7 @@ public String getDisplayName() {\n         }\n \n         @SuppressWarnings(\"unused\")\n+        @POST\n         public ListBoxModel doFillProjectItems(@QueryParameter String aiqUrl,\n                                                @QueryParameter String login,\n                                                @QueryParameter Secret password,\n@@ -661,6 +662,8 @@ public ListBoxModel doFillProjectItems(@QueryParameter String aiqUrl,\n                                                @QueryParameter String proxyUser,\n                                                @QueryParameter Secret proxyPassword,\n                                                @QueryParameter Boolean httpProxy) {\n+        \tJenkins.get().checkPermission(Jenkins.ADMINISTER);\n+\n \n             \/\/ make sure other fields have been filled in\n             if (aiqUrl.length() > 0 && login.length() > 0 && Secret.toString(password).length() > 0) {\n@@ -681,7 +684,10 @@ public ListBoxModel doFillProjectItems(@QueryParameter String aiqUrl,\n         }\n \n         @SuppressWarnings(\"unused\")\n+        @POST\n         public ListBoxModel doFillPlatformTestCasesItems() {\n+        \tJenkins.get().checkPermission(Jenkins.ADMINISTER);\n+\n \n             String[] values = {\"Linux\"};  \/\/, \"Windows\"};\n \n@@ -690,7 +696,10 @@ public ListBoxModel doFillPlatformTestCasesItems() {\n             return new ListBoxModel(options);\n         }\n         @SuppressWarnings(\"unused\")\n+        @POST\n         public ListBoxModel doFillPlatformTestSuitesItems() {\n+        \tJenkins.get().checkPermission(Jenkins.ADMINISTER);\n+\n \n             String[] values = {\"Linux\"};  \/\/, \"Windows\"};\n \n@@ -701,7 +710,10 @@ public ListBoxModel doFillPlatformTestSuitesItems() {\n \n \n         @SuppressWarnings(\"unused\")\n+        @POST\n         public ListBoxModel doFillBrowserTestCasesItems() {\n+        \tJenkins.get().checkPermission(Jenkins.ADMINISTER);\n+\n \n             String[] values = {\"Chrome\", \"Firefox\"};\n \n@@ -710,7 +722,9 @@ public ListBoxModel doFillBrowserTestCasesItems() {\n             return new ListBoxModel(options);\n         }\n         @SuppressWarnings(\"unused\")\n+        @POST\n         public ListBoxModel doFillBrowserTestSuitesItems() {\n+        \tJenkins.get().checkPermission(Jenkins.ADMINISTER);\n \n             String[] values = {\"Chrome\", \"Firefox\"};\n \n@@ -720,7 +734,10 @@ public ListBoxModel doFillBrowserTestSuitesItems() {\n         }\n \n         @SuppressWarnings(\"unused\")\n+        @POST\n         public ListBoxModel doFillExecutionModeItems() {\n+        \tJenkins.get().checkPermission(Jenkins.ADMINISTER);\n+\n \n             String[] values = {\"serial\", \"parallel\"};",
+      "code_diff":"@@ -653,6 +653,7 @@ public String getDisplayName() {\n         }\n \n         @SuppressWarnings(\"unused\")\n+        @POST\n         public ListBoxModel doFillProjectItems(@QueryParameter String aiqUrl,\n                                                @QueryParameter String login,\n                                                @QueryParameter Secret password,\n@@ -661,6 +662,8 @@ public ListBoxModel doFillProjectItems(@QueryParameter String aiqUrl,\n                                                @QueryParameter String proxyUser,\n                                                @QueryParameter Secret proxyPassword,\n                                                @QueryParameter Boolean httpProxy) {\n+        \tJenkins.get().checkPermission(Jenkins.ADMINISTER);\n+\n \n             \/\/ make sure other fields have been filled in\n             if (aiqUrl.length() > 0 && login.length() > 0 && Secret.toString(password).length() > 0) {\n@@ -681,7 +684,10 @@ public ListBoxModel doFillProjectItems(@QueryParameter String aiqUrl,\n         }\n \n         @SuppressWarnings(\"unused\")\n+        @POST\n         public ListBoxModel doFillPlatformTestCasesItems() {\n+        \tJenkins.get().checkPermission(Jenkins.ADMINISTER);\n+\n \n             String[] values = {\"Linux\"};  \/\/, \"Windows\"};\n \n@@ -690,7 +696,10 @@ public ListBoxModel doFillPlatformTestCasesItems() {\n             return new ListBoxModel(options);\n         }\n         @SuppressWarnings(\"unused\")\n+        @POST\n         public ListBoxModel doFillPlatformTestSuitesItems() {\n+        \tJenkins.get().checkPermission(Jenkins.ADMINISTER);\n+\n \n             String[] values = {\"Linux\"};  \/\/, \"Windows\"};\n \n@@ -701,7 +710,10 @@ public ListBoxModel doFillPlatformTestSuitesItems() {\n \n \n         @SuppressWarnings(\"unused\")\n+        @POST\n         public ListBoxModel doFillBrowserTestCasesItems() {\n+        \tJenkins.get().checkPermission(Jenkins.ADMINISTER);\n+\n \n             String[] values = {\"Chrome\", \"Firefox\"};\n \n@@ -710,7 +722,9 @@ public ListBoxModel doFillBrowserTestCasesItems() {\n             return new ListBoxModel(options);\n         }\n         @SuppressWarnings(\"unused\")\n+        @POST\n         public ListBoxModel doFillBrowserTestSuitesItems() {\n+        \tJenkins.get().checkPermission(Jenkins.ADMINISTER);\n \n             String[] values = {\"Chrome\", \"Firefox\"};\n \n@@ -720,7 +734,10 @@ public ListBoxModel doFillBrowserTestSuitesItems() {\n         }\n \n         @SuppressWarnings(\"unused\")\n+        @POST\n         public ListBoxModel doFillExecutionModeItems() {\n+        \tJenkins.get().checkPermission(Jenkins.ADMINISTER);\n+\n \n             String[] values = {\"serial\", \"parallel\"};"
+    },
+    {
+      "index":8,
+      "vuln_id":"GHSA-r6cm-wg48-rh2r",
+      "cwe_id":"{'CWE-359', 'CWE-863'}",
+      "score":9.1,
+      "chain":"{'https:\/\/github.com\/alextselegidis\/easyappointments\/commit\/44af526a6fc5e898bc1e0132b2af9eb3a9b2c466'}",
+      "dataset":"osv",
+      "summary":"Exposure of Private Personal Information to an Unauthorized Actor in alextselegidis\/easyappointments The software is a booking management system that has a public form to place bookings, and a private area for the calendar and management of services, users, settings, etc. There is a backend API that allows data manipulation, including listing the appointments for a specific time range. This happens on this endpoint: \/index.php\/backend_api\/ajax_get_calendar_events Unfortunately, there is no authentication \/ permissions-check on that endpoint, the only required parameters in a POST request are \"startDate\", \"endDate\" and \"csrfToken\". Because the csrfToken can be obtained by any unauthenticated user just visiting the public form (and is valid for the backend as well), any attacker can query the backend API and obtain all sorts of private information about the appointment, in JSON format.",
+      "published_date":"2022-03-10",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/alextselegidis\/easyappointments",
+      "commit_href":"https:\/\/github.com\/alextselegidis\/easyappointments\/commit\/44af526a6fc5e898bc1e0132b2af9eb3a9b2c466",
+      "commit_sha":"44af526a6fc5e898bc1e0132b2af9eb3a9b2c466",
+      "patch":"SINGLE",
+      "chain_ord":"['44af526a6fc5e898bc1e0132b2af9eb3a9b2c466']",
+      "before_first_fix_commit":"{'13e81c80b17dfe207b2bdddb395a1345217f2548'}",
+      "last_fix_commit":"44af526a6fc5e898bc1e0132b2af9eb3a9b2c466",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"03\/08\/2022, 17:27:15",
+      "message":"Release v1.4.3",
+      "author":"Alex Tselegidis",
+      "comments":null,
+      "stats":"{'additions': 2, 'deletions': 2, 'total': 4}",
+      "files":"{'application\/config\/config.php': {'additions': 2, 'deletions': 2, 'changes': 4, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/alextselegidis\/easyappointments\/raw\/44af526a6fc5e898bc1e0132b2af9eb3a9b2c466\/application%2Fconfig%2Fconfig.php', 'patch': \"@@ -8,7 +8,7 @@\\n | Declare some of the global config values of Easy!Appointments.\\n |\\n *\/\\n-$config['version'] = '1.4.3-beta.1'; \/\/ This must be changed manually.\\n+$config['version'] = '1.4.3'; \/\/ This must be changed manually.\\n $config['release_label'] = ''; \/\/ Leave empty for no title or add Alpha, Beta etc ...\\n $config['debug'] = Config::DEBUG_MODE;\\n \\n@@ -314,7 +314,7 @@\\n | new release.\\n |\\n *\/\\n-$config['cache_busting_token'] = '8UC842';\\n+$config['cache_busting_token'] = '6398SW';\\n \\n \/*\\n |--------------------------------------------------------------------------\"}}",
+      "message_norm":"release v1.4.3",
+      "language":"sl",
+      "entities":"[('v1.4.3', 'VERSION', '')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['application\/config\/config.php'])",
+      "num_files":1.0,
+      "patch_content":"From 44af526a6fc5e898bc1e0132b2af9eb3a9b2c466 Mon Sep 17 00:00:00 2001\nFrom: Alex Tselegidis <alextselegidis@gmail.com>\nDate: Tue, 8 Mar 2022 18:27:15 +0100\nSubject: [PATCH] Release v1.4.3\n\n---\n application\/config\/config.php | 4 ++--\n 1 file changed, 2 insertions(+), 2 deletions(-)\n\ndiff --git a\/application\/config\/config.php b\/application\/config\/config.php\nindex 4c06eb6abb..6efb9d8016 100644\n--- a\/application\/config\/config.php\n+++ b\/application\/config\/config.php\n@@ -8,7 +8,7 @@\n | Declare some of the global config values of Easy!Appointments.\n |\n *\/\n-$config['version'] = '1.4.3-beta.1'; \/\/ This must be changed manually.\n+$config['version'] = '1.4.3'; \/\/ This must be changed manually.\n $config['release_label'] = ''; \/\/ Leave empty for no title or add Alpha, Beta etc ...\n $config['debug'] = Config::DEBUG_MODE;\n \n@@ -314,7 +314,7 @@\n | new release.\n |\n *\/\n-$config['cache_busting_token'] = '8UC842';\n+$config['cache_busting_token'] = '6398SW';\n \n \/*\n |--------------------------------------------------------------------------",
+      "code_diff":"@@ -8,7 +8,7 @@\n | Declare some of the global config values of Easy!Appointments.\n |\n *\/\n-$config['version'] = '1.4.3-beta.1'; \/\/ This must be changed manually.\n+$config['version'] = '1.4.3'; \/\/ This must be changed manually.\n $config['release_label'] = ''; \/\/ Leave empty for no title or add Alpha, Beta etc ...\n $config['debug'] = Config::DEBUG_MODE;\n \n@@ -314,7 +314,7 @@\n | new release.\n |\n *\/\n-$config['cache_busting_token'] = '8UC842';\n+$config['cache_busting_token'] = '6398SW';\n \n \/*\n |--------------------------------------------------------------------------"
+    },
+    {
+      "index":9,
+      "vuln_id":"GHSA-r89v-cgv7-3jhx",
+      "cwe_id":"{'CWE-862'}",
+      "score":5.2,
+      "chain":"{'https:\/\/github.com\/octobercms\/october\/commit\/d34fb8ab51108495a9a651b841202d935f4e12f7'}",
+      "dataset":"osv",
+      "summary":"Bypass of fix for CVE-2020-15247, Twig sandbox escape ### Impact\nA bypass of CVE-2020-15247 (fixed in 1.0.469 and 1.1.0) was discovered that has the same impact as CVE-2020-15247:\n\nAn authenticated backend user with the `cms.manage_pages`, `cms.manage_layouts`, or `cms.manage_partials` permissions who would **normally** not be permitted to provide PHP code to be executed by the CMS due to `cms.enableSafeMode` being enabled is able to write specific Twig code to escape the Twig sandbox and execute arbitrary PHP.\n\nThis is not a problem for anyone that trusts their users with those permissions to normally write & manage PHP within the CMS by not having `cms.enableSafeMode` enabled, but would be a problem for anyone relying on `cms.enableSafeMode` to ensure that users with those permissions in production do not have access to write & execute arbitrary PHP.\n\n### Patches\nIssue has been patched in Build 470 (v1.0.470) and v1.1.1.\n\n### Workarounds\nApply https:\/\/github.com\/octobercms\/october\/commit\/d34fb8ab51108495a9a651b841202d935f4e12f7 to your installation manually if unable to upgrade to Build 470 or v1.1.1.\n\n### References\nReported by [ka1n4t](https:\/\/github.com\/ka1n4t)\n\n### For more information\nIf you have any questions or comments about this advisory:\n* Email us at [hello@octobercms.com](mailto:hello@octobercms.com)\n\n### Threat assessment:\n<img width=\"1108\" alt=\"Screen Shot 2020-10-10 at 1 21 13 PM\" src=\"https:\/\/user-images.githubusercontent.com\/7253840\/95663316-7de28b80-0afb-11eb-999d-a6526cf78709.png\">",
+      "published_date":"2020-11-23",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/octobercms\/october",
+      "commit_href":"https:\/\/github.com\/octobercms\/october\/commit\/d34fb8ab51108495a9a651b841202d935f4e12f7",
+      "commit_sha":"d34fb8ab51108495a9a651b841202d935f4e12f7",
+      "patch":"SINGLE",
+      "chain_ord":"['d34fb8ab51108495a9a651b841202d935f4e12f7']",
+      "before_first_fix_commit":"{'16e0bd4d094264fd00d0af86180bde4e0c73b4be'}",
+      "last_fix_commit":"d34fb8ab51108495a9a651b841202d935f4e12f7",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"11\/13\/2020, 09:48:27",
+      "message":"Improve Twig security policy\n\nFollow up to https:\/\/github.com\/octobercms\/october\/compare\/106daa2930de4cebb18732732d47d4056f01dd5b...7cb148c1677373ac30ccfd3069d18098e403e1ca. Thanks to @ka1n4t for the additional review.",
+      "author":"Luke Towers",
+      "comments":null,
+      "stats":"{'additions': 2, 'deletions': 0, 'total': 2}",
+      "files":"{'modules\/system\/twig\/SecurityPolicy.php': {'additions': 2, 'deletions': 0, 'changes': 2, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/octobercms\/october\/raw\/d34fb8ab51108495a9a651b841202d935f4e12f7\/modules%2Fsystem%2Ftwig%2FSecurityPolicy.php', 'patch': \"@@ -20,6 +20,8 @@ final class SecurityPolicy implements SecurityPolicyInterface\\n     protected $blockedMethods = [\\n         'addDynamicMethod',\\n         'addDynamicProperty',\\n+        'bindEvent',\\n+        'bindEventOnce',\\n     ];\\n \\n     \/**\"}}",
+      "message_norm":"improve twig security policy\n\nfollow up to https:\/\/github.com\/octobercms\/october\/compare\/106daa2930de4cebb18732732d47d4056f01dd5b...7cb148c1677373ac30ccfd3069d18098e403e1ca. thanks to @ka1n4t for the additional review.",
+      "language":"en",
+      "entities":"[('improve', 'ACTION', ''), ('security', 'SECWORD', ''), ('https:\/\/github.com\/octobercms\/october\/compare\/106daa2930de4cebb18732732d47d4056f01dd5b...7cb148c1677373ac30ccfd3069d18098e403e1ca', 'URL', '')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['modules\/system\/twig\/SecurityPolicy.php'])",
+      "num_files":1.0,
+      "patch_content":"From d34fb8ab51108495a9a651b841202d935f4e12f7 Mon Sep 17 00:00:00 2001\nFrom: Luke Towers <github@luketowers.ca>\nDate: Fri, 13 Nov 2020 03:48:27 -0600\nSubject: [PATCH] Improve Twig security policy\n\nFollow up to https:\/\/github.com\/octobercms\/october\/compare\/106daa2930de4cebb18732732d47d4056f01dd5b...7cb148c1677373ac30ccfd3069d18098e403e1ca. Thanks to @ka1n4t for the additional review.\n---\n modules\/system\/twig\/SecurityPolicy.php | 2 ++\n 1 file changed, 2 insertions(+)\n\ndiff --git a\/modules\/system\/twig\/SecurityPolicy.php b\/modules\/system\/twig\/SecurityPolicy.php\nindex bcbc7a1501..aacd39ba63 100644\n--- a\/modules\/system\/twig\/SecurityPolicy.php\n+++ b\/modules\/system\/twig\/SecurityPolicy.php\n@@ -20,6 +20,8 @@ final class SecurityPolicy implements SecurityPolicyInterface\n     protected $blockedMethods = [\n         'addDynamicMethod',\n         'addDynamicProperty',\n+        'bindEvent',\n+        'bindEventOnce',\n     ];\n \n     \/**",
+      "code_diff":"@@ -20,6 +20,8 @@ final class SecurityPolicy implements SecurityPolicyInterface\n     protected $blockedMethods = [\n         'addDynamicMethod',\n         'addDynamicProperty',\n+        'bindEvent',\n+        'bindEventOnce',\n     ];\n \n     \/**"
+    }
+  ]
+}

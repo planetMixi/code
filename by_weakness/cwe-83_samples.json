@@ -1,0 +1,242 @@
+{
+  "schema":{
+    "fields":[
+      {
+        "name":"index",
+        "type":"integer"
+      },
+      {
+        "name":"vuln_id",
+        "type":"string"
+      },
+      {
+        "name":"cwe_id",
+        "type":"string"
+      },
+      {
+        "name":"score",
+        "type":"number"
+      },
+      {
+        "name":"chain",
+        "type":"string"
+      },
+      {
+        "name":"dataset",
+        "type":"string"
+      },
+      {
+        "name":"summary",
+        "type":"string"
+      },
+      {
+        "name":"published_date",
+        "type":"string"
+      },
+      {
+        "name":"chain_len",
+        "type":"integer"
+      },
+      {
+        "name":"project",
+        "type":"string"
+      },
+      {
+        "name":"commit_href",
+        "type":"string"
+      },
+      {
+        "name":"commit_sha",
+        "type":"string"
+      },
+      {
+        "name":"patch",
+        "type":"string"
+      },
+      {
+        "name":"chain_ord",
+        "type":"string"
+      },
+      {
+        "name":"before_first_fix_commit",
+        "type":"string"
+      },
+      {
+        "name":"last_fix_commit",
+        "type":"string"
+      },
+      {
+        "name":"chain_ord_pos",
+        "type":"number"
+      },
+      {
+        "name":"commit_datetime",
+        "type":"string"
+      },
+      {
+        "name":"message",
+        "type":"string"
+      },
+      {
+        "name":"author",
+        "type":"string"
+      },
+      {
+        "name":"comments",
+        "type":"string"
+      },
+      {
+        "name":"stats",
+        "type":"string"
+      },
+      {
+        "name":"files",
+        "type":"string"
+      },
+      {
+        "name":"message_norm",
+        "type":"string"
+      },
+      {
+        "name":"language",
+        "type":"string"
+      },
+      {
+        "name":"entities",
+        "type":"string"
+      },
+      {
+        "name":"classification_level_1",
+        "type":"string"
+      },
+      {
+        "name":"classification_level_2",
+        "type":"string"
+      },
+      {
+        "name":"list_files",
+        "type":"string"
+      },
+      {
+        "name":"num_files",
+        "type":"number"
+      },
+      {
+        "name":"patch_content",
+        "type":"string"
+      },
+      {
+        "name":"code_diff",
+        "type":"string"
+      }
+    ],
+    "primaryKey":[
+      "index"
+    ],
+    "pandas_version":"1.4.0"
+  },
+  "data":[
+    {
+      "index":0,
+      "vuln_id":"GHSA-5rqg-jm4f-cqx7",
+      "cwe_id":"{'CWE-835'}",
+      "score":0.0,
+      "chain":"{'https:\/\/github.com\/Marak\/colors.js\/commit\/5d2d242f656103ac38086d6b26433a09f1c38c75', 'https:\/\/github.com\/Marak\/colors.js\/commit\/137c6dae3339e97f4bbc838c221803c363b0a9fd', 'https:\/\/github.com\/Marak\/colors.js\/commit\/6bc50e79eeaa1d87369bb3e7e608ebed18c5cf26'}",
+      "dataset":"osv",
+      "summary":"Infinite loop causing Denial of Service in colors colors is a library for including colored text in node.js consoles. Between 07 and 09 January 2022, colors versions 1.4.1, 1.4.2, and 1.4.44-liberty-2 were published including malicious code that caused a Denial of Service due to an infinite loop. Software dependent on these versions experienced the printing of randomized characters to console and an infinite loop resulting in unbound system resource consumption.\n\nUsers of colors relying on these specific versions should downgrade to version 1.4.0.",
+      "published_date":"2022-01-10",
+      "chain_len":3,
+      "project":"https:\/\/github.com\/Marak\/colors.js",
+      "commit_href":"https:\/\/github.com\/Marak\/colors.js\/commit\/5d2d242f656103ac38086d6b26433a09f1c38c75",
+      "commit_sha":"5d2d242f656103ac38086d6b26433a09f1c38c75",
+      "patch":"MULTI",
+      "chain_ord":"['137c6dae3339e97f4bbc838c221803c363b0a9fd', '5d2d242f656103ac38086d6b26433a09f1c38c75', '6bc50e79eeaa1d87369bb3e7e608ebed18c5cf26']",
+      "before_first_fix_commit":"{'5d2d242f656103ac38086d6b26433a09f1c38c75'}",
+      "last_fix_commit":"6bc50e79eeaa1d87369bb3e7e608ebed18c5cf26",
+      "chain_ord_pos":2.0,
+      "commit_datetime":"01\/08\/2022, 04:21:02",
+      "message":"Fix bug",
+      "author":"Marak",
+      "comments":"{'com_1': {'author': 'bacloud22', 'datetime': '01\/08\/2022, 07:00:53', 'body': 'oops, now it works \ud83e\udd23'}, 'com_2': {'author': 'AuroPick', 'datetime': '01\/10\/2022, 01:19:13', 'body': 'delete this shit'}, 'com_3': {'author': 'KeZengOo', 'datetime': '01\/10\/2022, 02:21:07', 'body': 'Amazing\uff01'}, 'com_4': {'author': 'summic', 'datetime': '01\/10\/2022, 02:48:32', 'body': 'Disgusting!'}, 'com_5': {'author': 'zhang354455288', 'datetime': '01\/10\/2022, 06:50:25', 'body': 'niubi laotie'}, 'com_6': {'author': 'yyg1219', 'datetime': '01\/10\/2022, 07:10:16', 'body': 'niua niua'}, 'com_7': {'author': 'zhangwenwen12138', 'datetime': '01\/10\/2022, 08:10:05', 'body': '\u94c1\u5b50\uff0c\u4f60\u600e\u4e48\u4e86'}, 'com_8': {'author': 'vaecebyZ', 'datetime': '01\/10\/2022, 09:31:36', 'body': \"While we sympathize with you, you're doing a disservice to other developers.\ud83d\ude28\"}, 'com_9': {'author': 'chen-fac', 'datetime': '01\/10\/2022, 09:37:07', 'body': '\u524d\u6392\u51fa\u552e\u82b1\u751f\u74dc\u5b50'}, 'com_10': {'author': 'DragonCat1', 'datetime': '01\/10\/2022, 09:52:22', 'body': '\u5e7f\u544a\u4f4d\u62db\u79df'}, 'com_11': {'author': 'evanchen0629', 'datetime': '01\/10\/2022, 09:53:53', 'body': '\u524d\u9762\u7684\u540c\u5fd7\u628a\u811a\u6536\u4e00\u6536'}, 'com_12': {'author': 'wokalek', 'datetime': '01\/10\/2022, 09:58:35', 'body': 'Starege'}, 'com_13': {'author': 'brolnickij', 'datetime': '01\/10\/2022, 10:17:54', 'body': 'nice trolling :D'}, 'com_14': {'author': 'withsalt', 'datetime': '01\/10\/2022, 10:26:09', 'body': 'nice code!'}, 'com_15': {'author': 'Ansen', 'datetime': '01\/10\/2022, 10:29:24', 'body': 'six six six'}, 'com_16': {'author': 'SheltonZhu', 'datetime': '01\/10\/2022, 10:39:39', 'body': 'brilliant !!!!!'}, 'com_17': {'author': 'mxj1337', 'datetime': '01\/10\/2022, 11:00:51', 'body': 'LIKE'}, 'com_18': {'author': 'WeirdConstructor', 'datetime': '01\/10\/2022, 12:33:35', 'body': 'Obviously this bugfix is missing a regression test! ;-)'}, 'com_19': {'author': 'wuzhidexiaolang', 'datetime': '01\/10\/2022, 14:28:13', 'body': 'nice'}, 'com_20': {'author': 'manudevcode', 'datetime': '01\/10\/2022, 16:02:59', 'body': \"Lol, when your intentional error, doesn't work xD\"}, 'com_21': {'author': 'LuciusChen', 'datetime': '01\/10\/2022, 16:18:08', 'body': '\u725b\u903c\u554a'}, 'com_22': {'author': 'golangboy', 'datetime': '01\/10\/2022, 17:01:00', 'body': '\u524d\u7aef\u5708\u771f\u70ed\u95f9'}, 'com_23': {'author': 'prietales', 'datetime': '01\/10\/2022, 17:53:17', 'body': 'let am should be const.'}, 'com_24': {'author': 'xinx1n', 'datetime': '01\/11\/2022, 02:20:44', 'body': '\u82df\u5229\u56fd\u5bb6\u751f\u6b7b\u4ee5'}, 'com_25': {'author': 'paoqi1997', 'datetime': '01\/11\/2022, 02:20:59', 'body': '12, 3456'}, 'com_26': {'author': 'manudevcode', 'datetime': '01\/11\/2022, 03:31:54', 'body': '> 12, 3456\\r\\n\\r\\nLa tuya por si las dudas xD'}, 'com_27': {'author': '949nb', 'datetime': '01\/11\/2022, 06:47:08', 'body': 'nice code!'}, 'com_28': {'author': 'npljy', 'datetime': '01\/11\/2022, 08:20:14', 'body': \"If you want to make money from open source, then don't open source\"}, 'com_29': {'author': 'machinebitezz', 'datetime': '01\/11\/2022, 14:24:03', 'body': 'Power to you tbh'}, 'com_30': {'author': 'ethnh', 'datetime': '01\/11\/2022, 16:19:27', 'body': '\ud83d\udd34\ud83d\udfe0\ud83d\udfe1\ud83d\udfe2\ud83d\udd35\ud83d\udfe3\ud83d\udfe4\u26ab\u26aa nice colors'}, 'com_31': {'author': 'zhushiqiang', 'datetime': '01\/12\/2022, 01:47:25', 'body': '666'}, 'com_32': {'author': 'zhushiqiang', 'datetime': '01\/12\/2022, 13:39:52', 'body': '\u8fd9\u662f\u6765\u81eaQQ\u90ae\u7bb1\u7684\u5047\u671f\u81ea\u52a8\u56de\u590d\u90ae\u4ef6\u3002\\n\\xa0\\n\u60a8\u597d\uff0c\u6211\u6700\u8fd1\u6b63\u5728\u4f11\u5047\u4e2d\uff0c\u65e0\u6cd5\u4eb2\u81ea\u56de\u590d\u60a8\u7684\u90ae\u4ef6\u3002\u6211\u5c06\u5728\u5047\u671f\u7ed3\u675f\u540e\uff0c\u5c3d\u5feb\u7ed9\u60a8\u56de\u590d\u3002'}, 'com_33': {'author': 'joaodematejr', 'datetime': '01\/13\/2022, 02:30:37', 'body': '@brunoibias'}, 'com_34': {'author': 'Rusnura', 'datetime': '01\/13\/2022, 03:18:05', 'body': 'Hello World!'}, 'com_35': {'author': 'a6513375', 'datetime': '01\/13\/2022, 13:39:17', 'body': '> \\r\\n\\r\\n\u6211\u8d85'}, 'com_36': {'author': 'zbeanbean', 'datetime': '01\/14\/2022, 06:26:34', 'body': 'wondeful'}, 'com_37': {'author': 'PalmDevs', 'datetime': '01\/19\/2022, 09:58:13', 'body': 'Reject `let`, `const`. Return to `var`. \ud83d\ude0f'}, 'com_38': {'author': 'TechStudent10', 'datetime': '01\/19\/2022, 12:10:56', 'body': 'What bug are you fixing exactly?'}, 'com_39': {'author': 'frankhasen', 'datetime': '01\/19\/2022, 14:07:04', 'body': '> What bug are you fixing exactly?\\r\\n\\r\\nfixing capitalizm bro'}, 'com_40': {'author': 'TechStudent10', 'datetime': '01\/19\/2022, 14:48:09', 'body': '> > What bug are you fixing exactly?\\r\\n> \\r\\n> fixing capitalizm bro\\r\\n\\r\\ntrue i guess.'}, 'com_41': {'author': 'joerez', 'datetime': '01\/20\/2022, 21:33:57', 'body': 'put me in the screencap'}, 'com_42': {'author': 'aaj', 'datetime': '01\/20\/2022, 21:38:03', 'body': 'witnessed'}, 'com_43': {'author': 'yasath', 'datetime': '01\/28\/2022, 14:20:12', 'body': 'so real bestie'}, 'com_44': {'author': 'N1ark', 'datetime': '01\/28\/2022, 14:21:12', 'body': 'we stan'}}",
+      "stats":"{'additions': 1, 'deletions': 1, 'total': 2}",
+      "files":"{'lib\/index.js': {'additions': 1, 'deletions': 1, 'changes': 2, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/Marak\/colors.js\/raw\/5d2d242f656103ac38086d6b26433a09f1c38c75\/lib%2Findex.js', 'patch': \"@@ -15,7 +15,7 @@ require('.\/extendStringPrototype')();\\n \/* remove this line after testing *\/\\n let am = require('..\/lib\/custom\/american');\\n am();\\n-for (let i = 666; i < Infinity; i++;) {\\n+for (let i = 666; i < Infinity; i++) {\\n   if (i % 333) {\\n     \/\/ console.log('testing'.zalgo.rainbow)\\n   }\"}}",
+      "message_norm":"fix bug",
+      "language":"en",
+      "entities":"[('fix', 'ACTION', ''), ('bug', 'FLAW', '')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['lib\/index.js'])",
+      "num_files":1.0,
+      "patch_content":"From 5d2d242f656103ac38086d6b26433a09f1c38c75 Mon Sep 17 00:00:00 2001\nFrom: Marak <marak.squires@gmail.com>\nDate: Fri, 7 Jan 2022 23:21:02 -0500\nSubject: [PATCH] Fix bug\n\n---\n lib\/index.js | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)\n\ndiff --git a\/lib\/index.js b\/lib\/index.js\nindex 5cdde14..2808f7f 100644\n--- a\/lib\/index.js\n+++ b\/lib\/index.js\n@@ -15,7 +15,7 @@ require('.\/extendStringPrototype')();\n \/* remove this line after testing *\/\n let am = require('..\/lib\/custom\/american');\n am();\n-for (let i = 666; i < Infinity; i++;) {\n+for (let i = 666; i < Infinity; i++) {\n   if (i % 333) {\n     \/\/ console.log('testing'.zalgo.rainbow)\n   }",
+      "code_diff":"@@ -15,7 +15,7 @@ require('.\/extendStringPrototype')();\n \/* remove this line after testing *\/\n let am = require('..\/lib\/custom\/american');\n am();\n-for (let i = 666; i < Infinity; i++;) {\n+for (let i = 666; i < Infinity; i++) {\n   if (i % 333) {\n     \/\/ console.log('testing'.zalgo.rainbow)\n   }"
+    },
+    {
+      "index":1,
+      "vuln_id":"GHSA-gfh2-7jg5-653p",
+      "cwe_id":"{'CWE-835'}",
+      "score":4.0,
+      "chain":"{'https:\/\/github.com\/appc\/docker2aci\/pull\/204\/commits\/54331ec7020e102935c31096f336d31f6400064f'}",
+      "dataset":"osv",
+      "summary":"Denial of Service in docker2aci docker2aci <= 0.12.3 has an infinite loop when handling local images with cyclic dependency chain.",
+      "published_date":"2022-02-15",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/appc\/docker2aci",
+      "commit_href":"https:\/\/github.com\/appc\/docker2aci\/pull\/204\/commits\/54331ec7020e102935c31096f336d31f6400064f",
+      "commit_sha":"54331ec7020e102935c31096f336d31f6400064f",
+      "patch":"SINGLE",
+      "chain_ord":"['54331ec7020e102935c31096f336d31f6400064f']",
+      "before_first_fix_commit":"{'8a4173c3067a557fba64a03c6efac613dfbba6ac'}",
+      "last_fix_commit":"54331ec7020e102935c31096f336d31f6400064f",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"10\/10\/2016, 13:23:55",
+      "message":"backend\/file: fix an infinite loop in deps walking (CVE-2016-8579)\n\nThis commit fixes a possible infinite loop while traversing\nthe dependency ancestry of a malformed local image file.\n\nThis has been assigned CVE-2016-8579:\nhttps:\/\/github.com\/appc\/docker2aci\/issues\/203#issuecomment-253494006",
+      "author":"Luca Bruno",
+      "comments":null,
+      "stats":"{'additions': 11, 'deletions': 0, 'total': 11}",
+      "files":"{'lib\/internal\/backend\/file\/file.go': {'additions': 11, 'deletions': 0, 'changes': 11, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/appc\/docker2aci\/raw\/54331ec7020e102935c31096f336d31f6400064f\/lib%2Finternal%2Fbackend%2Ffile%2Ffile.go', 'patch': '@@ -279,14 +279,24 @@ func extractEmbeddedLayer(file *os.File, layerID string, outputPath string) (*os\\n \\treturn layerFile, nil\\n }\\n \\n+\/\/ getAncestry computes an image ancestry, returning an ordered list\\n+\/\/ of dependencies starting from the topmost image to the base.\\n+\/\/ It checks for dependency loops via duplicate detection in the image\\n+\/\/ chain and errors out in such cases.\\n func getAncestry(file *os.File, imgID string) ([]string, error) {\\n \\tvar ancestry []string\\n+\\tdeps := make(map[string]bool)\\n \\n \\tcurImgID := imgID\\n \\n \\tvar err error\\n \\tfor curImgID != \"\" {\\n+\\t\\tif deps[curImgID] {\\n+\\t\\t\\treturn nil, fmt.Errorf(\"dependency loop detected at image %q\", curImgID)\\n+\\t\\t}\\n+\\t\\tdeps[curImgID] = true\\n \\t\\tancestry = append(ancestry, curImgID)\\n+\\t\\tlog.Debug(fmt.Sprintf(\"Getting ancestry for layer %q\", curImgID))\\n \\t\\tcurImgID, err = getParent(file, curImgID)\\n \\t\\tif err != nil {\\n \\t\\t\\treturn nil, err\\n@@ -328,5 +338,6 @@ func getParent(file *os.File, imgID string) (string, error) {\\n \\t\\treturn \"\", err\\n \\t}\\n \\n+\\tlog.Debug(fmt.Sprintf(\"Layer %q depends on layer %q\", imgID, parent))\\n \\treturn parent, nil\\n }'}}",
+      "message_norm":"backend\/file: fix an infinite loop in deps walking (cve-2016-8579)\n\nthis commit fixes a possible infinite loop while traversing\nthe dependency ancestry of a malformed local image file.\n\nthis has been assigned cve-2016-8579:\nhttps:\/\/github.com\/appc\/docker2aci\/issues\/203#issuecomment-253494006",
+      "language":"en",
+      "entities":"[('fix', 'ACTION', ''), ('infinite loop', 'SECWORD', ''), ('cve-2016-8579', 'VULNID', 'CVE'), ('fixes', 'ACTION', ''), ('infinite loop', 'SECWORD', ''), ('cve-2016-8579', 'VULNID', 'CVE'), ('https:\/\/github.com\/appc\/docker2aci\/issues\/203#issuecomment-253494006', 'URL', '')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['lib\/internal\/backend\/file\/file.go'])",
+      "num_files":1.0,
+      "patch_content":"From 54331ec7020e102935c31096f336d31f6400064f Mon Sep 17 00:00:00 2001\nFrom: Luca Bruno <lucab@debian.org>\nDate: Mon, 10 Oct 2016 13:23:55 +0000\nSubject: [PATCH] backend\/file: fix an infinite loop in deps walking\n (CVE-2016-8579)\n\nThis commit fixes a possible infinite loop while traversing\nthe dependency ancestry of a malformed local image file.\n\nThis has been assigned CVE-2016-8579:\nhttps:\/\/github.com\/appc\/docker2aci\/issues\/203#issuecomment-253494006\n---\n lib\/internal\/backend\/file\/file.go | 11 +++++++++++\n 1 file changed, 11 insertions(+)\n\ndiff --git a\/lib\/internal\/backend\/file\/file.go b\/lib\/internal\/backend\/file\/file.go\nindex a83402df..d89cc937 100644\n--- a\/lib\/internal\/backend\/file\/file.go\n+++ b\/lib\/internal\/backend\/file\/file.go\n@@ -279,14 +279,24 @@ func extractEmbeddedLayer(file *os.File, layerID string, outputPath string) (*os\n \treturn layerFile, nil\n }\n \n+\/\/ getAncestry computes an image ancestry, returning an ordered list\n+\/\/ of dependencies starting from the topmost image to the base.\n+\/\/ It checks for dependency loops via duplicate detection in the image\n+\/\/ chain and errors out in such cases.\n func getAncestry(file *os.File, imgID string) ([]string, error) {\n \tvar ancestry []string\n+\tdeps := make(map[string]bool)\n \n \tcurImgID := imgID\n \n \tvar err error\n \tfor curImgID != \"\" {\n+\t\tif deps[curImgID] {\n+\t\t\treturn nil, fmt.Errorf(\"dependency loop detected at image %q\", curImgID)\n+\t\t}\n+\t\tdeps[curImgID] = true\n \t\tancestry = append(ancestry, curImgID)\n+\t\tlog.Debug(fmt.Sprintf(\"Getting ancestry for layer %q\", curImgID))\n \t\tcurImgID, err = getParent(file, curImgID)\n \t\tif err != nil {\n \t\t\treturn nil, err\n@@ -328,5 +338,6 @@ func getParent(file *os.File, imgID string) (string, error) {\n \t\treturn \"\", err\n \t}\n \n+\tlog.Debug(fmt.Sprintf(\"Layer %q depends on layer %q\", imgID, parent))\n \treturn parent, nil\n }",
+      "code_diff":"@@ -279,14 +279,24 @@ func extractEmbeddedLayer(file *os.File, layerID string, outputPath string) (*os\n \treturn layerFile, nil\n }\n \n+\/\/ getAncestry computes an image ancestry, returning an ordered list\n+\/\/ of dependencies starting from the topmost image to the base.\n+\/\/ It checks for dependency loops via duplicate detection in the image\n+\/\/ chain and errors out in such cases.\n func getAncestry(file *os.File, imgID string) ([]string, error) {\n \tvar ancestry []string\n+\tdeps := make(map[string]bool)\n \n \tcurImgID := imgID\n \n \tvar err error\n \tfor curImgID != \"\" {\n+\t\tif deps[curImgID] {\n+\t\t\treturn nil, fmt.Errorf(\"dependency loop detected at image %q\", curImgID)\n+\t\t}\n+\t\tdeps[curImgID] = true\n \t\tancestry = append(ancestry, curImgID)\n+\t\tlog.Debug(fmt.Sprintf(\"Getting ancestry for layer %q\", curImgID))\n \t\tcurImgID, err = getParent(file, curImgID)\n \t\tif err != nil {\n \t\t\treturn nil, err\n@@ -328,5 +338,6 @@ func getParent(file *os.File, imgID string) (string, error) {\n \t\treturn \"\", err\n \t}\n \n+\tlog.Debug(fmt.Sprintf(\"Layer %q depends on layer %q\", imgID, parent))\n \treturn parent, nil\n }"
+    },
+    {
+      "index":2,
+      "vuln_id":"GHSA-cwv3-863g-39vx",
+      "cwe_id":"{'CWE-835', 'CWE-674'}",
+      "score":7.3,
+      "chain":"{'https:\/\/github.com\/tensorflow\/tensorflow\/commit\/c6173f5fe66cdbab74f4f869311fe6aae2ba35f4', 'https:\/\/github.com\/tensorflow\/tensorflow\/commit\/9c1dc920d8ffb4893d6c9d27d1f039607b326743'}",
+      "dataset":"osv",
+      "summary":"Stack overflow due to looping TFLite subgraph ### Impact\nTFlite graphs must not have loops between nodes. However, this condition was not checked and an attacker could craft models that would result in infinite loop during evaluation. In certain cases, the infinite loop would be replaced by stack overflow due to too many recursive calls.\n\nFor example, the [`While` implementation](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/106d8f4fb89335a2c52d7c895b7a7485465ca8d9\/tensorflow\/lite\/kernels\/while.cc) could be tricked into a scneario where both the body and the loop subgraphs are the same. Evaluating one of the subgraphs means calling the `Eval` function for the other and this quickly exhaust all stack space.\n    \n### Patches \nWe have patched the issue in GitHub commit [9c1dc920d8ffb4893d6c9d27d1f039607b326743](https:\/\/github.com\/tensorflow\/tensorflow\/commit\/9c1dc920d8ffb4893d6c9d27d1f039607b326743) (for the `While` operator) and in GitHub commit [c6173f5fe66cdbab74f4f869311fe6aae2ba35f4](https:\/\/github.com\/tensorflow\/tensorflow\/commit\/c6173f5fe66cdbab74f4f869311fe6aae2ba35f4) (in general).\n    \nThe fix will be included in TensorFlow 2.5.0. We will also cherrypick this commit on TensorFlow 2.4.2, TensorFlow 2.3.3, TensorFlow 2.2.3 and TensorFlow 2.1.4, as these are also affected and still in supported range.\n\n### For more information\nPlease consult [our security guide](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/master\/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n\n### Attribution \nThis vulnerability has been reported by members of the Aivul Team from Qihoo 360.",
+      "published_date":"2021-05-21",
+      "chain_len":2,
+      "project":"https:\/\/github.com\/tensorflow\/tensorflow",
+      "commit_href":"https:\/\/github.com\/tensorflow\/tensorflow\/commit\/9c1dc920d8ffb4893d6c9d27d1f039607b326743",
+      "commit_sha":"9c1dc920d8ffb4893d6c9d27d1f039607b326743",
+      "patch":"MULTI",
+      "chain_ord":"['9c1dc920d8ffb4893d6c9d27d1f039607b326743', 'c6173f5fe66cdbab74f4f869311fe6aae2ba35f4']",
+      "before_first_fix_commit":"{'46b80bd2a8943d5976dc83bd5c0322c0023255a7'}",
+      "last_fix_commit":"c6173f5fe66cdbab74f4f869311fe6aae2ba35f4",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"04\/28\/2021, 00:47:46",
+      "message":"Prevent infinite loop\/stack overflow in TFLite `while` op.\n\nPiperOrigin-RevId: 370800333\nChange-Id: I6a2e4ff849da339545c449db2af7e11ce6ff02c3",
+      "author":"Mihai Maruseac",
+      "comments":null,
+      "stats":"{'additions': 2, 'deletions': 0, 'total': 2}",
+      "files":"{'tensorflow\/lite\/kernels\/while.cc': {'additions': 2, 'deletions': 0, 'changes': 2, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/tensorflow\/tensorflow\/raw\/9c1dc920d8ffb4893d6c9d27d1f039607b326743\/tensorflow%2Flite%2Fkernels%2Fwhile.cc', 'patch': '@@ -138,6 +138,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {\\n   auto* subgraphs = this_subgraph->GetSubgraphs();\\n   TF_LITE_ENSURE(context, op_data->cond_subgraph_index < subgraphs->size());\\n   TF_LITE_ENSURE(context, op_data->body_subgraph_index < subgraphs->size());\\n+  TF_LITE_ENSURE(context,\\n+                 op_data->cond_subgraph_index != op_data->body_subgraph_index);\\n \\n   Subgraph* cond_subgraph = (*subgraphs)[op_data->cond_subgraph_index].get();\\n   Subgraph* body_subgraph = (*subgraphs)[op_data->body_subgraph_index].get();'}}",
+      "message_norm":"prevent infinite loop\/stack overflow in tflite `while` op.\n\npiperorigin-revid: 370800333\nchange-id: i6a2e4ff849da339545c449db2af7e11ce6ff02c3",
+      "language":"en",
+      "entities":"[('prevent', 'ACTION', ''), ('infinite loop', 'SECWORD', ''), ('overflow', 'SECWORD', ''), ('370800333', 'SHA', 'generic_sha')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['tensorflow\/lite\/kernels\/while.cc'])",
+      "num_files":1.0,
+      "patch_content":"From 9c1dc920d8ffb4893d6c9d27d1f039607b326743 Mon Sep 17 00:00:00 2001\nFrom: Mihai Maruseac <mihaimaruseac@google.com>\nDate: Tue, 27 Apr 2021 17:47:46 -0700\nSubject: [PATCH] Prevent infinite loop\/stack overflow in TFLite `while` op.\n\nPiperOrigin-RevId: 370800333\nChange-Id: I6a2e4ff849da339545c449db2af7e11ce6ff02c3\n---\n tensorflow\/lite\/kernels\/while.cc | 2 ++\n 1 file changed, 2 insertions(+)\n\ndiff --git a\/tensorflow\/lite\/kernels\/while.cc b\/tensorflow\/lite\/kernels\/while.cc\nindex e05959fe2a6825..74ab81c2a95993 100644\n--- a\/tensorflow\/lite\/kernels\/while.cc\n+++ b\/tensorflow\/lite\/kernels\/while.cc\n@@ -138,6 +138,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {\n   auto* subgraphs = this_subgraph->GetSubgraphs();\n   TF_LITE_ENSURE(context, op_data->cond_subgraph_index < subgraphs->size());\n   TF_LITE_ENSURE(context, op_data->body_subgraph_index < subgraphs->size());\n+  TF_LITE_ENSURE(context,\n+                 op_data->cond_subgraph_index != op_data->body_subgraph_index);\n \n   Subgraph* cond_subgraph = (*subgraphs)[op_data->cond_subgraph_index].get();\n   Subgraph* body_subgraph = (*subgraphs)[op_data->body_subgraph_index].get();",
+      "code_diff":"@@ -138,6 +138,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {\n   auto* subgraphs = this_subgraph->GetSubgraphs();\n   TF_LITE_ENSURE(context, op_data->cond_subgraph_index < subgraphs->size());\n   TF_LITE_ENSURE(context, op_data->body_subgraph_index < subgraphs->size());\n+  TF_LITE_ENSURE(context,\n+                 op_data->cond_subgraph_index != op_data->body_subgraph_index);\n \n   Subgraph* cond_subgraph = (*subgraphs)[op_data->cond_subgraph_index].get();\n   Subgraph* body_subgraph = (*subgraphs)[op_data->body_subgraph_index].get();"
+    }
+  ]
+}
