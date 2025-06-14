@@ -54,3 +54,39 @@ zero_shot_prompt = f"""Generate a SECOM-style security commit message for the fo
 <code_diff>
 ```
 """
+
+
+one_shot_prompt = """Here is an example of a Git diff and its SECOM-compliant commit message:
+
+-------------------------
+Git Diff:
+```diff
+@@ -18,7 +18,7 @@
+ $report = new ElggReportedContent();
+ $report->owner_guid = elgg_get_logged_in_user_guid();
+ $report->title = $title;
+-$report->address = $address;
++$report->address = elgg_normalize_site_url($address);
+ $report->description = $description;
+ $report->access_id = $access;
+
+SECOM Commit Message:
+vuln-fix: Normalize report URL to prevent XSS (GHSA-2xw8-j43j-5vxp)
+
+User-supplied URLs were stored without sanitization in the reported content module.
+This could enable attackers to inject scripts via manipulated URLs, leading to Cross-site Scripting (XSS).
+The patch applies elgg_normalize_site_url() to sanitize input before storage.
+
+Weakness: CWE-79
+Severity: Medium
+CVSS: 5.4
+Detection: Manual code review
+Report: https://github.com/elgg/elgg/commit/c30b17bf75256ed3fcc84e2083147cc3951423d0
+Introduced-in: ea72485b6a08f30f452b8e5425310f2b3546050c
+Signed-off-by: Jerôme Bakker (jeabakker@coldtrick.com)
+
+Now write a SECOM-compliant commit message for the following new diff:
+```diff
+<code_diff>
+```
+"""
