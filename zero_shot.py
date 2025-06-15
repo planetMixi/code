@@ -18,15 +18,18 @@ if not api_key:
 client = OpenAI(api_key=api_key)
 
 
-input_file = "subsets/subset_10.json"
-output_file = "secom_zero_shot_10.csv"
+input_file = "by_weakness/cwe-79_samples.json"
+output_file = "secom_zero_shot_79.csv"
 results = []
 
 # Read the JSON file into a DataFrame
 df = pd.read_json(input_file, orient='table')
 
-# Process each row in the DataFrame
-for i, row in tqdm(df.iterrows(), total=1, desc="Generating SECOM messages"):
+# Process only the second row
+for i, row in tqdm(df.iterrows(), total=len(df), desc="Generating SECOM messages"):
+    if i != 1:
+        continue
+
     try:
         vuln_id = row.get("vuln_id", "")
         code_diff = row.get("code_diff", "")
@@ -41,9 +44,7 @@ for i, row in tqdm(df.iterrows(), total=1, desc="Generating SECOM messages"):
             ]
         )
 
-        generated = response.choices[0].message.content
-        # add a line that removes ``` at the beginning and end of generated
-        generated = generated.replace("```", "").strip()
+        generated = response.choices[0].message.content.replace("```", "").strip()
         print(generated)
         results.append({
             "id": i,
@@ -53,10 +54,12 @@ for i, row in tqdm(df.iterrows(), total=1, desc="Generating SECOM messages"):
             "original_message": original_message,
             "generated_secom_message": generated
         })
-        # REMOVE THIS WHEN YOU WANT TO RUN THE WHOLE SET
-        break
+
+        break  
+
     except Exception as e:
         generated = f"Error: {str(e)}"
+
 
 
 df = pd.DataFrame(results)

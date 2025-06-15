@@ -14,9 +14,6 @@ vuln-fix: <Subject/Header> (<Vulnerability ID>)
 Weakness: <Weakness Name or CWE-ID>
 Severity: <Low | Medium | High | Critical>
 CVSS: <CVSS Score (0-10)>
-Detection: <Detection Method>
-Report: <Link to Advisory or Report>
-Introduced-in: <Commit Hash of Introduced Vuln>
 [End Weakness Block]
 
 Reported-by: <Name> (<Contact>)
@@ -56,37 +53,43 @@ zero_shot_prompt = f"""Generate a SECOM-style security commit message for the fo
 """
 
 
-one_shot_prompt = """Here is an example of a Git diff and its SECOM-compliant commit message:
+one_shot_prompt = """Here is an example of a Git diff and its SECOM-compliant commit message.
 
--------------------------
 Git Diff:
 ```diff
 @@ -18,7 +18,7 @@
  $report = new ElggReportedContent();
- $report->owner_guid = elgg_get_logged_in_user_guid();
- $report->title = $title;
--$report->address = $address;
-+$report->address = elgg_normalize_site_url($address);
- $report->description = $description;
- $report->access_id = $access;
+ $report->url = get_input('url');
+ $report->title = get_input('title');
+-$report->description = get_input('description');
++$report->description = htmlspecialchars(get_input('description'), ENT_QUOTES, 'UTF-8');
+ $report->address = get_input('address');
+ $report->reported_by_guid = elgg_get_logged_in_user_guid();
+ $report->time_created = time();
+```
 
 SECOM Commit Message:
-vuln-fix: Normalize report URL to prevent XSS (GHSA-2xw8-j43j-5vxp)
+vuln-fix: Sanitize description in report form to prevent XSS (GHSA-2xw8-j43j-5vxp)
 
-User-supplied URLs were stored without sanitization in the reported content module.
-This could enable attackers to inject scripts via manipulated URLs, leading to Cross-site Scripting (XSS).
-The patch applies elgg_normalize_site_url() to sanitize input before storage.
+The report submission form failed to sanitize user-supplied descriptions before rendering them.  
+This allowed malicious users to inject HTML or JavaScript, leading to potential Cross-site Scripting (XSS) attacks.  
+The patch escapes the description input using `htmlspecialchars` to safely encode special characters.
 
-Weakness: CWE-79
-Severity: Medium
+Weakness: CWE-79  
+Severity: Medium  
 CVSS: 5.4
-Detection: Manual code review
-Report: https://github.com/elgg/elgg/commit/c30b17bf75256ed3fcc84e2083147cc3951423d0
-Introduced-in: ea72485b6a08f30f452b8e5425310f2b3546050c
-Signed-off-by: Jerôme Bakker (jeabakker@coldtrick.com)
 
-Now write a SECOM-compliant commit message for the following new diff:
+Use:
+Vulnerability ID: {vuln_id}
+CWE: {cwe_id}
+Commit Author: {author}
+Commit Date: {commit_datetime}
+Commit Message: {commit_message}
+Co-authors: {coauthors}
+Only include optional metadata fields (Reported-by, Reviewed-by, Co-authored-by, Signed-off-by, Bug-tracker, Resolves, See also) if and only if they are explicitly present in the provided metadata.
+Do not fabricate, infer, or insert placeholders for missing fields.
+Git Diff:
 ```diff
-<code_diff>
+{code_diff}
 ```
 """

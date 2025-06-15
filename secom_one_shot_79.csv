@@ -1,0 +1,38 @@
+id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message
+1,CWE-79,GHSA-pjpc-87mp-4332,"@@ -8,6 +8,7 @@
+  *
+  * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
+  */
++
+ if ($item = ((isset($event['extra'])) ? $event['extra']['stat'] : false)): ?>
+     <p>
+         <?php if (!empty($item['isFailed'])) : ?>
+@@ -63,7 +64,7 @@
+             endif;
+             ?>
+             <?php if ($counter > 1): ?><hr/><?php endif; ?>
+-            <strong><?php echo $view['date']->toText($detail['datetime'], 'UTC'); ?></strong><br/><?php echo $detail['useragent']; ?>
++            <strong><?php echo $view['date']->toText($detail['datetime'], 'UTC'); ?></strong><br/><?php echo $view->escape($detail['useragent']); ?>
+             <?php ++$counter; ?>
+         <?php endforeach; ?>
+         <?php","Merge pull request from GHSA-pjpc-87mp-4332
+
+* sanitise user agent before displaying
+
+* Update app/bundles/EmailBundle/Views/SubscribedEvents/Timeline/index.html.php
+
+Co-authored-by: John Linhart <admin@escope.cz>
+
+* removed obsolete use statement
+
+Co-authored-by: John Linhart <admin@escope.cz>","vuln-fix: Sanitize user agent before displaying to prevent XSS (GHSA-pjpc-87mp-4332)
+
+The application was directly outputting user agent strings without proper sanitization.  
+This could allow attackers to inject malicious scripts that execute in the user's browser, leading to Cross-site Scripting (XSS) vulnerabilities.  
+The solution involves using the application's escape function to sanitize the user agent string before it is rendered.
+
+Weakness: CWE-79  
+Severity: Medium  
+CVSS: 5.4  
+
+Co-authored-by: John Linhart <admin@escope.cz>"
