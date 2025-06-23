@@ -5,12 +5,10 @@ from openai import OpenAI
 from tqdm import tqdm
 from dotenv import load_dotenv
 
-from prompts import system_prompt, few_shot_prompt
+from prompts import system_prompt_short, few_shot_prompt
 
-# Load environment variables
 load_dotenv()
 
-# Initialize OpenAI client
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     raise ValueError("OPENAI_API_KEY not found in environment variables. Please check your .env file.")
@@ -20,7 +18,6 @@ input_file = "subsets/subset_1.json"
 output_file = "secom_few_shot_1.csv"
 results = []
 
-# Read the JSON file into a DataFrame
 df = pd.read_json(input_file, orient='table')
 
 # Process entries 1–10 (skip index 0)
@@ -39,7 +36,7 @@ for i, row in tqdm(df.head(10).iterrows(), total=10, desc="Generating SECOM mess
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": system_prompt_short},
                 {"role": "user", "content": user_prompt_filled}
             ]
         )
