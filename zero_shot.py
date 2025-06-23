@@ -19,16 +19,16 @@ client = OpenAI(api_key=api_key)
 
 
 input_file = "by_weakness/cwe-79_samples.json"
-output_file = "secom_zero_shot_79.csv"
+output_file = "secom_zero_shot_with_rules.csv"
 results = []
 
 # Read the JSON file into a DataFrame
 df = pd.read_json(input_file, orient='table')
 
-# Process only the second row
+count = 0
 for i, row in tqdm(df.iterrows(), total=len(df), desc="Generating SECOM messages"):
-    if i != 1:
-        continue
+    if count >= 5:
+        break
 
     try:
         vuln_id = row.get("vuln_id", "")
@@ -55,7 +55,7 @@ for i, row in tqdm(df.iterrows(), total=len(df), desc="Generating SECOM messages
             "generated_secom_message": generated
         })
 
-        break  
+        count += 1  
 
     except Exception as e:
         generated = f"Error: {str(e)}"
@@ -64,4 +64,4 @@ for i, row in tqdm(df.iterrows(), total=len(df), desc="Generating SECOM messages
 
 df = pd.DataFrame(results)
 df.to_csv(output_file, index=False)
-print(f"First 10 SECOM messages saved to {output_file}")
+print(f"SECOM messages saved to {output_file}")

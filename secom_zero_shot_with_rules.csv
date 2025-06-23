@@ -1,5 +1,30 @@
 id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message
-1,CWE-79,GHSA-pjpc-87mp-4332,"@@ -8,6 +8,7 @@
+0,{'CWE-79'},GHSA-2xw8-j43j-5vxp,"@@ -18,7 +18,7 @@
+ $report = new ElggReportedContent();
+ $report->owner_guid = elgg_get_logged_in_user_guid();
+ $report->title = $title;
+-$report->address = $address;
++$report->address = elgg_normalize_site_url($address);
+ $report->description = $description;
+ $report->access_id = $access;",fix(reported_content): sanitize report URLs,"vuln-fix: Normalize URL to Prevent Open Redirects (CWE-601)
+
+An open redirect vulnerability exists due to improper handling of unvalidated URLs. 
+This poses a significant security risk as attackers could exploit it to redirect users to malicious sites. 
+The issue was fixed by normalizing the site URL before assigning it to the report's address.
+
+Weakness: Open Redirect
+Severity: Medium
+CVSS: 6.0
+
+Reported-by: 
+Reviewed-by: 
+Co-authored-by: 
+Signed-off-by: 
+
+Bug-tracker: 
+Resolves: 
+See also:"
+1,{'CWE-79'},GHSA-pjpc-87mp-4332,"@@ -8,6 +8,7 @@
   *
   * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
   */
@@ -25,16 +50,18 @@ Co-authored-by: John Linhart <admin@escope.cz>
 
 * removed obsolete use statement
 
-Co-authored-by: John Linhart <admin@escope.cz>","vuln-fix: Escape user agent information in rendered output (GHSA-f8g9-v6wg-pq3h)
+Co-authored-by: John Linhart <admin@escope.cz>","vuln-fix: Escape User-Agent to Prevent XSS (CWE-79)
 
-The code previously displayed raw user agent strings directly in the rendered output.  
-This practice can lead to cross-site scripting (XSS) vulnerabilities if unsanitized data is injected.  
-The issue was resolved by applying the `escape` method to sanitize the user agent information before rendering it.
+The application did not properly escape user input in the User-Agent field. 
+This oversight could allow an attacker to inject malicious scripts, leading to potential cross-site scripting (XSS) attacks. 
+This vulnerability was addressed by utilizing an escape function on the User-Agent output.
 
-Weakness: CWE-79  
-Severity: Medium  
-CVSS: 5.5"
-2,CWE-79,GHSA-5x33-h32w-6vr2,"@@ -211,7 +211,7 @@
+Weakness: Improper Neutralization of Input During Web Page Generation
+Severity: High
+CVSS: 7.5
+
+Signed-off-by: [Your Name] ([Your Contact])"
+2,{'CWE-79'},GHSA-5x33-h32w-6vr2,"@@ -211,7 +211,7 @@
  print('<div class=""tag-management-form generalbox""><label class=""accesshide"" for=""id_tagfilter"">'. get_string('search') .'</label>'.
      '<input type=""hidden"" name=""tc"" value=""'.$tagcollid.'"" />'.
      '<input type=""hidden"" name=""perpage"" value=""'.$perpage.'"" />'.
@@ -42,16 +69,23 @@ CVSS: 5.5"
 +    '<input id=""id_tagfilter"" name=""filter"" type=""text"" value=""' . s($filter) . '"">'.
      '<input value=""'. s(get_string('search')) .'"" type=""submit"" class=""btn btn-secondary""> '.
      ($filter !== '' ? html_writer::link(new moodle_url($PAGE->url, array('filter' => null)),
-         get_string('resetfilter', 'tag'), array('class' => 'resetfilterlink')) : '').",MDL-69340 tag: Correct the filter input HTML in the tag manager,"vuln-fix: Fix improper HTML attribute escaping in tag filter (GHSA-9c7c-4h56-cwmq)
+         get_string('resetfilter', 'tag'), array('class' => 'resetfilterlink')) : '').",MDL-69340 tag: Correct the filter input HTML in the tag manager,"vuln-fix: Fix HTML injection in tag filter input (CWE-79)
 
-The code previously outputted potentially unsafe values directly into the HTML attribute without proper escaping.  
-This can lead to XSS (Cross-Site Scripting) vulnerabilities, allowing attackers to inject malicious scripts into the page.  
-The patch fixes this issue by ensuring the value assigned to the input's `value` attribute is properly wrapped in quotation marks and escaped.
+The previous code allowed unescaped user input to be rendered in the HTML output. This is a security risk as it may allow attackers to inject arbitrary HTML or scripts into the page, leading to potential cross-site scripting (XSS) attacks. The vulnerability was mitigated by ensuring that the user input is properly escaped before being included in the HTML output.
 
-Weakness: CWE-79  
-Severity: High  
-CVSS: 7.5"
-3,"CWE-79', 'CWE-843",GHSA-5f38-9jw2-6r6h,"@@ -96,8 +96,15 @@ function escapeEntities (value) {
+Weakness: Improper Neutralization of Input During Web Page Generation (CWE-79)
+Severity: High
+CVSS: 7.5
+
+Reported-by: 
+Reviewed-by: 
+Co-authored-by: 
+Signed-off-by: 
+
+Bug-tracker: 
+Resolves: 
+See also:"
+3,"{'CWE-79', 'CWE-843'}",GHSA-5f38-9jw2-6r6h,"@@ -96,8 +96,15 @@ function escapeEntities (value) {
    let i
    let j
  
@@ -145,72 +179,26 @@ From: Eric Newport <kethinov@gmail.com>
        if (value.length === 0) {
          return false // empty arrays are falsey","Merge pull request #518 from kethinov/refactor-escape-entities
 
-refactor escape entities for better type checking","vuln-fix: Enhance escapeEntities function to handle types (GHSA-2j8q-jr39-2g8w)
+refactor escape entities for better type checking","vuln-fix: Prevent Object and Array Escaping Issues (CWE-20)
 
-The `escapeEntities` function previously did not handle various input types consistently, leading to potential logic issues.  
-This could allow unhandled types like objects or arrays to introduce unexpected behavior, potentially causing security vulnerabilities.  
-The update ensures that the function appropriately identifies and responds to different input types, improving overall robustness.
+The function escapeEntities previously mishandled various object types, particularly undefined and empty arrays. If not correctly processed, this could lead to unintended application behavior, including potential exposure of sensitive data. Modifications were made to ensure that only valid types are processed, returning clear indications for empty arrays and objects without exposing their contents.
 
-Weakness: CWE-20  
-Severity: Medium  
-CVSS: 4.3
+Weakness: Improper Input Validation
+Severity: Medium
+CVSS: 5.0
 
 Reported-by: Eric Newport (kethinov@gmail.com)"
-4,CWE-79,GHSA-hf4q-52x6-4p57,"@@ -591,6 +591,7 @@ function get_dangerous_files_extentions()
+4,{'CWE-79'},GHSA-hf4q-52x6-4p57,"@@ -591,6 +591,7 @@ function get_dangerous_files_extentions()
              'py',
              'alfa',
              'asp',
 +            'aspx',
              'htaccess',
              'exe',
-             'msi',",update,"vuln-fix: Add dangerous file extension to blacklist (GHSA-a8qm-gc23-m9h3)
+             'msi',",update,"vuln-fix: Prevent Potential File Inclusion Vulnerability (CWE-22)
 
-The file extension 'aspx' was previously not included in the list of dangerous file extensions.  
-This omission allows for the potential upload and execution of harmful ASP.NET files, which could compromise the security of the application.  
-The patch resolves this issue by adding 'aspx' to the existing blacklist of dangerous file extensions.
+The modification introduces 'aspx' to the list of dangerous file extensions. This extension posed a risk for potential file inclusion attacks due to insecure file handling. The fix was implemented by explicitly adding 'aspx' to the array of blocked extensions.
 
-Weakness: CWE-20  
-Severity: High  
-CVSS: 7.5"
-5,CWE-79,GHSA-grw5-g9h2-wpg8,"@@ -23,15 +23,7 @@ $.extend($.fn.bootstrapTable.defaults, {
-   showExport: false,
-   exportDataType: 'basic', // basic, all, selected
-   exportTypes: ['json', 'xml', 'csv', 'txt', 'sql', 'excel'],
--  exportOptions: {
--    onCellHtmlData (cell, rowIndex, colIndex, htmlData) {
--      if (cell.is('th')) {
--        return cell.find('.th-inner').text()
--      }
--
--      return htmlData
--    }
--  },
-+  exportOptions: {},
-   exportFooter: false
- })
- 
-@@ -162,13 +154,9 @@ $.BootstrapTable = class extends $.BootstrapTable {
-     $exportButtons.click(e => {
-       e.preventDefault()
- 
--      const type = $(e.currentTarget).data('type')
--      const exportOptions = {
--        type,
--        escape: false
--      }
--
--      this.exportTable(exportOptions)
-+      this.exportTable({
-+        type: $(e.currentTarget).data('type')
-+      })
-     })
-     this.handleToolbar()
-   }",Fixed XSS vulnerability bug by onCellHtmlData,"vuln-fix: Remove unsafe HTML output in export options (GHSA-3fpj-7g8p-7h64)
-
-The export functionality previously allowed HTML content to be included in the exported data.  
-This could lead to security risks such as Cross-Site Scripting (XSS) if malicious HTML was executed when the data was processed or displayed.  
-The code was modified to prevent HTML escaping by ensuring that the export options do not allow unsafe HTML data.
-
-Weakness: CWE-79  
-Severity: High  
-CVSS: 7.5"
+Weakness: Improper Limitation of a Pathname to a Restricted Directory
+Severity: Medium
+CVSS: 5.0"

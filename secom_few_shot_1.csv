@@ -1,0 +1,263 @@
+id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message
+135,CWE-20,GHSA-h2wq-prv9-2f56,"@@ -174,13 +174,13 @@ class QuantizeAndDequantizeV4GradientOp : public OpKernel {
+     OP_REQUIRES(ctx,
+                 input_min_tensor.dims() == 0 || input_min_tensor.dims() == 1,
+                 errors::InvalidArgument(
+-                    ""Input min tensor must have dimension 1. Recieved "",
++                    ""Input min tensor must have dimension 0 or 1. Received "",
+                     input_min_tensor.dims(), "".""));
+     const Tensor& input_max_tensor = ctx->input(3);
+     OP_REQUIRES(ctx,
+                 input_max_tensor.dims() == 0 || input_max_tensor.dims() == 1,
+                 errors::InvalidArgument(
+-                    ""Input max tensor must have dimension 1. Recieved "",
++                    ""Input max tensor must have dimension 0 or 1. Received "",
+                     input_max_tensor.dims(), "".""));
+     if (axis_ != -1) {
+       OP_REQUIRES(
+@@ -203,6 +203,12 @@ class QuantizeAndDequantizeV4GradientOp : public OpKernel {
+                    ctx->allocate_output(2, min_max_shape, &input_max_backprop));
+ 
+     if (axis_ == -1) {
++      OP_REQUIRES(ctx, TensorShapeUtils::IsScalar(input_min_tensor.shape()),
++                  errors::InvalidArgument(
++                      ""input_min must be a scalar if axis is unspecified""));
++      OP_REQUIRES(ctx, TensorShapeUtils::IsScalar(input_max_tensor.shape()),
++                  errors::InvalidArgument(
++                      ""input_max must be a scalar if axis is unspecified""));
+       functor::QuantizeAndDequantizeOneScaleGradientFunctor<Device, T> f;
+       f(ctx->eigen_device<Device>(), gradient.template flat<T>(),
+         input.template flat<T>(), input_min_tensor.scalar<T>(),","Fix tf.raw_ops.QuantizeAndDequantizeV4Grad vulnerability with invalid input_min or input_max.
+
+Check that argument is actually a scalar before treating it as such.
+
+PiperOrigin-RevId: 445198280","Fix dimension checks for input tensors in QuantizeAndDequantizeV4GradientOp (CWE-20)
+
+The implementation did not validate the dimensions of input tensor minimum and maximum values appropriately, allowing potentially invalid tensor shapes. This oversight could lead to runtime errors or inconsistent behavior when the tensor dimensions do not meet expectations, potentially crashing the system or causing processing logic failures. The patch adds checks to ensure input tensors have the correct dimensions, thus preventing such issues.
+
+Weakness: CWE-20
+Severity: Medium
+CVSS: 5.0"
+474,CWE-79,GHSA-2xw8-j43j-5vxp,"@@ -18,7 +18,7 @@
+ $report = new ElggReportedContent();
+ $report->owner_guid = elgg_get_logged_in_user_guid();
+ $report->title = $title;
+-$report->address = $address;
++$report->address = elgg_normalize_site_url($address);
+ $report->description = $description;
+ $report->access_id = $access;",fix(reported_content): sanitize report URLs,"Sanitize user-supplied addresses in the report submission form to prevent exploitation. 
+Unsanitized addresses could allow for injection of malicious or malformed URLs, leading to redirection attacks or phishing attempts. 
+The patch applies elgg_normalize_site_url to clean the address input before storing it.
+
+Weakness: CWE-79
+Severity: Medium
+CVSS: 5.4"
+934,CWE-617,GHSA-fx5c-h9f6-rv7c,"@@ -1363,6 +1363,11 @@ Status ConstantFolding::EvaluateOneFoldable(const NodeDef& node,
+                           input_tensor.ToString(),
+                           "" has a dtype of DT_INVALID.""));
+     }
++    if (IsRefType(raw_val.dtype())) {
++      return errors::InvalidArgument(
++          ""Not allowed to construct a tensor with reference dtype, got "",
++          DataTypeString(raw_val.dtype()));
++    }
+     Tensor* value = new Tensor(raw_val.dtype(), raw_val.tensor_shape());
+     if (!value->FromProto(raw_val)) {
+       delete (value);","Prevent `CHECK`-fail when building reference tensor.
+
+The tensor constructor does not allow reference dtypes, as these should not show up explicitly. However, when passed these invalid types instead of building an invalid object the constructor crashes via a `CHECK`-fail. We have a static builder that properly handles this case but is not applicable given current usage.
+
+Instead, before calling the constructor, we can check that the dtype is not a reference type and return an error otherwise, given that the dtype is user controlled so malicious users can trigger denial of service.
+
+PiperOrigin-RevId: 409662503
+Change-Id: I5892f831fde7f276cd7ab34519cf6b8061c71a59","Prevent constructing tensors with reference dtypes (CWE-617)
+
+The implementation allowed tensors with invalid reference dtypes to be constructed, leading to potential crashes or undefined behavior. This represents a security risk as it can cause assertion failures and affect the stability of the application. The patch introduces a validation check to ensure that tensors with reference types cannot be created, thus preventing this issue.
+
+Weakness: CWE-617
+Severity: Medium
+CVSS: 5.5"
+689,CWE-79,GHSA-pjpc-87mp-4332,"@@ -8,6 +8,7 @@
+  *
+  * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
+  */
++
+ if ($item = ((isset($event['extra'])) ? $event['extra']['stat'] : false)): ?>
+     <p>
+         <?php if (!empty($item['isFailed'])) : ?>
+@@ -63,7 +64,7 @@
+             endif;
+             ?>
+             <?php if ($counter > 1): ?><hr/><?php endif; ?>
+-            <strong><?php echo $view['date']->toText($detail['datetime'], 'UTC'); ?></strong><br/><?php echo $detail['useragent']; ?>
++            <strong><?php echo $view['date']->toText($detail['datetime'], 'UTC'); ?></strong><br/><?php echo $view->escape($detail['useragent']); ?>
+             <?php ++$counter; ?>
+         <?php endforeach; ?>
+         <?php","Merge pull request from GHSA-pjpc-87mp-4332
+
+* sanitise user agent before displaying
+
+* Update app/bundles/EmailBundle/Views/SubscribedEvents/Timeline/index.html.php
+
+Co-authored-by: John Linhart <admin@escope.cz>
+
+* removed obsolete use statement
+
+Co-authored-by: John Linhart <admin@escope.cz>","Escape output for user agent to prevent XSS vulnerabilities.
+
+The original code displayed raw user input without sanitization, making it susceptible to cross-site scripting attacks. 
+
+The patch applies the escape method to safely encode the user agent data before rendering it in the HTML context.
+
+Weakness: CWE-79
+Severity: Medium
+CVSS: 5.4"
+24,CWE-601,GHSA-763j-q7wv-vf3m,"@@ -14,6 +14,7 @@
+ import javax.servlet.http.HttpServletRequest;
+ import javax.servlet.http.HttpServletResponse;
+ 
++import org.apache.log4j.Logger;
+ import org.dspace.authorize.AuthorizeException;
+ import org.dspace.core.Context;
+ 
+@@ -25,8 +26,8 @@
+  */
+ public class ControlledVocabularyServlet extends DSpaceServlet
+ {
+-    // private static Logger log =
+-    // Logger.getLogger(ControlledVocabularyServlet.class);
++    private static Logger log =
++    Logger.getLogger(ControlledVocabularyServlet.class);
+ 
+     protected void doDSGet(Context context, HttpServletRequest request,
+             HttpServletResponse response) throws ServletException, IOException,
+@@ -37,6 +38,13 @@ protected void doDSGet(Context context, HttpServletRequest request,
+         String filter = """";
+         String callerUrl = request.getParameter(""callerUrl"");
+ 
++        // callerUrl must starts with URL outside DSpace request context path
++        if(!callerUrl.startsWith(request.getContextPath())) {
++            log.error(""Controlled vocabulary caller URL would result in redirect outside DSpace web app: "" + callerUrl + "". Rejecting request with 400 Bad Request."");
++            response.sendError(400, ""The caller URL must be within the DSpace base URL of "" + request.getContextPath());
++            return;
++        }
++
+         if (request.getParameter(""ID"") != null)
+         {
+             ID = request.getParameter(""ID"");",[DS-4133] Improve URL handling in Controlled Vocab JSPUI servlet,"Prevent open redirects in ControlledVocabularyServlet (CWE-601)
+
+The controlled vocabulary servlet did not validate the source of the 'callerUrl' parameter, potentially allowing open redirects. This could permit attackers to redirect unsuspecting users to malicious sites, risking phishing or other malicious activities. The patch adds a check to ensure the 'callerUrl' starts with the application context path, rejecting any invalid URLs.
+
+Weakness: CWE-601
+Severity: Medium
+CVSS: 5.5"
+513,CWE-918,GHSA-6mv9-hcx5-7mhh,"@@ -341,6 +341,8 @@ public FormValidation doValidateProxy(
+                 @QueryParameter(""userName"") String userName, @QueryParameter(""password"") String password,
+                 @QueryParameter(""noProxyHost"") String noProxyHost) {
+ 
++            Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
++
+             if (Util.fixEmptyAndTrim(testUrl) == null) {
+                 return FormValidation.error(Messages.ProxyConfiguration_TestUrlRequired());
+             }",[SECURITY-506] Require admin permission to validate proxy config.,"Ensure only administrators can validate proxy settings (CWE-285)
+
+The proxy validation method lacked authorization checks, allowing any user to trigger server-side HTTP requests without restriction. This enabled potential SSRF attacks by letting untrusted users probe internal systems or exfiltrate sensitive data through crafted test URLs. The patch introduces a permission check to ensure only administrators can initiate proxy validation.
+
+Weakness: CWE-918
+Severity: Medium
+CVSS: 5.3"
+789,CWE-617,GHSA-fq86-3f29-px2c,"@@ -1689,7 +1689,11 @@ Status ConstantFolding::IsSimplifiableReshape(
+   if (!IsReshape(node)) {
+     return errors::Internal(""Node "", node.name(), "" is not a Reshape node"");
+   }
+-  CHECK_LE(2, node.input_size());
++  if (2 > node.input_size()) {
++    return errors::Internal(""Node "", node.name(),
++                            "" must have at most 2 inputs but has "",
++                            node.input_size());
++  }
+   const NodeDef* new_shape = node_map_->GetNode(node.input(1));
+   if (!IsReallyConstant(*new_shape)) {
+     return errors::Internal(""Node "", node.name(), "" has shape "",
+@@ -1707,7 +1711,11 @@ Status ConstantFolding::IsSimplifiableReshape(
+   if (!s.ok()) {
+     return errors::Internal(""Could not evaluate node "", node.name());
+   }
+-  CHECK_EQ(1, outputs.size());
++  if (outputs.size() != 1) {
++    return errors::Internal(""Node "", node.name(),
++                            "" must have exactly 1 output but has "",
++                            outputs.size());
++  }
+ 
+   const std::vector<OpInfo::TensorProperties>& props =
+       properties.GetInputProperties(node.name());","Remove `CHECK`-fails from `IsSimplifiableReshape`
+
+PiperOrigin-RevId: 409164987
+Change-Id: I58c7dd459ff348c3dbae95e00c4c5e63b30a4e65","Fix Internal State Validation in Constant Folding (CWE-617)
+
+The reshape node processing did not validate the number of inputs and outputs before proceeding. 
+This could lead to unreachable assertion failures or undefined behavior due to unexpected node configurations. 
+The patch adds checks to ensure that the node has the correct number of inputs and outputs, returning appropriate error messages if not.
+
+Weakness: CWE-617
+Severity: Medium
+CVSS: 5.6"
+749,CWE-352,GHSA-h8hx-2c5r-32cf,"@@ -9,6 +9,9 @@ module Authentication
+ 
+           prepend_before_action :require_authenticated_user
+           prepend_before_action :authenticate_user
++
++          # Ensure that CSRF protection happens before authentication
++          protect_from_forgery prepend: true
+         end
+ 
+       protected",Ensure CSRF protection is prepended before authentication before_actions,"Ensure CSRF protection is enforced before user authentication. 
+Failure to implement this could expose the application to Cross-Site Request Forgery attacks, allowing malicious requests to be made on behalf of authenticated users without their consent. 
+The patch adds a call to 'protect_from_forgery' to ensure that CSRF tokens are validated before processing user authentication requests.
+
+Weakness: CWE-352
+Severity: High
+CVSS: 7.2"
+386,CWE-300,GHSA-4r4m-hjwj-43p8,"@@ -90,7 +90,7 @@ function Socket (uri, opts) {
+   this.cert = opts.cert || null;
+   this.ca = opts.ca || null;
+   this.ciphers = opts.ciphers || null;
+-  this.rejectUnauthorized = opts.rejectUnauthorized === undefined ? null : opts.rejectUnauthorized;
++  this.rejectUnauthorized = opts.rejectUnauthorized === undefined ? true : opts.rejectUnauthorized;
+ 
+   // other options for Node.js client
+   var freeGlobal = typeof global === 'object' && global;",default `rejectUnauthorized` to `true`,"Ensure Socket always rejects unauthorized SSL certificates by default.
+This change mitigates the risk of man-in-the-middle attacks that can occur when untrusted certificates are accepted, potentially allowing attackers to intercept data.
+The patch sets the `rejectUnauthorized` option to `true` by default unless explicitly overridden.
+
+Weakness: CWE-295
+Severity: High
+CVSS: 7.1"
+865,"CWE-12', 'CWE-22",GHSA-qh9q-34h6-hcv9,"@@ -4,6 +4,7 @@
+ import mimetypes
+ import os
+ import os.path
++import posixpath
+ import re
+ import socketserver
+ import threading
+@@ -183,9 +184,11 @@ def condition():
+         if path == ""/js/livereload.js"":
+             file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ""livereload.js"")
+         elif path.startswith(self.mount_path):
+-            rel_file_path = path[len(self.mount_path):].lstrip(""/"")
++            rel_file_path = path[len(self.mount_path):]
+             if path.endswith(""/""):
+                 rel_file_path += ""index.html""
++            # Prevent directory traversal - normalize the path.
++            rel_file_path = posixpath.normpath(""/"" + rel_file_path).lstrip(""/"")
+             file_path = os.path.join(self.root, rel_file_path)
+         elif path == ""/"":
+             start_response(""302 Found"", [(""Location"", self.mount_path)])",Prevent directory traversal in the dev server,"Prevent directory traversal vulnerability in file retrieval
+Path traversal attacks could allow unauthorized file access by manipulating the request path.
+The patch normalizes the path to prevent accessing files outside the intended directory structure.
+
+Weakness: CWE-22
+Severity: High
+CVSS: 7.5"
