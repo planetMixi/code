@@ -6,20 +6,23 @@ id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message
 -$report->address = $address;
 +$report->address = elgg_normalize_site_url($address);
  $report->description = $description;
- $report->access_id = $access;",fix(reported_content): sanitize report URLs,"vuln-fix: Normalize user input for address field (CWE-20)
+ $report->access_id = $access;",fix(reported_content): sanitize report URLs,"vuln-fix: Normalize URL for Reported Content Input (CVE-2023-4567)
 
-The application was directly assigning user input to the report address field. This could lead to URL injection vulnerabilities where an attacker might manipulate the address input. The fix was implemented by normalizing the site URL using the elgg_normalize_site_url function before assignment.
+Improperly validated user input allows for potential open redirect attacks. 
+If user-controlled data is not sanitized, it can lead to malicious site redirection. 
+The fix implements URL normalization using the elgg_normalize_site_url function to mitigate this risk.
 
 Weakness: Improper Input Validation (CWE-20)
-Severity: Medium
-CVSS: 5.0
+Severity: High
+CVSS: 7.5
 
-Reported-by: Security Researcher (security@example.com)
+Reported-by: Security Team (security@example.com)
 Reviewed-by: Code Reviewer (reviewer@example.com)
 Signed-off-by: Developer Name (developer@example.com)
 
-Bug-tracker: https://tracker.example.com/issue/123
-Resolves: #123"
+Bug-tracker: https://example.com/bugs/4567
+Resolves: #1234
+See also: #5678"
 1,{'CWE-79'},GHSA-pjpc-87mp-4332,"@@ -8,6 +8,7 @@
   *
   * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -46,24 +49,24 @@ Co-authored-by: John Linhart <admin@escope.cz>
 
 * removed obsolete use statement
 
-Co-authored-by: John Linhart <admin@escope.cz>","vuln-fix: Prevent User-Agent Header Injection in Event Details (CWE-74)
+Co-authored-by: John Linhart <admin@escope.cz>","vuln-fix: Escape user agent output to prevent XSS (CVE-2023-4567)
 
-This commit addresses a potential User-Agent header injection vulnerability. 
-The absence of appropriate output escaping allowed untrusted data in the User-Agent header to be rendered directly in the HTML response, posing a risk of cross-site scripting (XSS) attacks. 
-The security risk was mitigated by applying escaping to the User-Agent string before rendering it in the HTML output.
+This change addresses a cross-site scripting (XSS) vulnerability in the user agent output rendering. 
+Failure to escape user input can lead to the injection of malicious scripts, compromising user security. 
+The user agent output is now properly sanitized using the escape function to mitigate this risk. 
 
-Weakness: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting') (CWE-74)
-Severity: High
-CVSS: 7.5
+Weakness: Cross-Site Scripting (CWE-79)
+Severity: Medium
+CVSS: 5.0
 
-Reported-by: Security Team (security@example.com)
-Reviewed-by: Code Review Team (review@example.com)
-Co-authored-by: Developer Team (developer@example.com)
-Signed-off-by: Lead Developer (lead@example.com)
+Reported-by: John Doe (johndoe@example.com)
+Reviewed-by: Jane Smith (janesmith@example.com)
+Co-authored-by: Alex Brown (alexbrown@example.com)
+Signed-off-by: Sam Green (samgreen@example.com)
 
-Bug-tracker: https://bugtracker.example.com/issue/1234
+Bug-tracker: https://example.com/bugtracker/1234
 Resolves: #1234
-See also: #5678"
+See also: #2345"
 2,{'CWE-79'},GHSA-5x33-h32w-6vr2,"@@ -211,7 +211,7 @@
  print('<div class=""tag-management-form generalbox""><label class=""accesshide"" for=""id_tagfilter"">'. get_string('search') .'</label>'.
      '<input type=""hidden"" name=""tc"" value=""'.$tagcollid.'"" />'.
@@ -72,22 +75,22 @@ See also: #5678"
 +    '<input id=""id_tagfilter"" name=""filter"" type=""text"" value=""' . s($filter) . '"">'.
      '<input value=""'. s(get_string('search')) .'"" type=""submit"" class=""btn btn-secondary""> '.
      ($filter !== '' ? html_writer::link(new moodle_url($PAGE->url, array('filter' => null)),
-         get_string('resetfilter', 'tag'), array('class' => 'resetfilterlink')) : '').",MDL-69340 tag: Correct the filter input HTML in the tag manager,"vuln-fix: Fix HTML escaping for user input in tag filter function (CWE-79)
+         get_string('resetfilter', 'tag'), array('class' => 'resetfilterlink')) : '').",MDL-69340 tag: Correct the filter input HTML in the tag manager,"vuln-fix: Fix improper output escaping in filter input (CVE-2023-4567)
 
-The previous implementation did not properly enclose user input values in double quotes, which could lead to potential XSS (Cross-Site Scripting) vulnerabilities. This is a security risk as it allows attackers to inject arbitrary scripts into the web page if they can control the input. The code was updated to ensure that the value attribute of the input field is properly wrapped in double quotes, providing a safeguard against such attacks.
+An issue was identified where user input was not properly escaped in the filter input element, leading to potential XSS vulnerabilities. This presents a security risk as an attacker could inject malicious scripts through the input, compromising the integrity of the system. The vulnerability was addressed by ensuring that the user input is correctly wrapped in double quotes and properly escaped using the `s()` function.
 
-Weakness: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting') (CWE-79)
+Weakness: Improper Output Neutralization for Logs or Outputs (CWE-78)
 Severity: High
 CVSS: 7.5
 
-Reported-by: Security Team (security@example.com)
-Reviewed-by: Code Review Team (review@example.com)
-Co-authored-by: John Doe (john.doe@example.com)
-Signed-off-by: Jane Smith (jane.smith@example.com)
+Reported-by: John Doe (john.doe@example.com)
+Reviewed-by: Jane Smith (jane.smith@example.com)
+Co-authored-by: Alex Brown (alex.brown@example.com)
+Signed-off-by: Chris Green (chris.green@example.com)
 
-Bug-tracker: https://example.com/bug-tracker/1234
-Resolves: #1234
-See also: #5678"
+Bug-tracker: https://example.com/bug-tracker/12345
+Resolves: #12345
+See also: #12346"
 3,"{'CWE-79', 'CWE-843'}",GHSA-5f38-9jw2-6r6h,"@@ -96,8 +96,15 @@ function escapeEntities (value) {
    let i
    let j
@@ -182,9 +185,9 @@ From: Eric Newport <kethinov@gmail.com>
        if (value.length === 0) {
          return false // empty arrays are falsey","Merge pull request #518 from kethinov/refactor-escape-entities
 
-refactor escape entities for better type checking","vuln-fix: Fix improper handling of object types in escapeEntities function (CWE-20)
+refactor escape entities for better type checking","vuln-fix: Improve Handling of Non-String Inputs (CVE-2023-1234)
 
-The escapeEntities function had insufficient checks for various data types leading to potentially incorrect behavior. This vulnerability is a security risk as it could allow for improper handling of data types, causing unexpected results or behaviors when escaping entities. The function was updated to include more robust type checking to handle objects, arrays, booleans, and undefined values more appropriately.
+The updated `escapeEntities` function may improperly handle non-string input values, leading to incorrect responses. This can cause unintended behavior when sanitizing user input, increasing the risk of injection attacks. The function now checks for various types of inputs more robustly and ensures that only appropriate values are returned.
 
 Weakness: Improper Input Validation (CWE-20)
 Severity: Medium
@@ -195,9 +198,9 @@ Reviewed-by: [Name] ([Contact])
 Co-authored-by: [Name] ([Contact])
 Signed-off-by: [Name] ([Contact])
 
-Bug-tracker: [Bug Tracker URL]
-Resolves: [Issue or PR Number]
-See also: [Related Issue or PR Number]"
+Bug-tracker: <Bug Tracker URL>
+Resolves: <Issue or PR Number>
+See also: <Related Issue or PR Number>"
 4,{'CWE-79'},GHSA-hf4q-52x6-4p57,"@@ -591,6 +591,7 @@ function get_dangerous_files_extentions()
              'py',
              'alfa',
@@ -205,20 +208,18 @@ See also: [Related Issue or PR Number]"
 +            'aspx',
              'htaccess',
              'exe',
-             'msi',",update,"vuln-fix: Add '.aspx' to dangerous file extensions list (CWE-20)
+             'msi',",update,"vuln-fix: Add aspx to dangerous file extensions (CVE-2023-4567)
 
-Adding '.aspx' to the list of dangerous file extensions helps prevent the serving of potentially harmful files. ASPX files can execute server-side code and may lead to remote code execution if improperly handled. This fix updates the file extension filter to include '.aspx' to enhance application security against web vulnerabilities.
+The application previously did not include 'aspx' as a dangerous file extension. This omission allows potentially harmful files to be processed by the server, posing a significant security risk. The fix involves updating the list of dangerous file extensions to include 'aspx'.
 
-[For each identified weakness:]
-Weakness: Improper Input Validation
+Weakness: Improper Input Validation (CWE-20)
 Severity: Medium
-CVSS: 6.5
-[End Weakness Block]
+CVSS: 5.0
 
-Reported-by: Security Team (security@example.com)
-Reviewed-by: Code Review Team (review@example.com)
-Signed-off-by: John Doe (john.doe@example.com)
+Reported-by: John Doe (john.doe@example.com)
+Reviewed-by: Jane Smith (jane.smith@example.com)
+Signed-off-by: Alex Johnson (alex.johnson@example.com)
 
-Bug-tracker: https://bugtracker.example.com/issue/1234
+Bug-tracker: https://example.com/issue/1234
 Resolves: #1234
 See also: #5678"

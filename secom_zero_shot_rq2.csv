@@ -1,5 +1,18 @@
 id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message
-1,CWE-79,GHSA-pjpc-87mp-4332,"@@ -8,6 +8,7 @@
+0,{'CWE-79'},GHSA-2xw8-j43j-5vxp,"@@ -18,7 +18,7 @@
+ $report = new ElggReportedContent();
+ $report->owner_guid = elgg_get_logged_in_user_guid();
+ $report->title = $title;
+-$report->address = $address;
++$report->address = elgg_normalize_site_url($address);
+ $report->description = $description;
+ $report->access_id = $access;",fix(reported_content): sanitize report URLs,"Fix improper handling of user input (CWE-20)
+
+The vulnerability involved directly assigning user input to a variable without proper validation. This is a security risk as it can lead to unexpected behaviors or security issues, such as URL manipulation. The issue was fixed by normalizing the input using the `elgg_normalize_site_url` function before assignment.
+
+Weakness: CWE-20
+Severity: Medium"
+1,{'CWE-79'},GHSA-pjpc-87mp-4332,"@@ -8,6 +8,7 @@
   *
   * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
   */
@@ -25,16 +38,16 @@ Co-authored-by: John Linhart <admin@escope.cz>
 
 * removed obsolete use statement
 
-Co-authored-by: John Linhart <admin@escope.cz>","vuln-fix: Escape user agent in event detail display (GHSA-8m3j-ppg9-9c6h)
+Co-authored-by: John Linhart <admin@escope.cz>","Fix potential XSS vulnerability in user agent display (CWE-79)
 
-The event detail display was previously rendering user agent strings directly from user input.  
-This could allow attackers to execute cross-site scripting (XSS) attacks by injecting malicious scripts through the user agent.  
-The fix implements the `escape()` method to sanitize the user agent output before rendering it in the HTML.
+An unsanitized user agent string was being rendered in the output. 
+This creates a risk of cross-site scripting (XSS) attacks that could compromise user security. 
+The user agent string is now properly escaped before being displayed.
 
-Weakness: CWE-79  
-Severity: Medium  
-CVSS: 5.4"
-2,CWE-79,GHSA-5x33-h32w-6vr2,"@@ -211,7 +211,7 @@
+Weakness: CWE-79
+Severity: High
+CVSS: 7.5"
+2,{'CWE-79'},GHSA-5x33-h32w-6vr2,"@@ -211,7 +211,7 @@
  print('<div class=""tag-management-form generalbox""><label class=""accesshide"" for=""id_tagfilter"">'. get_string('search') .'</label>'.
      '<input type=""hidden"" name=""tc"" value=""'.$tagcollid.'"" />'.
      '<input type=""hidden"" name=""perpage"" value=""'.$perpage.'"" />'.
@@ -42,16 +55,16 @@ CVSS: 5.4"
 +    '<input id=""id_tagfilter"" name=""filter"" type=""text"" value=""' . s($filter) . '"">'.
      '<input value=""'. s(get_string('search')) .'"" type=""submit"" class=""btn btn-secondary""> '.
      ($filter !== '' ? html_writer::link(new moodle_url($PAGE->url, array('filter' => null)),
-         get_string('resetfilter', 'tag'), array('class' => 'resetfilterlink')) : '').",MDL-69340 tag: Correct the filter input HTML in the tag manager,"vuln-fix: Escape input tag filter to prevent XSS (GHSA-8g2c-q4j4-q27m)
+         get_string('resetfilter', 'tag'), array('class' => 'resetfilterlink')) : '').",MDL-69340 tag: Correct the filter input HTML in the tag manager,"Fix improper escaping of HTML attribute value (CWE-79)
 
-The code previously generated an input field for the tag filter without properly escaping the value.  
-This oversight allowed for the potential injection of malicious scripts, posing a risk of cross-site scripting (XSS) attacks.  
-The fix implements the `s()` function to ensure that the filter value is properly escaped before rendering in the HTML.
+Improperly escaped HTML attributes can lead to Cross-Site Scripting (XSS) vulnerabilities. 
+This poses a security risk as attackers can inject malicious scripts, potentially compromising user data or session integrity. 
+The issue was fixed by ensuring proper quotation of the value being assigned to the attribute.
 
-Weakness: CWE-79  
-Severity: High  
+Weakness: Cross-Site Scripting (CWE-79)
+Severity: High
 CVSS: 7.5"
-3,"CWE-79', 'CWE-843",GHSA-5f38-9jw2-6r6h,"@@ -96,8 +96,15 @@ function escapeEntities (value) {
+3,"{'CWE-79', 'CWE-843'}",GHSA-5f38-9jw2-6r6h,"@@ -96,8 +96,15 @@ function escapeEntities (value) {
    let i
    let j
  
@@ -145,70 +158,21 @@ From: Eric Newport <kethinov@gmail.com>
        if (value.length === 0) {
          return false // empty arrays are falsey","Merge pull request #518 from kethinov/refactor-escape-entities
 
-refactor escape entities for better type checking","vuln-fix: Improve entity escaping logic in escapeEntities (GHSA-4g2v-3q5w-7xrg)
+refactor escape entities for better type checking","Fix potential type handling issues in escapeEntities (CWE-20)
 
-The escapeEntities function allowed unsafe handling of various input types, which posed a risk of unintentional exposure of sensitive data.  
-This could lead to issues such as XSS attacks if malicious input is improperly processed and rendered in HTML without appropriate escaping.  
-The logic has been revised to ensure that only safe types are returned unaltered, while objects and arrays are represented safely.
+The function escapeEntities had vulnerabilities related to improper handling of different data types such as objects and arrays. This could lead to unexpected behavior or incorrect responses when falsey values are processed. The function has been updated to correctly handle these cases, ensuring that it explicitly checks for type safety and intended outcomes.
 
-Weakness: CWE-20  
-Severity: Medium  
-CVSS: 6.3"
-4,CWE-79,GHSA-hf4q-52x6-4p57,"@@ -591,6 +591,7 @@ function get_dangerous_files_extentions()
+Weakness: CWE-20
+Severity: Medium"
+4,{'CWE-79'},GHSA-hf4q-52x6-4p57,"@@ -591,6 +591,7 @@ function get_dangerous_files_extentions()
              'py',
              'alfa',
              'asp',
 +            'aspx',
              'htaccess',
              'exe',
-             'msi',",update,"vuln-fix: Prevent dangerous file extensions in uploads (GHSA-4r28-3qcm-pc65)
+             'msi',",update,"Add 'aspx' to the list of dangerous file extensions (CWE-20)
 
-The allowed file extensions list for uploads previously lacked certain potentially dangerous extensions.  
-This omission could allow attackers to upload malicious files that pose significant security risks to the application and its users.  
-The fix adds 'aspx' to the list of dangerous file extensions to prevent such uploads.
-
-Weakness: CWE-20  
-Severity: High  
-CVSS: 7.5"
-5,CWE-79,GHSA-grw5-g9h2-wpg8,"@@ -23,15 +23,7 @@ $.extend($.fn.bootstrapTable.defaults, {
-   showExport: false,
-   exportDataType: 'basic', // basic, all, selected
-   exportTypes: ['json', 'xml', 'csv', 'txt', 'sql', 'excel'],
--  exportOptions: {
--    onCellHtmlData (cell, rowIndex, colIndex, htmlData) {
--      if (cell.is('th')) {
--        return cell.find('.th-inner').text()
--      }
--
--      return htmlData
--    }
--  },
-+  exportOptions: {},
-   exportFooter: false
- })
- 
-@@ -162,13 +154,9 @@ $.BootstrapTable = class extends $.BootstrapTable {
-     $exportButtons.click(e => {
-       e.preventDefault()
- 
--      const type = $(e.currentTarget).data('type')
--      const exportOptions = {
--        type,
--        escape: false
--      }
--
--      this.exportTable(exportOptions)
-+      this.exportTable({
-+        type: $(e.currentTarget).data('type')
-+      })
-     })
-     this.handleToolbar()
-   }",Fixed XSS vulnerability bug by onCellHtmlData,"vuln-fix: Remove export options validation in Bootstrap Table (GHSA-h73m-4vmw-c6j5)
-
-The export options feature in the Bootstrap Table previously allowed for potentially unvalidated data to be passed, risking code injection.  
-This could enable an attacker to manipulate the export functionality, leading to unauthorized data exposure or execution of malicious scripts.  
-The vulnerability has been addressed by simplifying the export options to mitigate these risks.
-
-Weakness: CWE-94  
-Severity: Medium  
-CVSS: 6.1"
+The application now detects and restricts the '.aspx' file extension. 
+Accepting this extension can lead to the execution of harmful web pages. 
+This was fixed by adding 'aspx' to the existing list of dangerous file extensions."

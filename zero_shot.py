@@ -5,7 +5,7 @@ from openai import OpenAI
 from tqdm import tqdm
 from dotenv import load_dotenv
 
-from prompts import system_prompt, zero_shot_prompt
+from prompts import system_prompt_short, zero_shot_prompt
 
 
 # Load environment variables from .env file
@@ -19,7 +19,7 @@ client = OpenAI(api_key=api_key)
 
 
 input_file = "by_weakness/cwe-79_samples.json"
-output_file = "secom_zero_shot_with_rules.csv"
+output_file = "secom_zero_shot_rq2.csv"
 results = []
 
 # Read the JSON file into a DataFrame
@@ -39,7 +39,7 @@ for i, row in tqdm(df.iterrows(), total=len(df), desc="Generating SECOM messages
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": system_prompt_short},
                 {"role": "user", "content": zero_shot_prompt.replace("<code_diff>", code_diff)}
             ]
         )

@@ -5,7 +5,7 @@ from openai import OpenAI
 from tqdm import tqdm
 from dotenv import load_dotenv
 
-from prompts import system_prompt, one_shot_prompt
+from prompts import system_prompt_short, one_shot_prompt
 
 # Load environment variables
 load_dotenv()
@@ -56,7 +56,7 @@ for i, row in tqdm(df.iterrows(), total=len(df), desc="Generating SECOM messages
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": system_prompt_short},
                 {"role": "user", "content": user_prompt_filled}
             ]
         )

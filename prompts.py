@@ -5,19 +5,16 @@ Only include fields if the required information is explicitly provided; otherwis
 
 ## Format to Follow
 ```
-
 <Body>
 <One sentence describing WHAT the vulnerability is.>
 <One sentence explaining WHY it is a security risk.>
 <One sentence describing HOW it was fixed.>
-</Body>
+</Body?
 
-[For each identified weakness:]
 Weakness: <Weakness Name or CWE-ID>
 Severity: <Low | Medium | High | Critical>
 CVSS: <CVSS Score (0-10)>
 [End Weakness Block]
-
 ```
 
 ## Rules to Follow
@@ -26,42 +23,46 @@ CVSS: <CVSS Score (0-10)>
   - Capitalized first letter
   - Imperative mood (Fix, Prevent, etc.)
   - No trailing period
-  - Must include specific vulnerability ID for each case in parentheses 
 - Body:
-  - The <Body> section must contain **exactly three full sentences**, each on its **own physical line**.
+  - The <Body> section MUSR contain **exactly three full sentences**, each on MUST have its **own physical line**.
   - Each sentence must describe:
     1. What the vulnerability is.
     2. Why it is a security risk.
     3. How it was fixed.
-  - Do **NOT** combine them into a single paragraph. Instead, use line breaks to separate them.
+  - Do **NOT** combine them into a single paragraph. You must use line breaks to separate them instead.
   - Do **not** add labels like "What:" or "Why:".
   - The body should be ~75 words total.
 """
 
 system_prompt = f"""You are an expert software engineer generating standardized security commit messages according to the SECOM convention. The user will provide a code diff. Your task is to generate a full security commit message in plain text.
-Only include fields if the required information is explicitly provided; otherwise avoid the data.
-**Do not fabricate or assume values**. If uncertain, avoid including the data field.
-## Format to Follow
+
+## Format to Follow 
+
 ```
 vuln-fix: <Subject/Header> (<Vulnerability ID>)
+
 <Body>
 <One sentence describing WHAT the vulnerability is.>
 <One sentence explaining WHY it is a security risk.>
 <One sentence describing HOW it was fixed.>
 </Body>
+
 [For each identified weakness:]
 Weakness: <Weakness Name or CWE-ID>
 Severity: <Low | Medium | High | Critical>
 CVSS: <CVSS Score (0-10)>
 [End Weakness Block]
+
 Reported-by: <Name> (<Contact>)
 Reviewed-by: <Name> (<Contact>)
 Co-authored-by: <Name> (<Contact>)
 Signed-off-by: <Name> (<Contact>)
+
 Bug-tracker: <Bug Tracker URL>
 Resolves: <Issue or PR Number>
 See also: <Related Issue or PR Number>
 ```
+
 ## Rules to Follow
 - Prefix: Use `vuln-fix:` to indicate a security-related fix.
 - Subject/Header:
@@ -69,16 +70,18 @@ See also: <Related Issue or PR Number>
   - Capitalized first letter
   - Imperative mood (Fix, Prevent, etc.)
   - No trailing period
-  - Must include specific vulnerability ID for each case in parentheses
+  - Must include vulnerability ID in parentheses (e.g., CVE-2023-1234)
 - Body:
   - The <Body> section must contain **exactly three full sentences**, each on its **own physical line**.
   - Each sentence must describe:
     1. What the vulnerability is.
     2. Why it is a security risk.
     3. How it was fixed.
-  - Do **NOT** combine them into a single paragraph. Instead, use line breaks to separate them.
-  - Do **not** add labels like “What:” or “Why:“.
+  - Do **NOT** combine them into a single paragraph. Instead, use line breaks to separate them (Very important!).
+  - Do **not** add labels like "What:" or "Why:".
+  - Do **not** add block like "[For each identified weakness:]" or "[End Weakness Block]"
   - The body should be ~75 words total.
+
 """
 
 zero_shot_prompt = f"""Generate a SECOM-style security commit message for the following code diff:
@@ -86,6 +89,8 @@ zero_shot_prompt = f"""Generate a SECOM-style security commit message for the fo
 ```diff
 <code_diff>
 ```
+Only include fields if the required information is explicitly provided. If uncertain, avoid adding the data field completely.
+**Do not fabricate or assume values**. 
 """
 
 
@@ -125,7 +130,7 @@ Git Diff:
 """
 
 
-few_shot_prompt = """Here are three examples of Git diffs and their corresponding SECOM-style commit messages.
+few_shot_prompt = """Here are three examples of Git diffs and their corresponding SECOM-style commit messages. 
 
 Example 1
 Git Diff:
@@ -148,6 +153,7 @@ Git Diff:
      const Device& eigen_device = ctx->eigen_device<Device>();
 ```
 Expected Output:
+
 The binary operation function did not verify that input tensor types matched the expected type, allowing malformed SavedModel inputs to cause type confusion.
 This led to runtime crashes via CHECK failures when mismatched types were interpreted incorrectly, resulting in denial-of-service scenarios.
 The patch validates that both input tensors match the expected data type using TensorFlow's OP_REQUIRES and DataTypeToEnum checks.
@@ -170,6 +176,7 @@ Git Diff:
  $report->description = $description;
 ```
 Expected Output:
+
 The report submission form failed to sanitize user-supplied addresses before saving them.
 This allowed attackers to inject malicious or malformed URLs for redirection or phishing.
 The patch applies elgg_normalize_site_url to clean the input before storage.
@@ -194,6 +201,7 @@ Git Diff:
 +  }
 ```
 Expected Output:
+
 The implementation did not check for empty input tensors before accessing their data.
 This could cause out-of-bounds memory reads, leading to crashes or information leaks.
 The patch short-circuits execution when any input tensor is empty.
@@ -218,6 +226,7 @@ Git Diff:
          $database->delete('forms_data_fields', 'data_id IN(' . implode(',', $ids) . ')');
 ```
 Expected Output:
+
 The original implementation directly inserted raw input from the ids array into a SQL IN() clause.
 This allowed attackers to inject malicious values via the URL or request body, potentially manipulating or leaking database records.
 The patch mitigates this by sanitizing each ID using array_map('intval', $ids) to ensure only integers are passed into the query.
@@ -242,6 +251,7 @@ Git Diff:
              }
 ```
 Expected Output:
+
 The proxy validation method allowed any user to trigger server-side HTTP requests without restriction.
 This enabled potential SSRF attacks by letting untrusted users probe internal systems or exfiltrate metadata via crafted test URLs.
 The patch introduces a permission check to ensure only administrators can initiate proxy validation.
@@ -309,7 +319,6 @@ CWE Mapping Reference:
   - Encrypting API tokens, credentials, or session data
   - Adding TLS to database or network communication
   Do **not** use CWE-311 if the patch blocks or disables unauthorized endpoints or insecure ports — that's CWE-300.
-
 
 - **CWE-285: Improper Authorization**  
   Use if the patch adds a **missing permission check unrelated to external requests or network access**.  
@@ -394,6 +403,19 @@ Estimate the **Severity** and **CVSS Score** based on the patch's context using 
 - Carefully **infer the CVSS score and severity** by analyzing the impact and exploitability described by the patch.
 - Do not guess or fabricate. Only assign high/critical if justified by the patch context (e.g., remote, unauthenticated, full control).
 - If unsure, choose a **conservative (lower)** rating.
+
+
+❗❗❗ SECOM COMMIT FORMAT — STRICT RULE ❗❗❗
+You MUST generate security commit messages where the <Body> section:
+
+1. Contains **exactly THREE full sentences**
+2. Each sentence MUST be on its OWN physical LINE
+3. Do NOT merge into a paragraph — this is INVALID
+
+If these rules are not followed, the message will be REJECTED.
+
+Now continue with:
+You are an expert software engineer generating standardized security commit messages...
 
 
 Git Diff:

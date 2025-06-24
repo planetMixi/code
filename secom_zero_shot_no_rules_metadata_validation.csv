@@ -1,0 +1,6 @@
+original_vuln_id,generated_vuln_id,vuln_id_match,original_weakness,generated_weakness,weakness_match,original_severity,generated_severity,severity_match,original_cvss,generated_cvss,cvss_match
+GHSA-2xw8-j43j-5vxp,GHSA-2xw8-j43j-5vxp,True,cwe-79,cwe-601,False,medium,medium,True,5.4,5.0,False
+GHSA-pjpc-87mp-4332,GHSA-pjpc-87mp-4332,True,cwe-79,cwe-79,True,critical,medium,False,9.6,6.1,False
+GHSA-5x33-h32w-6vr2,GHSA-5x33-h32w-6vr2,True,cwe-79,cwe-79,True,medium,medium,True,6.1,5.0,False
+GHSA-5f38-9jw2-6r6h,GHSA-5f38-9jw2-6r6h,True,"cwe-79', 'cwe-843",cwe-20,False,medium,medium,True,5.4,5.5,True
+GHSA-hf4q-52x6-4p57,GHSA-hf4q-52x6-4p57,True,cwe-79,cwe-20,False,medium,medium,True,4.8,5.0,False

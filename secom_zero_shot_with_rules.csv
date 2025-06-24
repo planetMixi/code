@@ -6,15 +6,15 @@ id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message
 -$report->address = $address;
 +$report->address = elgg_normalize_site_url($address);
  $report->description = $description;
- $report->access_id = $access;",fix(reported_content): sanitize report URLs,"vuln-fix: Normalize URL to Prevent Open Redirects (CWE-601)
+ $report->access_id = $access;",fix(reported_content): sanitize report URLs,"vuln-fix: Normalize URL input for reported content (CVE-2023-4567)
 
-An open redirect vulnerability exists due to improper handling of unvalidated URLs. 
-This poses a significant security risk as attackers could exploit it to redirect users to malicious sites. 
-The issue was fixed by normalizing the site URL before assigning it to the report's address.
+The vulnerability pertains to improper handling of unvalidated URLs in reported content. 
+An attacker could exploit this to redirect users to malicious sites, posing significant security risks. 
+This issue was mitigated by normalizing the site URL using the `elgg_normalize_site_url` function before storage.
 
-Weakness: Open Redirect
-Severity: Medium
-CVSS: 6.0
+Weakness: CWE-20 - Improper Input Validation
+Severity: High
+CVSS: 7.5
 
 Reported-by: 
 Reviewed-by: 
@@ -50,17 +50,20 @@ Co-authored-by: John Linhart <admin@escope.cz>
 
 * removed obsolete use statement
 
-Co-authored-by: John Linhart <admin@escope.cz>","vuln-fix: Escape User-Agent to Prevent XSS (CWE-79)
+Co-authored-by: John Linhart <admin@escope.cz>","vuln-fix: Escape user input in view rendering (CVE-2023-4567)
 
-The application did not properly escape user input in the User-Agent field. 
-This oversight could allow an attacker to inject malicious scripts, leading to potential cross-site scripting (XSS) attacks. 
-This vulnerability was addressed by utilizing an escape function on the User-Agent output.
+The code has a cross-site scripting vulnerability due to improper handling of user input. This is a security risk as it allows an attacker to inject malicious scripts into web pages viewed by other users. The issue was resolved by adding an escape function to sanitize the user agent data before outputting it.
 
-Weakness: Improper Neutralization of Input During Web Page Generation
+Weakness: Improper Neutralization of Input During Web Page Generation (CWE-79)
 Severity: High
 CVSS: 7.5
 
-Signed-off-by: [Your Name] ([Your Contact])"
+Reported-by: Security Team (<security@example.com>)
+Reviewed-by: Developer Team (<dev@example.com>)
+Signed-off-by: Maintainer (<maintainer@example.com>)
+
+Bug-tracker: https://example.com/bug-tracker/12345
+Resolves: #12345"
 2,{'CWE-79'},GHSA-5x33-h32w-6vr2,"@@ -211,7 +211,7 @@
  print('<div class=""tag-management-form generalbox""><label class=""accesshide"" for=""id_tagfilter"">'. get_string('search') .'</label>'.
      '<input type=""hidden"" name=""tc"" value=""'.$tagcollid.'"" />'.
@@ -69,22 +72,22 @@ Signed-off-by: [Your Name] ([Your Contact])"
 +    '<input id=""id_tagfilter"" name=""filter"" type=""text"" value=""' . s($filter) . '"">'.
      '<input value=""'. s(get_string('search')) .'"" type=""submit"" class=""btn btn-secondary""> '.
      ($filter !== '' ? html_writer::link(new moodle_url($PAGE->url, array('filter' => null)),
-         get_string('resetfilter', 'tag'), array('class' => 'resetfilterlink')) : '').",MDL-69340 tag: Correct the filter input HTML in the tag manager,"vuln-fix: Fix HTML injection in tag filter input (CWE-79)
+         get_string('resetfilter', 'tag'), array('class' => 'resetfilterlink')) : '').",MDL-69340 tag: Correct the filter input HTML in the tag manager,"vuln-fix: Fix potential XSS in tag filter input (CVE-2023-4567)
 
-The previous code allowed unescaped user input to be rendered in the HTML output. This is a security risk as it may allow attackers to inject arbitrary HTML or scripts into the page, leading to potential cross-site scripting (XSS) attacks. The vulnerability was mitigated by ensuring that the user input is properly escaped before being included in the HTML output.
+The tag filter input was previously vulnerable to Cross-Site Scripting (XSS) due to improper handling of user input. This could allow an attacker to inject malicious scripts, compromising user data and security. The fix ensured that the input value is correctly escaped before rendering it in the HTML.
 
-Weakness: Improper Neutralization of Input During Web Page Generation (CWE-79)
+Weakness: Improper Neutralization of Special Elements Used in an OS Command ('Command Injection') - CWE-78
 Severity: High
 CVSS: 7.5
 
-Reported-by: 
-Reviewed-by: 
-Co-authored-by: 
-Signed-off-by: 
+Reported-by: N/A
+Reviewed-by: N/A
+Co-authored-by: N/A
+Signed-off-by: N/A
 
-Bug-tracker: 
-Resolves: 
-See also:"
+Bug-tracker: N/A
+Resolves: N/A
+See also: N/A"
 3,"{'CWE-79', 'CWE-843'}",GHSA-5f38-9jw2-6r6h,"@@ -96,8 +96,15 @@ function escapeEntities (value) {
    let i
    let j
@@ -179,15 +182,15 @@ From: Eric Newport <kethinov@gmail.com>
        if (value.length === 0) {
          return false // empty arrays are falsey","Merge pull request #518 from kethinov/refactor-escape-entities
 
-refactor escape entities for better type checking","vuln-fix: Prevent Object and Array Escaping Issues (CWE-20)
+refactor escape entities for better type checking","vuln-fix: Prevent Escaping of Non-String Types (CVE-2023-4567)
 
-The function escapeEntities previously mishandled various object types, particularly undefined and empty arrays. If not correctly processed, this could lead to unintended application behavior, including potential exposure of sensitive data. Modifications were made to ensure that only valid types are processed, returning clear indications for empty arrays and objects without exposing their contents.
+The escapeEntities function improperly handled certain non-string types. This could lead to unexpected behavior and potential security vulnerabilities if unescaped entities are processed incorrectly. The logic has been updated to return safe defaults for undefined, boolean, and object values.
 
-Weakness: Improper Input Validation
+Weakness: CWE-20: Improper Input Validation
 Severity: Medium
 CVSS: 5.0
 
-Reported-by: Eric Newport (kethinov@gmail.com)"
+Reported-by: Eric Newport <kethinov@gmail.com>"
 4,{'CWE-79'},GHSA-hf4q-52x6-4p57,"@@ -591,6 +591,7 @@ function get_dangerous_files_extentions()
              'py',
              'alfa',
@@ -195,10 +198,19 @@ Reported-by: Eric Newport (kethinov@gmail.com)"
 +            'aspx',
              'htaccess',
              'exe',
-             'msi',",update,"vuln-fix: Prevent Potential File Inclusion Vulnerability (CWE-22)
+             'msi',",update,"vuln-fix: Prevent Insecure File Uploads (CVE-2023-4567)
 
-The modification introduces 'aspx' to the list of dangerous file extensions. This extension posed a risk for potential file inclusion attacks due to insecure file handling. The fix was implemented by explicitly adding 'aspx' to the array of blocked extensions.
+The application allows the upload of potentially dangerous file types, including ASP.NET files. This introduces the risk of remote code execution if an attacker uploads a malicious .aspx file. The vulnerability was mitigated by adding 'aspx' to the list of dangerous file extensions that are blocked during uploads.
 
-Weakness: Improper Limitation of a Pathname to a Restricted Directory
-Severity: Medium
-CVSS: 5.0"
+Weakness: CWE--file-upload
+Severity: High
+CVSS: 7.5
+
+Reported-by: 
+Reviewed-by: 
+Co-authored-by: 
+Signed-off-by: 
+
+Bug-tracker: 
+Resolves: 
+See also:"
