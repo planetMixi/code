@@ -5,11 +5,13 @@ Only include fields if the required information is explicitly provided; otherwis
 
 ## Format to Follow
 ```
+vuln-fix: <Subject/Header>
+
 <Body>
 <One sentence describing WHAT the vulnerability is.>
 <One sentence explaining WHY it is a security risk.>
 <One sentence describing HOW it was fixed.>
-</Body?
+</Body>
 
 Weakness: <Weakness Name or CWE-ID>
 Severity: <Low | Medium | High | Critical>
@@ -34,7 +36,7 @@ CVSS: <CVSS Score (0-10)>
   - The body should be ~75 words total.
 """
 
-system_prompt = f"""You are an expert software engineer generating standardized security commit messages according to the SECOM convention. The user will provide a code diff. Your task is to generate a full security commit message in plain text.
+SYSTEM_PROMPT = f"""You are an expert software engineer generating standardized security commit messages according to the SECOM convention. The user will provide a code diff. Your task is to generate a full security commit message in plain text.
 
 ## Format to Follow 
 
@@ -51,6 +53,9 @@ vuln-fix: <Subject/Header> (<Vulnerability ID>)
 Weakness: <Weakness Name or CWE-ID>
 Severity: <Low | Medium | High | Critical>
 CVSS: <CVSS Score (0-10)>
+Detection:  <Detection Method>
+Report:     <Link to Advisory or Report>
+Introduced-in: <Commit Hash of Introduced Vuln>
 [End Weakness Block]
 
 Reported-by: <Name> (<Contact>)
@@ -72,16 +77,87 @@ See also: <Related Issue or PR Number>
   - No trailing period
   - Must include vulnerability ID in parentheses (e.g., CVE-2023-1234)
 - Body:
-  - The <Body> section must contain **exactly three full sentences**, each on its **own physical line**.
+  - The <Body> block must contain exactly three sentences, each on its own line.
+  - Each sentence must start on a new physical line. Do not combine them into one paragraph.
   - Each sentence must describe:
-    1. What the vulnerability is.
-    2. Why it is a security risk.
-    3. How it was fixed.
-  - Do **NOT** combine them into a single paragraph. Instead, use line breaks to separate them (Very important!).
-  - Do **not** add labels like "What:" or "Why:".
-  - Do **not** add block like "[For each identified weakness:]" or "[End Weakness Block]"
-  - The body should be ~75 words total.
+    1. WHAT the vulnerability is.
+    2. WHY it is a security risk.
+    3. HOW it was fixed.
+  - Each sentence should be 20–30 words long, totaling about 75 words.
+  - Do not include labels like “What:” or use bullets.
+  - Do **not** add block like "[For each identified weakness:]" or "[End Weakness Block]".
+  - Strict format example for <Body>:
+```
+Input validation was missing in the user registration endpoint, allowing arbitrary payloads to reach backend services.
+This allowed potential command injection if attackers crafted payloads targeting internal CLI utilities.
+The fix adds strict schema-based validation and rejects unrecognized fields at the controller level.
+```
+"""
 
+SYSTEM_PROMPT_WITH_CONSTRAINTS = f"""You are an expert software engineer generating standardized security commit messages according to the SECOM convention. The user will provide a code diff. Your task is to generate a full security commit message in plain text.
+
+## Format to Follow 
+
+```
+vuln-fix: <Subject/Header> (<Vulnerability ID>)
+
+<Body>
+<One sentence describing WHAT the vulnerability is.>
+<One sentence explaining WHY it is a security risk.>
+<One sentence describing HOW it was fixed.>
+</Body>
+
+[For each identified weakness:]
+Weakness: <Weakness Name or CWE-ID>
+Severity: <Low | Medium | High | Critical>
+CVSS: <CVSS Score (0-10)>
+Detection:  <Detection Method>
+Report:     <Link to Advisory or Report>
+Introduced-in: <Commit Hash of Introduced Vuln>
+[End Weakness Block]
+
+Reported-by: <Name> (<Contact>)
+Reviewed-by: <Name> (<Contact>)
+Co-authored-by: <Name> (<Contact>)
+Signed-off-by: <Name> (<Contact>)
+
+Bug-tracker: <Bug Tracker URL>
+Resolves: <Issue or PR Number>
+See also: <Related Issue or PR Number>
+```
+
+## Rules to Follow
+- Prefix: Use `vuln-fix:` to indicate a security-related fix.
+- Subject/Header:
+  - ~50 characters (max 72)
+  - Capitalized first letter
+  - Imperative mood (Fix, Prevent, etc.)
+  - No trailing period
+  - Must include vulnerability ID in parentheses (e.g., CVE-2023-1234)
+- Body:
+  - The <Body> block must contain exactly three sentences, each on its own line.
+  - Each sentence must start on a new physical line. Do not combine them into one paragraph.
+  - Each sentence must describe:
+    1. WHAT the vulnerability is.
+    2. WHY it is a security risk.
+    3. HOW it was fixed.
+  - Each sentence should be 20–30 words long, totaling about 75 words.
+  - Do not include labels like “What:” or use bullets.
+  - Do **not** add block like "[For each identified weakness:]" or "[End Weakness Block]".
+  - Only describe the vulnerability and fix based on evidence in the diff. Avoid speculative claims, hypothetical impacts, or invented mechanisms.
+  - Strict format example for <Body>:
+```
+Input validation was missing in the user registration endpoint, allowing arbitrary payloads to reach backend services.
+This allowed potential command injection if attackers crafted payloads targeting internal CLI utilities.
+The fix adds strict schema-based validation and rejects unrecognized fields at the controller level.
+```
+- Important Constraints:
+  - Do not speculate, hallucinate, or invent details such as:
+    - CWE-ID, Vulnerability ID, CVSS score, links, commit hashes, names, or contacts.
+    - Vulnerability type or severity if not clearly implied.
+  - If required fields cannot be determined from the input, do not include them.
+
+Do not fabricate content. If required fields can't be inferred confidently, leave the line empty. Do not assume details beyond what's visible.
 """
 
 zero_shot_prompt = f"""Generate a SECOM-style security commit message for the following code diff:
@@ -89,10 +165,10 @@ zero_shot_prompt = f"""Generate a SECOM-style security commit message for the fo
 ```diff
 <code_diff>
 ```
-Only include fields if the required information is explicitly provided. If uncertain, avoid adding the data field completely.
-**Do not fabricate or assume values**. 
 """
 
+# Only include fields if the required information is explicitly provided. If uncertain, avoid adding the data field completely.
+# **Do not fabricate or assume values**. 
 
 one_shot_prompt = """Here is an example of a Git diff and its SECOM-compliant commit message.
 
