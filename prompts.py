@@ -353,145 +353,9 @@ CVSS: 5.3
 
 
 The above examples illustrate how to generate SECOM-style commit messages for different types of vulnerabilities.
-Now, based on the following code diff, generate a new commit message that adapts to the specific weakness it addresses—even if it differs from the examples above. Use the same structure, but reason from the patch content and generate the appropriate vulnerability classification and risk summary.
-Do not fabricate, infer, or insert placeholders for missing fields.
+Now, based on the following code diff, generate a new commit message that adapts to the specific weakness it addresses. Use the same structure, but reason from the patch content and generate a SECOM-compliant commit message.
 When generating your response, carefully analyze the vulnerability pattern in the code diff.
 Choose the most appropriate CWE classification based on what the patch fixes.
-Use this list of patterns and their CWE mappings to guide your choice:
-
-When generating your response, analyze the code diff and infer the type of vulnerability the patch is addressing.
-Use this guide to choose the correct CWE. 
-CWE Mapping Reference:
-
-- **CWE-617: Reachable Assertion / Denial of Service via Internal Checks**
-  Use if the patch guards against **internal inconsistencies** or **undefined behavior**, not input.
-  Examples:
-  - Preventing `CHECK` or `assert` failures
-  - Fixing crashes due to type mismatches (e.g. casting wrong tensor dtype)
-  - Fixing race conditions between threads or users
-  Do not use CWE-617 for simple input validation — use CWE-20 instead.
-
-- **CWE-20: Improper Input Validation**  
-  Use if the patch **adds checks that reject malformed, incomplete, or out-of-range user input**.  
-  These are "front-door" filters that **prevent bad input from propagating** into internal logic.
-  Examples:
-  - Checking if a string is null or empty
-  - Enforcing tensor shape or dimension requirements
-  - Verifying a number falls within an allowed range
-  Do not use CWE-20 if the patch handles type confusion or assertion failures in core logic.
-  That would be CWE-617.
-
-- **CWE-79: Cross-site Scripting (XSS)**  
-  Use if the patch sanitizes or encodes **user-controlled content** that is rendered in HTML.  
-  Examples: escaping `<script>`, `onerror=`, HTML encoding, using `htmlspecialchars()`.
-
-- **CWE-89: SQL Injection**  
-  Use if the patch prevents **user input from altering SQL queries**.  
-  Examples: switching to parameterized queries, escaping input passed to SQL, sanitizing dynamic WHERE clauses.
-
-- **CWE-125: Out-of-bounds Read**  
-  Use if the patch prevents reading **outside valid array, buffer, or tensor bounds**.  
-  Examples: validating index access, checking length before reading from memory.
-
-- **CWE-787: Out-of-bounds Write**  
-  Use if the patch prevents **writing past array or memory buffer bounds**.  
-  Examples: size checks before memory copy, preventing buffer overflow writes.
-
-- **CWE-203: Information Exposure Through Debug Messages**  
-  Use if the patch **removes, redacts, or restricts verbose error messages or debug output**.  
-  Examples: replacing stack traces or internal paths with generic messages.
-
-- **CWE-311: Missing Encryption of Sensitive Data**  
-  Use **only** if the patch **encrypts sensitive data** during storage or transmission.
-  Examples:
-  - Switching from HTTP to HTTPS
-  - Encrypting API tokens, credentials, or session data
-  - Adding TLS to database or network communication
-  Do **not** use CWE-311 if the patch blocks or disables unauthorized endpoints or insecure ports — that's CWE-300.
-
-- **CWE-285: Improper Authorization**  
-  Use if the patch adds a **missing permission check unrelated to external requests or network access**.  
-  Example use cases:
-  - Access to admin pages
-  - Role checks for deleting user data
-  - Guarding sensitive internal resources
-
-- **CWE-863: Incorrect Authorization**  
-  Use if the patch **fixes broken or misapplied authorization logic**.  
-  Examples: correcting the wrong role check, fixing logic that let unauthorized users access resources.
-
-- **CWE-601: Open Redirect**  
-  Use if the patch **prevents user input from controlling redirect URLs**.  
-  Examples: patch introduces allowlist for redirect targets or replaces dynamic redirects with fixed values.
-
-- **CWE-918: Server-Side Request Forgery (SSRF)**  
-  Use if the patch **restricts access to server-side URL fetches or validations** that could be exploited by attackers.  
-  Typical indicators:
-  - Validation on proxy config, image fetch, or test URL handlers.
-  - Protection against internal IP ranges or unauthenticated requests causing outgoing traffic.
-  Even if the patch uses `checkPermission()` to restrict access to an SSRF vector, this is **still CWE-918**, not CWE-285, because the risk is due to **server-side request behavior**, not generic permission logic.
-
-- **CWE-300: Channel Accessible by Non-Endpoint**  
-  Use if the patch **prevents unauthorized or unintended communication channels** from being used.
-  Examples:
-  - Blocking plain TCP access to a backend-only port
-  - Rejecting unencrypted connections entirely
-  - Preventing access to control interfaces from external networks
-  This CWE is about restricting **who can reach a communication channel**, not encrypting the data.
-  Do **not** use CWE-311 unless the patch actually **adds encryption**.
-
-
-If no CWE is evident from the patch, **omit** the Weakness block entirely.
-Your goal is to match the structure shown in the examples and **accurately classify the vulnerability type based on patch intent and risk**.
-Do not guess or fabricate. If the correct CWE is unclear, omit the Weakness block entirely.
-Do not include additional # comments on why the weakness choice is appropiate as it does not follow the SECOM standard.
-**Important**: Do not classify patches like this as CWE-20 unless they directly validate user-supplied input such as request parameters, external strings, or file formats.  
-If the patch prevents type mismatch, assertion failure, or CHECK crash due to internal state assumptions, classify it as CWE-617 instead.
-
-### CVSS & Severity Inference Guide
-
-Estimate the **Severity** and **CVSS Score** based on the patch's context using these general principles from the CVSS v3.1 standard.
-
-#### Attack Vector (AV)
-- **Network (N)**: Input comes from HTTP/web, API, remote client
-- **Local (L)**: Requires access to the server, file, or runtime
-- **Physical (P)**: Requires physical device access
-
-#### Attack Complexity (AC)
-- **Low (L)**: No special setup — any attacker can trigger it
-- **High (H)**: Requires specific timing, conditions, or crafted environment
-
-#### Privileges Required (PR)
-- **None (N)**: No login needed (e.g., web form)
-- **Low (L)**: Requires user account
-- **High (H)**: Requires admin/root
-
-#### User Interaction (UI)
-- **None (N)**: Exploit happens automatically
-- **Required (R)**: Victim must click/link/do something
-
-#### Scope (S)
-- **Unchanged (U)**: Affects same system/component
-- **Changed (C)**: Crosses privilege or system boundaries
-
-#### Impact Ratings
-- **Confidentiality (C)**: Can read data (L = partial, H = full)
-- **Integrity (I)**: Can alter data or behavior
-- **Availability (A)**: Can crash, slow down, or block service
-
-### CVSS Score Interpretation
-
-| Severity | Typical CVSS Range | Use When… |
-|----------|---------------------|-----------|
-| Low      | 0.1 – 3.9           | Minor info leaks, edge case DoS |
-| Medium   | 4.0 – 6.9           | XSS, SSRF, validation issues |
-| High     | 7.0 – 8.9           | SQLi, logic flaws, broken auth |
-| Critical | 9.0 – 10.0          | RCE, full compromise, pre-auth |
-
-### Instructions
-- Carefully **infer the CVSS score and severity** by analyzing the impact and exploitability described by the patch.
-- Do not guess or fabricate. Only assign high/critical if justified by the patch context (e.g., remote, unauthenticated, full control).
-- If unsure, choose a **conservative (lower)** rating.
 
 
 Git Diff:
@@ -499,3 +363,138 @@ Git Diff:
 {code_diff}
 ```
 """
+
+# Use this list of patterns and their CWE mappings to guide your choice:
+
+# When generating your response, analyze the code diff and infer the type of vulnerability the patch is addressing.
+# Use this guide to choose the correct CWE. 
+# CWE Mapping Reference:
+
+# - **CWE-617: Reachable Assertion / Denial of Service via Internal Checks**
+#   Use if the patch guards against **internal inconsistencies** or **undefined behavior**, not input.
+#   Examples:
+#   - Preventing `CHECK` or `assert` failures
+#   - Fixing crashes due to type mismatches (e.g. casting wrong tensor dtype)
+#   - Fixing race conditions between threads or users
+#   Do not use CWE-617 for simple input validation — use CWE-20 instead.
+
+# - **CWE-20: Improper Input Validation**  
+#   Use if the patch **adds checks that reject malformed, incomplete, or out-of-range user input**.  
+#   These are "front-door" filters that **prevent bad input from propagating** into internal logic.
+#   Examples:
+#   - Checking if a string is null or empty
+#   - Enforcing tensor shape or dimension requirements
+#   - Verifying a number falls within an allowed range
+#   Do not use CWE-20 if the patch handles type confusion or assertion failures in core logic.
+#   That would be CWE-617.
+
+# - **CWE-79: Cross-site Scripting (XSS)**  
+#   Use if the patch sanitizes or encodes **user-controlled content** that is rendered in HTML.  
+#   Examples: escaping `<script>`, `onerror=`, HTML encoding, using `htmlspecialchars()`.
+
+# - **CWE-89: SQL Injection**  
+#   Use if the patch prevents **user input from altering SQL queries**.  
+#   Examples: switching to parameterized queries, escaping input passed to SQL, sanitizing dynamic WHERE clauses.
+
+# - **CWE-125: Out-of-bounds Read**  
+#   Use if the patch prevents reading **outside valid array, buffer, or tensor bounds**.  
+#   Examples: validating index access, checking length before reading from memory.
+
+# - **CWE-787: Out-of-bounds Write**  
+#   Use if the patch prevents **writing past array or memory buffer bounds**.  
+#   Examples: size checks before memory copy, preventing buffer overflow writes.
+
+# - **CWE-203: Information Exposure Through Debug Messages**  
+#   Use if the patch **removes, redacts, or restricts verbose error messages or debug output**.  
+#   Examples: replacing stack traces or internal paths with generic messages.
+
+# - **CWE-311: Missing Encryption of Sensitive Data**  
+#   Use **only** if the patch **encrypts sensitive data** during storage or transmission.
+#   Examples:
+#   - Switching from HTTP to HTTPS
+#   - Encrypting API tokens, credentials, or session data
+#   - Adding TLS to database or network communication
+#   Do **not** use CWE-311 if the patch blocks or disables unauthorized endpoints or insecure ports — that's CWE-300.
+
+# - **CWE-285: Improper Authorization**  
+#   Use if the patch adds a **missing permission check unrelated to external requests or network access**.  
+#   Example use cases:
+#   - Access to admin pages
+#   - Role checks for deleting user data
+#   - Guarding sensitive internal resources
+
+# - **CWE-863: Incorrect Authorization**  
+#   Use if the patch **fixes broken or misapplied authorization logic**.  
+#   Examples: correcting the wrong role check, fixing logic that let unauthorized users access resources.
+
+# - **CWE-601: Open Redirect**  
+#   Use if the patch **prevents user input from controlling redirect URLs**.  
+#   Examples: patch introduces allowlist for redirect targets or replaces dynamic redirects with fixed values.
+
+# - **CWE-918: Server-Side Request Forgery (SSRF)**  
+#   Use if the patch **restricts access to server-side URL fetches or validations** that could be exploited by attackers.  
+#   Typical indicators:
+#   - Validation on proxy config, image fetch, or test URL handlers.
+#   - Protection against internal IP ranges or unauthenticated requests causing outgoing traffic.
+#   Even if the patch uses `checkPermission()` to restrict access to an SSRF vector, this is **still CWE-918**, not CWE-285, because the risk is due to **server-side request behavior**, not generic permission logic.
+
+# - **CWE-300: Channel Accessible by Non-Endpoint**  
+#   Use if the patch **prevents unauthorized or unintended communication channels** from being used.
+#   Examples:
+#   - Blocking plain TCP access to a backend-only port
+#   - Rejecting unencrypted connections entirely
+#   - Preventing access to control interfaces from external networks
+#   This CWE is about restricting **who can reach a communication channel**, not encrypting the data.
+#   Do **not** use CWE-311 unless the patch actually **adds encryption**.
+
+
+# Your goal is to match the structure shown in the examples and **accurately classify the vulnerability type based on patch intent and risk**.
+# Do not guess or fabricate. If the correct CWE is unclear, omit the Weakness block entirely.
+# Do not include additional # comments on why the weakness choice is appropiate as it does not follow the SECOM standard.
+# **Important**: Do not classify patches like this as CWE-20 unless they directly validate user-supplied input such as request parameters, external strings, or file formats.  
+# If the patch prevents type mismatch, assertion failure, or CHECK crash due to internal state assumptions, classify it as CWE-617 instead.
+
+# ### CVSS & Severity Inference Guide
+
+# Estimate the **Severity** and **CVSS Score** based on the patch's context using these general principles from the CVSS v3.1 standard.
+
+# #### Attack Vector (AV)
+# - **Network (N)**: Input comes from HTTP/web, API, remote client
+# - **Local (L)**: Requires access to the server, file, or runtime
+# - **Physical (P)**: Requires physical device access
+
+# #### Attack Complexity (AC)
+# - **Low (L)**: No special setup — any attacker can trigger it
+# - **High (H)**: Requires specific timing, conditions, or crafted environment
+
+# #### Privileges Required (PR)
+# - **None (N)**: No login needed (e.g., web form)
+# - **Low (L)**: Requires user account
+# - **High (H)**: Requires admin/root
+
+# #### User Interaction (UI)
+# - **None (N)**: Exploit happens automatically
+# - **Required (R)**: Victim must click/link/do something
+
+# #### Scope (S)
+# - **Unchanged (U)**: Affects same system/component
+# - **Changed (C)**: Crosses privilege or system boundaries
+
+# #### Impact Ratings
+# - **Confidentiality (C)**: Can read data (L = partial, H = full)
+# - **Integrity (I)**: Can alter data or behavior
+# - **Availability (A)**: Can crash, slow down, or block service
+
+# ### CVSS Score Interpretation
+
+# | Severity | Typical CVSS Range | Use When… |
+# |----------|---------------------|-----------|
+# | Low      | 0.1 – 3.9           | Minor info leaks, edge case DoS |
+# | Medium   | 4.0 – 6.9           | XSS, SSRF, validation issues |
+# | High     | 7.0 – 8.9           | SQLi, logic flaws, broken auth |
+# | Critical | 9.0 – 10.0          | RCE, full compromise, pre-auth |
+
+# ### Instructions
+# - Carefully **infer the CVSS score and severity** by analyzing the impact and exploitability described by the patch.
+# - Do not guess or fabricate. Only assign high/critical if justified by the patch context (e.g., remote, unauthenticated, full control).
+# - If unsure, choose a **conservative (lower)** rating.

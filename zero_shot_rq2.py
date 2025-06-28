@@ -18,8 +18,8 @@ if not api_key:
 client = OpenAI(api_key=api_key)
 
 
-input_file = "subsets/subset_4.json"
-output_file = "secom_zero_shot_rq2_subset4.csv"
+input_file = "by_weakness/cwe-125_samples.json"
+output_file = "secom_zero_shot_rq2_cwe125.csv"
 results = []
 
 # Read the JSON file into a DataFrame
