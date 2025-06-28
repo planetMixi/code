@@ -26,7 +26,6 @@ CVSS: <CVSS Score (0-10)>
   - Capitalized first letter
   - Imperative mood (Fix, Prevent, etc.)
   - No trailing period
-  - Must include vulnerability ID in parentheses (e.g., CVE-2023-1234)
 - Body:
   - The <Body> block must contain exactly three sentences, each on its own line.
   - Each sentence must start on a new physical line. Do not combine them into one paragraph.
