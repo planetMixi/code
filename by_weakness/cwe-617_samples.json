@@ -1,0 +1,412 @@
+{
+  "schema":{
+    "fields":[
+      {
+        "name":"index",
+        "type":"integer"
+      },
+      {
+        "name":"vuln_id",
+        "type":"string"
+      },
+      {
+        "name":"cwe_id",
+        "type":"string"
+      },
+      {
+        "name":"score",
+        "type":"number"
+      },
+      {
+        "name":"chain",
+        "type":"string"
+      },
+      {
+        "name":"dataset",
+        "type":"string"
+      },
+      {
+        "name":"summary",
+        "type":"string"
+      },
+      {
+        "name":"published_date",
+        "type":"string"
+      },
+      {
+        "name":"chain_len",
+        "type":"integer"
+      },
+      {
+        "name":"project",
+        "type":"string"
+      },
+      {
+        "name":"commit_href",
+        "type":"string"
+      },
+      {
+        "name":"commit_sha",
+        "type":"string"
+      },
+      {
+        "name":"patch",
+        "type":"string"
+      },
+      {
+        "name":"chain_ord",
+        "type":"string"
+      },
+      {
+        "name":"before_first_fix_commit",
+        "type":"string"
+      },
+      {
+        "name":"last_fix_commit",
+        "type":"string"
+      },
+      {
+        "name":"chain_ord_pos",
+        "type":"number"
+      },
+      {
+        "name":"commit_datetime",
+        "type":"string"
+      },
+      {
+        "name":"message",
+        "type":"string"
+      },
+      {
+        "name":"author",
+        "type":"string"
+      },
+      {
+        "name":"comments",
+        "type":"string"
+      },
+      {
+        "name":"stats",
+        "type":"string"
+      },
+      {
+        "name":"files",
+        "type":"string"
+      },
+      {
+        "name":"message_norm",
+        "type":"string"
+      },
+      {
+        "name":"language",
+        "type":"string"
+      },
+      {
+        "name":"entities",
+        "type":"string"
+      },
+      {
+        "name":"classification_level_1",
+        "type":"string"
+      },
+      {
+        "name":"classification_level_2",
+        "type":"string"
+      },
+      {
+        "name":"list_files",
+        "type":"string"
+      },
+      {
+        "name":"num_files",
+        "type":"number"
+      },
+      {
+        "name":"patch_content",
+        "type":"string"
+      },
+      {
+        "name":"code_diff",
+        "type":"string"
+      }
+    ],
+    "primaryKey":[
+      "index"
+    ],
+    "pandas_version":"1.4.0"
+  },
+  "data":[
+    {
+      "index":0,
+      "vuln_id":"GHSA-fx5c-h9f6-rv7c",
+      "cwe_id":"{'CWE-617'}",
+      "score":6.5,
+      "chain":"{'https:\/\/github.com\/tensorflow\/tensorflow\/commit\/6b5adc0877de832b2a7c189532dbbbc64622eeb6'}",
+      "dataset":"osv",
+      "summary":"`CHECK`-fails due to attempting to build a reference tensor ### Impact\nA malicious user can cause a denial of service by altering a `SavedModel` such that [Grappler optimizer would attempt to build a tensor using a reference `dtype`](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/a1320ec1eac186da1d03f033109191f715b2b130\/tensorflow\/core\/grappler\/optimizers\/constant_folding.cc#L1328-L1402). This would result in a crash due to a `CHECK`-fail [in the `Tensor` constructor](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/a1320ec1eac186da1d03f033109191f715b2b130\/tensorflow\/core\/framework\/tensor.cc#L733-L781) as reference types are not allowed.\n### Patches\nWe have patched the issue in GitHub commit [6b5adc0877de832b2a7c189532dbbbc64622eeb6](https:\/\/github.com\/tensorflow\/tensorflow\/commit\/6b5adc0877de832b2a7c189532dbbbc64622eeb6).\nThe fix will be included in TensorFlow 2.8.0. We will also cherrypick this commit on TensorFlow 2.7.1, TensorFlow 2.6.3, and TensorFlow 2.5.3, as these are also affected and still in supported range.\n\n### For more information\nPlease consult [our security guide](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/master\/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.",
+      "published_date":"2022-02-09",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/tensorflow\/tensorflow",
+      "commit_href":"https:\/\/github.com\/tensorflow\/tensorflow\/commit\/6b5adc0877de832b2a7c189532dbbbc64622eeb6",
+      "commit_sha":"6b5adc0877de832b2a7c189532dbbbc64622eeb6",
+      "patch":"SINGLE",
+      "chain_ord":"['6b5adc0877de832b2a7c189532dbbbc64622eeb6']",
+      "before_first_fix_commit":"{'af2cab9355e8d5bf48c2c7042b3faaf31262ea8c'}",
+      "last_fix_commit":"6b5adc0877de832b2a7c189532dbbbc64622eeb6",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"11\/13\/2021, 15:28:58",
+      "message":"Prevent `CHECK`-fail when building reference tensor.\n\nThe tensor constructor does not allow reference dtypes, as these should not show up explicitly. However, when passed these invalid types instead of building an invalid object the constructor crashes via a `CHECK`-fail. We have a static builder that properly handles this case but is not applicable given current usage.\n\nInstead, before calling the constructor, we can check that the dtype is not a reference type and return an error otherwise, given that the dtype is user controlled so malicious users can trigger denial of service.\n\nPiperOrigin-RevId: 409662503\nChange-Id: I5892f831fde7f276cd7ab34519cf6b8061c71a59",
+      "author":"Mihai Maruseac",
+      "comments":null,
+      "stats":"{'additions': 5, 'deletions': 0, 'total': 5}",
+      "files":"{'tensorflow\/core\/grappler\/optimizers\/constant_folding.cc': {'additions': 5, 'deletions': 0, 'changes': 5, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/tensorflow\/tensorflow\/raw\/6b5adc0877de832b2a7c189532dbbbc64622eeb6\/tensorflow%2Fcore%2Fgrappler%2Foptimizers%2Fconstant_folding.cc', 'patch': '@@ -1363,6 +1363,11 @@ Status ConstantFolding::EvaluateOneFoldable(const NodeDef& node,\\n                           input_tensor.ToString(),\\n                           \" has a dtype of DT_INVALID.\"));\\n     }\\n+    if (IsRefType(raw_val.dtype())) {\\n+      return errors::InvalidArgument(\\n+          \"Not allowed to construct a tensor with reference dtype, got \",\\n+          DataTypeString(raw_val.dtype()));\\n+    }\\n     Tensor* value = new Tensor(raw_val.dtype(), raw_val.tensor_shape());\\n     if (!value->FromProto(raw_val)) {\\n       delete (value);'}}",
+      "message_norm":"prevent `check`-fail when building reference tensor.\n\nthe tensor constructor does not allow reference dtypes, as these should not show up explicitly. however, when passed these invalid types instead of building an invalid object the constructor crashes via a `check`-fail. we have a static builder that properly handles this case but is not applicable given current usage.\n\ninstead, before calling the constructor, we can check that the dtype is not a reference type and return an error otherwise, given that the dtype is user controlled so malicious users can trigger denial of service.\n\npiperorigin-revid: 409662503\nchange-id: i5892f831fde7f276cd7ab34519cf6b8061c71a59",
+      "language":"en",
+      "entities":"[('prevent', 'ACTION', ''), ('error', 'FLAW', ''), ('malicious', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('409662503', 'SHA', 'generic_sha')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['tensorflow\/core\/grappler\/optimizers\/constant_folding.cc'])",
+      "num_files":1.0,
+      "patch_content":"From 6b5adc0877de832b2a7c189532dbbbc64622eeb6 Mon Sep 17 00:00:00 2001\nFrom: Mihai Maruseac <mihaimaruseac@google.com>\nDate: Sat, 13 Nov 2021 07:28:58 -0800\nSubject: [PATCH] Prevent `CHECK`-fail when building reference tensor.\n\nThe tensor constructor does not allow reference dtypes, as these should not show up explicitly. However, when passed these invalid types instead of building an invalid object the constructor crashes via a `CHECK`-fail. We have a static builder that properly handles this case but is not applicable given current usage.\n\nInstead, before calling the constructor, we can check that the dtype is not a reference type and return an error otherwise, given that the dtype is user controlled so malicious users can trigger denial of service.\n\nPiperOrigin-RevId: 409662503\nChange-Id: I5892f831fde7f276cd7ab34519cf6b8061c71a59\n---\n tensorflow\/core\/grappler\/optimizers\/constant_folding.cc | 5 +++++\n 1 file changed, 5 insertions(+)\n\ndiff --git a\/tensorflow\/core\/grappler\/optimizers\/constant_folding.cc b\/tensorflow\/core\/grappler\/optimizers\/constant_folding.cc\nindex d5fadb311a75cc..281806be20259f 100644\n--- a\/tensorflow\/core\/grappler\/optimizers\/constant_folding.cc\n+++ b\/tensorflow\/core\/grappler\/optimizers\/constant_folding.cc\n@@ -1363,6 +1363,11 @@ Status ConstantFolding::EvaluateOneFoldable(const NodeDef& node,\n                           input_tensor.ToString(),\n                           \" has a dtype of DT_INVALID.\"));\n     }\n+    if (IsRefType(raw_val.dtype())) {\n+      return errors::InvalidArgument(\n+          \"Not allowed to construct a tensor with reference dtype, got \",\n+          DataTypeString(raw_val.dtype()));\n+    }\n     Tensor* value = new Tensor(raw_val.dtype(), raw_val.tensor_shape());\n     if (!value->FromProto(raw_val)) {\n       delete (value);",
+      "code_diff":"@@ -1363,6 +1363,11 @@ Status ConstantFolding::EvaluateOneFoldable(const NodeDef& node,\n                           input_tensor.ToString(),\n                           \" has a dtype of DT_INVALID.\"));\n     }\n+    if (IsRefType(raw_val.dtype())) {\n+      return errors::InvalidArgument(\n+          \"Not allowed to construct a tensor with reference dtype, got \",\n+          DataTypeString(raw_val.dtype()));\n+    }\n     Tensor* value = new Tensor(raw_val.dtype(), raw_val.tensor_shape());\n     if (!value->FromProto(raw_val)) {\n       delete (value);"
+    },
+    {
+      "index":1,
+      "vuln_id":"GHSA-fq86-3f29-px2c",
+      "cwe_id":"{'CWE-617'}",
+      "score":6.5,
+      "chain":"{'https:\/\/github.com\/tensorflow\/tensorflow\/commit\/240655511cd3e701155f944a972db71b6c0b1bb6', 'https:\/\/github.com\/tensorflow\/tensorflow\/commit\/ebc1a2ffe5a7573d905e99bd0ee3568ee07c12c1', 'https:\/\/github.com\/tensorflow\/tensorflow\/commit\/1fb27733f943295d874417630edd3b38b34ce082'}",
+      "dataset":"osv",
+      "summary":"`CHECK`-failures during Grappler's `IsSimplifiableReshape` in Tensorflow ### Impact\nThe Grappler optimizer in TensorFlow can be used to cause a denial of service by altering a `SavedModel` such that [`IsSimplifiableReshape`](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/a1320ec1eac186da1d03f033109191f715b2b130\/tensorflow\/core\/grappler\/optimizers\/constant_folding.cc#L1687-L1742) would trigger `CHECK` failures.\n\n### Patches\nWe have patched the issue in GitHub commits [ebc1a2ffe5a7573d905e99bd0ee3568ee07c12c1](https:\/\/github.com\/tensorflow\/tensorflow\/commit\/ebc1a2ffe5a7573d905e99bd0ee3568ee07c12c1), [1fb27733f943295d874417630edd3b38b34ce082](https:\/\/github.com\/tensorflow\/tensorflow\/commit\/1fb27733f943295d874417630edd3b38b34ce082), and [240655511cd3e701155f944a972db71b6c0b1bb6](https:\/\/github.com\/tensorflow\/tensorflow\/commit\/240655511cd3e701155f944a972db71b6c0b1bb6).\n\nThe fix will be included in TensorFlow 2.8.0. We will also cherrypick this commit on TensorFlow 2.7.1, TensorFlow 2.6.3, and TensorFlow 2.5.3, as these are also affected and still in supported range.\n\n### For more information\nPlease consult [our security guide](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/master\/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.",
+      "published_date":"2022-02-07",
+      "chain_len":3,
+      "project":"https:\/\/github.com\/tensorflow\/tensorflow",
+      "commit_href":"https:\/\/github.com\/tensorflow\/tensorflow\/commit\/1fb27733f943295d874417630edd3b38b34ce082",
+      "commit_sha":"1fb27733f943295d874417630edd3b38b34ce082",
+      "patch":"MULTI",
+      "chain_ord":"['ebc1a2ffe5a7573d905e99bd0ee3568ee07c12c1', '1fb27733f943295d874417630edd3b38b34ce082', '240655511cd3e701155f944a972db71b6c0b1bb6']",
+      "before_first_fix_commit":"{'1fb27733f943295d874417630edd3b38b34ce082'}",
+      "last_fix_commit":"240655511cd3e701155f944a972db71b6c0b1bb6",
+      "chain_ord_pos":2.0,
+      "commit_datetime":"11\/11\/2021, 17:16:14",
+      "message":"Remove `CHECK`-fails from `IsSimplifiableReshape`\n\nPiperOrigin-RevId: 409164987\nChange-Id: I58c7dd459ff348c3dbae95e00c4c5e63b30a4e65",
+      "author":"Mihai Maruseac",
+      "comments":null,
+      "stats":"{'additions': 10, 'deletions': 2, 'total': 12}",
+      "files":"{'tensorflow\/core\/grappler\/optimizers\/constant_folding.cc': {'additions': 10, 'deletions': 2, 'changes': 12, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/tensorflow\/tensorflow\/raw\/1fb27733f943295d874417630edd3b38b34ce082\/tensorflow%2Fcore%2Fgrappler%2Foptimizers%2Fconstant_folding.cc', 'patch': '@@ -1689,7 +1689,11 @@ Status ConstantFolding::IsSimplifiableReshape(\\n   if (!IsReshape(node)) {\\n     return errors::Internal(\"Node \", node.name(), \" is not a Reshape node\");\\n   }\\n-  CHECK_LE(2, node.input_size());\\n+  if (2 > node.input_size()) {\\n+    return errors::Internal(\"Node \", node.name(),\\n+                            \" must have at most 2 inputs but has \",\\n+                            node.input_size());\\n+  }\\n   const NodeDef* new_shape = node_map_->GetNode(node.input(1));\\n   if (!IsReallyConstant(*new_shape)) {\\n     return errors::Internal(\"Node \", node.name(), \" has shape \",\\n@@ -1707,7 +1711,11 @@ Status ConstantFolding::IsSimplifiableReshape(\\n   if (!s.ok()) {\\n     return errors::Internal(\"Could not evaluate node \", node.name());\\n   }\\n-  CHECK_EQ(1, outputs.size());\\n+  if (outputs.size() != 1) {\\n+    return errors::Internal(\"Node \", node.name(),\\n+                            \" must have exactly 1 output but has \",\\n+                            outputs.size());\\n+  }\\n \\n   const std::vector<OpInfo::TensorProperties>& props =\\n       properties.GetInputProperties(node.name());'}}",
+      "message_norm":"remove `check`-fails from `issimplifiablereshape`\n\npiperorigin-revid: 409164987\nchange-id: i58c7dd459ff348c3dbae95e00c4c5e63b30a4e65",
+      "language":"en",
+      "entities":"[('remove', 'ACTION', ''), ('409164987', 'SHA', 'generic_sha')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['tensorflow\/core\/grappler\/optimizers\/constant_folding.cc'])",
+      "num_files":1.0,
+      "patch_content":"From 1fb27733f943295d874417630edd3b38b34ce082 Mon Sep 17 00:00:00 2001\nFrom: Mihai Maruseac <mihaimaruseac@google.com>\nDate: Thu, 11 Nov 2021 09:16:14 -0800\nSubject: [PATCH] Remove `CHECK`-fails from `IsSimplifiableReshape`\n\nPiperOrigin-RevId: 409164987\nChange-Id: I58c7dd459ff348c3dbae95e00c4c5e63b30a4e65\n---\n ...\/core\/grappler\/optimizers\/constant_folding.cc     | 12 ++++++++++--\n 1 file changed, 10 insertions(+), 2 deletions(-)\n\ndiff --git a\/tensorflow\/core\/grappler\/optimizers\/constant_folding.cc b\/tensorflow\/core\/grappler\/optimizers\/constant_folding.cc\nindex 9087ddb5994129..a2050899f60726 100644\n--- a\/tensorflow\/core\/grappler\/optimizers\/constant_folding.cc\n+++ b\/tensorflow\/core\/grappler\/optimizers\/constant_folding.cc\n@@ -1689,7 +1689,11 @@ Status ConstantFolding::IsSimplifiableReshape(\n   if (!IsReshape(node)) {\n     return errors::Internal(\"Node \", node.name(), \" is not a Reshape node\");\n   }\n-  CHECK_LE(2, node.input_size());\n+  if (2 > node.input_size()) {\n+    return errors::Internal(\"Node \", node.name(),\n+                            \" must have at most 2 inputs but has \",\n+                            node.input_size());\n+  }\n   const NodeDef* new_shape = node_map_->GetNode(node.input(1));\n   if (!IsReallyConstant(*new_shape)) {\n     return errors::Internal(\"Node \", node.name(), \" has shape \",\n@@ -1707,7 +1711,11 @@ Status ConstantFolding::IsSimplifiableReshape(\n   if (!s.ok()) {\n     return errors::Internal(\"Could not evaluate node \", node.name());\n   }\n-  CHECK_EQ(1, outputs.size());\n+  if (outputs.size() != 1) {\n+    return errors::Internal(\"Node \", node.name(),\n+                            \" must have exactly 1 output but has \",\n+                            outputs.size());\n+  }\n \n   const std::vector<OpInfo::TensorProperties>& props =\n       properties.GetInputProperties(node.name());",
+      "code_diff":"@@ -1689,7 +1689,11 @@ Status ConstantFolding::IsSimplifiableReshape(\n   if (!IsReshape(node)) {\n     return errors::Internal(\"Node \", node.name(), \" is not a Reshape node\");\n   }\n-  CHECK_LE(2, node.input_size());\n+  if (2 > node.input_size()) {\n+    return errors::Internal(\"Node \", node.name(),\n+                            \" must have at most 2 inputs but has \",\n+                            node.input_size());\n+  }\n   const NodeDef* new_shape = node_map_->GetNode(node.input(1));\n   if (!IsReallyConstant(*new_shape)) {\n     return errors::Internal(\"Node \", node.name(), \" has shape \",\n@@ -1707,7 +1711,11 @@ Status ConstantFolding::IsSimplifiableReshape(\n   if (!s.ok()) {\n     return errors::Internal(\"Could not evaluate node \", node.name());\n   }\n-  CHECK_EQ(1, outputs.size());\n+  if (outputs.size() != 1) {\n+    return errors::Internal(\"Node \", node.name(),\n+                            \" must have exactly 1 output but has \",\n+                            outputs.size());\n+  }\n \n   const std::vector<OpInfo::TensorProperties>& props =\n       properties.GetInputProperties(node.name());"
+    },
+    {
+      "index":2,
+      "vuln_id":"GHSA-gjqc-q9g6-q2j3",
+      "cwe_id":"{'CWE-617'}",
+      "score":6.5,
+      "chain":"{'https:\/\/github.com\/tensorflow\/tensorflow\/commit\/a7c02f1a9bbc35473969618a09ee5f9f5d3e52d9'}",
+      "dataset":"osv",
+      "summary":"`CHECK`-failures in binary ops in Tensorflow ### Impact\nA malicious user can cause a denial of service by altering a `SavedModel` such that [any binary op](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/a1320ec1eac186da1d03f033109191f715b2b130\/tensorflow\/core\/kernels\/cwise_ops_common.h#L88-L137) would trigger `CHECK` failures. This occurs when the protobuf part corresponding to the tensor arguments is modified such that the `dtype` no longer matches the `dtype` expected by the op. In that case, calling the templated binary operator for the binary op would receive corrupted data, due to the type confusion involved:\n\n```cc\nfunctor::BinaryFunctor<Device, Functor, 1>()(\n    eigen_device, out->template flat<Tout>(),\n    input_0.template flat<Tin>(), input_1.template flat<Tin>(),\n    error_ptr);\n```\nIf `Tin` and `Tout` don't match the type of data in `out` and `input_*` tensors then `flat<*>` would interpret it wrongly. In most cases, this would be a silent failure, but we have noticed scenarios where this results in a `CHECK` crash, hence a denial of service.\n\n### Patches\nWe have patched the issue in GitHub commit [a7c02f1a9bbc35473969618a09ee5f9f5d3e52d9](https:\/\/github.com\/tensorflow\/tensorflow\/commit\/a7c02f1a9bbc35473969618a09ee5f9f5d3e52d9).\nThe fix will be included in TensorFlow 2.8.0. We will also cherrypick this commit on TensorFlow 2.7.1, TensorFlow 2.6.3, and TensorFlow 2.5.3, as these are also affected and still in supported range.\n\n### For more information\nPlease consult [our security guide](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/master\/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.",
+      "published_date":"2022-02-10",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/tensorflow\/tensorflow",
+      "commit_href":"https:\/\/github.com\/tensorflow\/tensorflow\/commit\/a7c02f1a9bbc35473969618a09ee5f9f5d3e52d9",
+      "commit_sha":"a7c02f1a9bbc35473969618a09ee5f9f5d3e52d9",
+      "patch":"SINGLE",
+      "chain_ord":"['a7c02f1a9bbc35473969618a09ee5f9f5d3e52d9']",
+      "before_first_fix_commit":"{'c7db81b86b6746b494e5359433aa8e2dd7df25f6'}",
+      "last_fix_commit":"a7c02f1a9bbc35473969618a09ee5f9f5d3e52d9",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"11\/12\/2021, 08:24:39",
+      "message":"Validate real and expected type of arguments to cwise ops.\n\nWithout this validation, it is possible to trigger a `CHECK`-fail denial of service.\n\nThis is a rollforward of a previous commit which was rolled back as it was relying on RTTI. This time we don't use RTTI, we replace `typeid(Tin).name()` with a double function call, `DataTypeString(DataTypeToEnum<Tin>::v())`.\n\nPiperOrigin-RevId: 409340416\nChange-Id: I96080b2796729a3a9b65e7c68307ac276070f2f0",
+      "author":"Mihai Maruseac",
+      "comments":null,
+      "stats":"{'additions': 10, 'deletions': 0, 'total': 10}",
+      "files":"{'tensorflow\/core\/kernels\/cwise_ops_common.h': {'additions': 10, 'deletions': 0, 'changes': 10, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/tensorflow\/tensorflow\/raw\/a7c02f1a9bbc35473969618a09ee5f9f5d3e52d9\/tensorflow%2Fcore%2Fkernels%2Fcwise_ops_common.h', 'patch': '@@ -87,7 +87,17 @@ class BinaryOp : public BinaryOpShared {\\n \\n   void Compute(OpKernelContext* ctx) override {\\n     const Tensor& input_0 = ctx->input(0);\\n+    OP_REQUIRES(ctx, input_0.dtype() == DataTypeToEnum<Tin>::v(),\\n+                errors::InvalidArgument(\\n+                    \"Expected tensor of type \",\\n+                    DataTypeString(DataTypeToEnum<Tin>::v()), \" but got type \",\\n+                    DataTypeString(input_0.dtype())));\\n     const Tensor& input_1 = ctx->input(1);\\n+    OP_REQUIRES(ctx, input_1.dtype() == DataTypeToEnum<Tin>::v(),\\n+                errors::InvalidArgument(\\n+                    \"Expected tensor of type \",\\n+                    DataTypeString(DataTypeToEnum<Tin>::v()), \" but got type \",\\n+                    DataTypeString(input_1.dtype())));\\n     const Device& eigen_device = ctx->eigen_device<Device>();\\n     bool error = false;\\n     bool* const error_ptr = Functor::has_errors ? &error : nullptr;'}}",
+      "message_norm":"validate real and expected type of arguments to cwise ops.\n\nwithout this validation, it is possible to trigger a `check`-fail denial of service.\n\nthis is a rollforward of a previous commit which was rolled back as it was relying on rtti. this time we don't use rtti, we replace `typeid(tin).name()` with a double function call, `datatypestring(datatypetoenum<tin>::v())`.\n\npiperorigin-revid: 409340416\nchange-id: i96080b2796729a3a9b65e7c68307ac276070f2f0",
+      "language":"en",
+      "entities":"[('validate', 'ACTION', ''), ('denial of service', 'SECWORD', ''), ('409340416', 'SHA', 'generic_sha')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['tensorflow\/core\/kernels\/cwise_ops_common.h'])",
+      "num_files":1.0,
+      "patch_content":"From a7c02f1a9bbc35473969618a09ee5f9f5d3e52d9 Mon Sep 17 00:00:00 2001\nFrom: Mihai Maruseac <mihaimaruseac@google.com>\nDate: Fri, 12 Nov 2021 00:24:39 -0800\nSubject: [PATCH] Validate real and expected type of arguments to cwise ops.\n\nWithout this validation, it is possible to trigger a `CHECK`-fail denial of service.\n\nThis is a rollforward of a previous commit which was rolled back as it was relying on RTTI. This time we don't use RTTI, we replace `typeid(Tin).name()` with a double function call, `DataTypeString(DataTypeToEnum<Tin>::v())`.\n\nPiperOrigin-RevId: 409340416\nChange-Id: I96080b2796729a3a9b65e7c68307ac276070f2f0\n---\n tensorflow\/core\/kernels\/cwise_ops_common.h | 10 ++++++++++\n 1 file changed, 10 insertions(+)\n\ndiff --git a\/tensorflow\/core\/kernels\/cwise_ops_common.h b\/tensorflow\/core\/kernels\/cwise_ops_common.h\nindex ed4125f45579f3..fa48717ab1c285 100644\n--- a\/tensorflow\/core\/kernels\/cwise_ops_common.h\n+++ b\/tensorflow\/core\/kernels\/cwise_ops_common.h\n@@ -87,7 +87,17 @@ class BinaryOp : public BinaryOpShared {\n \n   void Compute(OpKernelContext* ctx) override {\n     const Tensor& input_0 = ctx->input(0);\n+    OP_REQUIRES(ctx, input_0.dtype() == DataTypeToEnum<Tin>::v(),\n+                errors::InvalidArgument(\n+                    \"Expected tensor of type \",\n+                    DataTypeString(DataTypeToEnum<Tin>::v()), \" but got type \",\n+                    DataTypeString(input_0.dtype())));\n     const Tensor& input_1 = ctx->input(1);\n+    OP_REQUIRES(ctx, input_1.dtype() == DataTypeToEnum<Tin>::v(),\n+                errors::InvalidArgument(\n+                    \"Expected tensor of type \",\n+                    DataTypeString(DataTypeToEnum<Tin>::v()), \" but got type \",\n+                    DataTypeString(input_1.dtype())));\n     const Device& eigen_device = ctx->eigen_device<Device>();\n     bool error = false;\n     bool* const error_ptr = Functor::has_errors ? &error : nullptr;",
+      "code_diff":"@@ -87,7 +87,17 @@ class BinaryOp : public BinaryOpShared {\n \n   void Compute(OpKernelContext* ctx) override {\n     const Tensor& input_0 = ctx->input(0);\n+    OP_REQUIRES(ctx, input_0.dtype() == DataTypeToEnum<Tin>::v(),\n+                errors::InvalidArgument(\n+                    \"Expected tensor of type \",\n+                    DataTypeString(DataTypeToEnum<Tin>::v()), \" but got type \",\n+                    DataTypeString(input_0.dtype())));\n     const Tensor& input_1 = ctx->input(1);\n+    OP_REQUIRES(ctx, input_1.dtype() == DataTypeToEnum<Tin>::v(),\n+                errors::InvalidArgument(\n+                    \"Expected tensor of type \",\n+                    DataTypeString(DataTypeToEnum<Tin>::v()), \" but got type \",\n+                    DataTypeString(input_1.dtype())));\n     const Device& eigen_device = ctx->eigen_device<Device>();\n     bool error = false;\n     bool* const error_ptr = Functor::has_errors ? &error : nullptr;"
+    },
+    {
+      "index":3,
+      "vuln_id":"GHSA-fq86-3f29-px2c",
+      "cwe_id":"{'CWE-617'}",
+      "score":6.5,
+      "chain":"{'https:\/\/github.com\/tensorflow\/tensorflow\/commit\/240655511cd3e701155f944a972db71b6c0b1bb6', 'https:\/\/github.com\/tensorflow\/tensorflow\/commit\/ebc1a2ffe5a7573d905e99bd0ee3568ee07c12c1', 'https:\/\/github.com\/tensorflow\/tensorflow\/commit\/1fb27733f943295d874417630edd3b38b34ce082'}",
+      "dataset":"osv",
+      "summary":"`CHECK`-failures during Grappler's `IsSimplifiableReshape` in Tensorflow ### Impact\nThe Grappler optimizer in TensorFlow can be used to cause a denial of service by altering a `SavedModel` such that [`IsSimplifiableReshape`](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/a1320ec1eac186da1d03f033109191f715b2b130\/tensorflow\/core\/grappler\/optimizers\/constant_folding.cc#L1687-L1742) would trigger `CHECK` failures.\n\n### Patches\nWe have patched the issue in GitHub commits [ebc1a2ffe5a7573d905e99bd0ee3568ee07c12c1](https:\/\/github.com\/tensorflow\/tensorflow\/commit\/ebc1a2ffe5a7573d905e99bd0ee3568ee07c12c1), [1fb27733f943295d874417630edd3b38b34ce082](https:\/\/github.com\/tensorflow\/tensorflow\/commit\/1fb27733f943295d874417630edd3b38b34ce082), and [240655511cd3e701155f944a972db71b6c0b1bb6](https:\/\/github.com\/tensorflow\/tensorflow\/commit\/240655511cd3e701155f944a972db71b6c0b1bb6).\n\nThe fix will be included in TensorFlow 2.8.0. We will also cherrypick this commit on TensorFlow 2.7.1, TensorFlow 2.6.3, and TensorFlow 2.5.3, as these are also affected and still in supported range.\n\n### For more information\nPlease consult [our security guide](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/master\/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.",
+      "published_date":"2022-02-07",
+      "chain_len":3,
+      "project":"https:\/\/github.com\/tensorflow\/tensorflow",
+      "commit_href":"https:\/\/github.com\/tensorflow\/tensorflow\/commit\/240655511cd3e701155f944a972db71b6c0b1bb6",
+      "commit_sha":"240655511cd3e701155f944a972db71b6c0b1bb6",
+      "patch":"MULTI",
+      "chain_ord":"['ebc1a2ffe5a7573d905e99bd0ee3568ee07c12c1', '1fb27733f943295d874417630edd3b38b34ce082', '240655511cd3e701155f944a972db71b6c0b1bb6']",
+      "before_first_fix_commit":"{'1fb27733f943295d874417630edd3b38b34ce082'}",
+      "last_fix_commit":"240655511cd3e701155f944a972db71b6c0b1bb6",
+      "chain_ord_pos":3.0,
+      "commit_datetime":"11\/11\/2021, 17:24:31",
+      "message":"Eliminate `CHECK`-fails from `IsSimplifiableReshape` via `MakeShape(<invalid shape>)`\n\nPiperOrigin-RevId: 409166738\nChange-Id: I7f0a3590b8acae3f3e3e2fe636e1f5ef285693cf",
+      "author":"Mihai Maruseac",
+      "comments":null,
+      "stats":"{'additions': 4, 'deletions': 2, 'total': 6}",
+      "files":"{'tensorflow\/core\/grappler\/optimizers\/constant_folding.cc': {'additions': 4, 'deletions': 2, 'changes': 6, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/tensorflow\/tensorflow\/raw\/240655511cd3e701155f944a972db71b6c0b1bb6\/tensorflow%2Fcore%2Fgrappler%2Foptimizers%2Fconstant_folding.cc', 'patch': '@@ -1741,14 +1741,16 @@ Status ConstantFolding::IsSimplifiableReshape(\\n       int32_t dim = outputs[0]->flat<int32>()(i);\\n       shp.push_back(dim);\\n     }\\n-    TF_CHECK_OK(TensorShapeUtils::MakeShape(shp, &new_dims));\\n+    s = TensorShapeUtils::MakeShape(shp, &new_dims);\\n+    if (!s.ok()) return s;\\n   } else {\\n     std::vector<int64_t> shp;\\n     for (int i = 0; i < outputs[0]->NumElements(); ++i) {\\n       int64_t dim = outputs[0]->flat<int64_t>()(i);\\n       shp.push_back(dim);\\n     }\\n-    TF_CHECK_OK(TensorShapeUtils::MakeShape(shp, &new_dims));\\n+    s = TensorShapeUtils::MakeShape(shp, &new_dims);\\n+    if (!s.ok()) return s;\\n   }\\n \\n   if (!shape.IsCompatibleWith(new_dims)) {'}}",
+      "message_norm":"eliminate `check`-fails from `issimplifiablereshape` via `makeshape(<invalid shape>)`\n\npiperorigin-revid: 409166738\nchange-id: i7f0a3590b8acae3f3e3e2fe636e1f5ef285693cf",
+      "language":"en",
+      "entities":"[('409166738', 'SHA', 'generic_sha')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['tensorflow\/core\/grappler\/optimizers\/constant_folding.cc'])",
+      "num_files":1.0,
+      "patch_content":"From 240655511cd3e701155f944a972db71b6c0b1bb6 Mon Sep 17 00:00:00 2001\nFrom: Mihai Maruseac <mihaimaruseac@google.com>\nDate: Thu, 11 Nov 2021 09:24:31 -0800\nSubject: [PATCH] Eliminate `CHECK`-fails from `IsSimplifiableReshape` via\n `MakeShape(<invalid shape>)`\n\nPiperOrigin-RevId: 409166738\nChange-Id: I7f0a3590b8acae3f3e3e2fe636e1f5ef285693cf\n---\n tensorflow\/core\/grappler\/optimizers\/constant_folding.cc | 6 ++++--\n 1 file changed, 4 insertions(+), 2 deletions(-)\n\ndiff --git a\/tensorflow\/core\/grappler\/optimizers\/constant_folding.cc b\/tensorflow\/core\/grappler\/optimizers\/constant_folding.cc\nindex a2050899f60726..d5fadb311a75cc 100644\n--- a\/tensorflow\/core\/grappler\/optimizers\/constant_folding.cc\n+++ b\/tensorflow\/core\/grappler\/optimizers\/constant_folding.cc\n@@ -1741,14 +1741,16 @@ Status ConstantFolding::IsSimplifiableReshape(\n       int32_t dim = outputs[0]->flat<int32>()(i);\n       shp.push_back(dim);\n     }\n-    TF_CHECK_OK(TensorShapeUtils::MakeShape(shp, &new_dims));\n+    s = TensorShapeUtils::MakeShape(shp, &new_dims);\n+    if (!s.ok()) return s;\n   } else {\n     std::vector<int64_t> shp;\n     for (int i = 0; i < outputs[0]->NumElements(); ++i) {\n       int64_t dim = outputs[0]->flat<int64_t>()(i);\n       shp.push_back(dim);\n     }\n-    TF_CHECK_OK(TensorShapeUtils::MakeShape(shp, &new_dims));\n+    s = TensorShapeUtils::MakeShape(shp, &new_dims);\n+    if (!s.ok()) return s;\n   }\n \n   if (!shape.IsCompatibleWith(new_dims)) {",
+      "code_diff":"@@ -1741,14 +1741,16 @@ Status ConstantFolding::IsSimplifiableReshape(\n       int32_t dim = outputs[0]->flat<int32>()(i);\n       shp.push_back(dim);\n     }\n-    TF_CHECK_OK(TensorShapeUtils::MakeShape(shp, &new_dims));\n+    s = TensorShapeUtils::MakeShape(shp, &new_dims);\n+    if (!s.ok()) return s;\n   } else {\n     std::vector<int64_t> shp;\n     for (int i = 0; i < outputs[0]->NumElements(); ++i) {\n       int64_t dim = outputs[0]->flat<int64_t>()(i);\n       shp.push_back(dim);\n     }\n-    TF_CHECK_OK(TensorShapeUtils::MakeShape(shp, &new_dims));\n+    s = TensorShapeUtils::MakeShape(shp, &new_dims);\n+    if (!s.ok()) return s;\n   }\n \n   if (!shape.IsCompatibleWith(new_dims)) {"
+    },
+    {
+      "index":4,
+      "vuln_id":"GHSA-jhq9-wm9m-cf89",
+      "cwe_id":"{'CWE-617'}",
+      "score":2.5,
+      "chain":"{'https:\/\/github.com\/tensorflow\/tensorflow\/commit\/704866eabe03a9aeda044ec91a8d0c83fc1ebdbe'}",
+      "dataset":"osv",
+      "summary":"CHECK-failure in `UnsortedSegmentJoin` ### Impact\nAn attacker can cause a denial of service by controlling the values of `num_segments` tensor argument for `UnsortedSegmentJoin`:\n\n```python\nimport tensorflow as tf\n\ninputs = tf.constant([], dtype=tf.string)\nsegment_ids = tf.constant([], dtype=tf.int32)\nnum_segments = tf.constant([], dtype=tf.int32)\nseparator = ''\n\ntf.raw_ops.UnsortedSegmentJoin(\n  inputs=inputs, segment_ids=segment_ids,\n  num_segments=num_segments, separator=separator)\n```\n\nThis is because the [implementation](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/a2a607db15c7cd01d754d37e5448d72a13491bdb\/tensorflow\/core\/kernels\/unsorted_segment_join_op.cc#L92-L93) assumes that the `num_segments` tensor is a valid scalar:\n\n```cc\nconst Tensor& num_segments_tensor = context->input(2);\nauto num_segments = num_segments_tensor.scalar<NUM_SEGMENTS_TYPE>()();\n```\n\nSince the tensor is empty the `CHECK` involved in `.scalar<T>()()` that checks that the number of elements is exactly 1 will be invalidated and this would result in process termination.\n\n### Patches\nWe have patched the issue in GitHub commit [704866eabe03a9aeda044ec91a8d0c83fc1ebdbe](https:\/\/github.com\/tensorflow\/tensorflow\/commit\/704866eabe03a9aeda044ec91a8d0c83fc1ebdbe).\n\nThe fix will be included in TensorFlow 2.5.0. We will also cherrypick this commit on TensorFlow 2.4.2, TensorFlow 2.3.3, TensorFlow 2.2.3 and TensorFlow 2.1.4, as these are also affected and still in supported range.\n\n### For more information\nPlease consult [our security guide](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/master\/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n\n### Attribution\nThis vulnerability has been reported by Ying Wang and Yakun Zhang of Baidu X-Team.",
+      "published_date":"2021-05-21",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/tensorflow\/tensorflow",
+      "commit_href":"https:\/\/github.com\/tensorflow\/tensorflow\/commit\/704866eabe03a9aeda044ec91a8d0c83fc1ebdbe",
+      "commit_sha":"704866eabe03a9aeda044ec91a8d0c83fc1ebdbe",
+      "patch":"SINGLE",
+      "chain_ord":"['704866eabe03a9aeda044ec91a8d0c83fc1ebdbe']",
+      "before_first_fix_commit":"{'a2a607db15c7cd01d754d37e5448d72a13491bdb'}",
+      "last_fix_commit":"704866eabe03a9aeda044ec91a8d0c83fc1ebdbe",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"04\/27\/2021, 21:41:40",
+      "message":"Fix overflow CHECK issue with `tf.raw_ops.UnsortedSegmentJoin`.\n\nPiperOrigin-RevId: 370766155\nChange-Id: I33e7c6626224e1060a8a4ab51ad5d861c6d4c63e",
+      "author":"Amit Patankar",
+      "comments":null,
+      "stats":"{'additions': 2, 'deletions': 0, 'total': 2}",
+      "files":"{'tensorflow\/core\/kernels\/unsorted_segment_join_op.cc': {'additions': 2, 'deletions': 0, 'changes': 2, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/tensorflow\/tensorflow\/raw\/704866eabe03a9aeda044ec91a8d0c83fc1ebdbe\/tensorflow%2Fcore%2Fkernels%2Funsorted_segment_join_op.cc', 'patch': '@@ -90,6 +90,8 @@ class UnsortedSegmentJoinOp : public OpKernel {\\n     const int32 segment_dims = segment_id_shape.dims();\\n \\n     const Tensor& num_segments_tensor = context->input(2);\\n+    OP_REQUIRES(context, num_segments_tensor.NumElements() != 0,\\n+                errors::InvalidArgument(\"Number of segments cannot be empty.\"));\\n     auto num_segments = num_segments_tensor.scalar<NUM_SEGMENTS_TYPE>()();\\n \\n     OP_REQUIRES(context, segment_dims != 0,'}}",
+      "message_norm":"fix overflow check issue with `tf.raw_ops.unsortedsegmentjoin`.\n\npiperorigin-revid: 370766155\nchange-id: i33e7c6626224e1060a8a4ab51ad5d861c6d4c63e",
+      "language":"en",
+      "entities":"[('fix', 'ACTION', ''), ('overflow', 'SECWORD', ''), ('issue', 'FLAW', ''), ('370766155', 'SHA', 'generic_sha')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['tensorflow\/core\/kernels\/unsorted_segment_join_op.cc'])",
+      "num_files":1.0,
+      "patch_content":"From 704866eabe03a9aeda044ec91a8d0c83fc1ebdbe Mon Sep 17 00:00:00 2001\nFrom: Amit Patankar <amitpatankar@google.com>\nDate: Tue, 27 Apr 2021 14:41:40 -0700\nSubject: [PATCH] Fix overflow CHECK issue with\n `tf.raw_ops.UnsortedSegmentJoin`.\n\nPiperOrigin-RevId: 370766155\nChange-Id: I33e7c6626224e1060a8a4ab51ad5d861c6d4c63e\n---\n tensorflow\/core\/kernels\/unsorted_segment_join_op.cc | 2 ++\n 1 file changed, 2 insertions(+)\n\ndiff --git a\/tensorflow\/core\/kernels\/unsorted_segment_join_op.cc b\/tensorflow\/core\/kernels\/unsorted_segment_join_op.cc\nindex 7464e165e46c8b..9acfe7fb1e4952 100644\n--- a\/tensorflow\/core\/kernels\/unsorted_segment_join_op.cc\n+++ b\/tensorflow\/core\/kernels\/unsorted_segment_join_op.cc\n@@ -90,6 +90,8 @@ class UnsortedSegmentJoinOp : public OpKernel {\n     const int32 segment_dims = segment_id_shape.dims();\n \n     const Tensor& num_segments_tensor = context->input(2);\n+    OP_REQUIRES(context, num_segments_tensor.NumElements() != 0,\n+                errors::InvalidArgument(\"Number of segments cannot be empty.\"));\n     auto num_segments = num_segments_tensor.scalar<NUM_SEGMENTS_TYPE>()();\n \n     OP_REQUIRES(context, segment_dims != 0,",
+      "code_diff":"@@ -90,6 +90,8 @@ class UnsortedSegmentJoinOp : public OpKernel {\n     const int32 segment_dims = segment_id_shape.dims();\n \n     const Tensor& num_segments_tensor = context->input(2);\n+    OP_REQUIRES(context, num_segments_tensor.NumElements() != 0,\n+                errors::InvalidArgument(\"Number of segments cannot be empty.\"));\n     auto num_segments = num_segments_tensor.scalar<NUM_SEGMENTS_TYPE>()();\n \n     OP_REQUIRES(context, segment_dims != 0,"
+    },
+    {
+      "index":5,
+      "vuln_id":"GHSA-27j5-4p9v-pp67",
+      "cwe_id":"{'CWE-617'}",
+      "score":5.5,
+      "chain":"{'https:\/\/github.com\/tensorflow\/tensorflow\/commit\/8a6e874437670045e6c7dc6154c7412b4a2135e2'}",
+      "dataset":"osv",
+      "summary":"`std::abort` raised from `TensorListReserve` ### Impact\nProviding a negative element to `num_elements` list argument of  `tf.raw_ops.TensorListReserve` causes the runtime to abort the process due to reallocating a `std::vector` to have a negative number of elements:\n\n```python\nimport tensorflow as tf\n\ntf.raw_ops.TensorListReserve(\n  element_shape = tf.constant([1]),\n  num_elements=tf.constant([-1]),\n  element_dtype = tf.int32)\n```\n\nThe [implementation](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/8d72537c6abf5a44103b57b9c2e22c14f5f49698\/tensorflow\/core\/kernels\/list_kernels.cc#L312) calls `std::vector.resize()` with the new size controlled by input given by the user, without checking that this input is valid.\n\n### Patches\nWe have patched the issue in GitHub commit [8a6e874437670045e6c7dc6154c7412b4a2135e2](https:\/\/github.com\/tensorflow\/tensorflow\/commit\/8a6e874437670045e6c7dc6154c7412b4a2135e2).\n\nThe fix will be included in TensorFlow 2.6.0. We will also cherrypick this commit on TensorFlow 2.5.1, TensorFlow 2.4.3, and TensorFlow 2.3.4, as these are also affected and still in supported range.\n\n### For more information \nPlease consult [our security guide](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/master\/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.\n\n### Attribution\nThis vulnerability has been reported by members of the Aivul Team from Qihoo 360.",
+      "published_date":"2021-08-25",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/tensorflow\/tensorflow",
+      "commit_href":"https:\/\/github.com\/tensorflow\/tensorflow\/commit\/8a6e874437670045e6c7dc6154c7412b4a2135e2",
+      "commit_sha":"8a6e874437670045e6c7dc6154c7412b4a2135e2",
+      "patch":"SINGLE",
+      "chain_ord":"['8a6e874437670045e6c7dc6154c7412b4a2135e2']",
+      "before_first_fix_commit":"{'3e23241a7f330f62c701f5ceb10f6594cd735f70'}",
+      "last_fix_commit":"8a6e874437670045e6c7dc6154c7412b4a2135e2",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"07\/10\/2021, 00:32:55",
+      "message":"Validate num_elements input in tf.raw_ops.TensorListReserve\n\nPiperOrigin-RevId: 383954564\nChange-Id: I454bd78eff85bc4f16ddb7e608596971cca47f8f",
+      "author":"Laura Pak",
+      "comments":null,
+      "stats":"{'additions': 4, 'deletions': 0, 'total': 4}",
+      "files":"{'tensorflow\/core\/kernels\/list_kernels.cc': {'additions': 4, 'deletions': 0, 'changes': 4, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/tensorflow\/tensorflow\/raw\/8a6e874437670045e6c7dc6154c7412b4a2135e2\/tensorflow%2Fcore%2Fkernels%2Flist_kernels.cc', 'patch': '@@ -302,6 +302,10 @@ class TensorListReserve : public OpKernel {\\n     PartialTensorShape element_shape;\\n     OP_REQUIRES_OK(c, TensorShapeFromTensor(c->input(0), &element_shape));\\n     int32 num_elements = c->input(1).scalar<int32>()();\\n+    OP_REQUIRES(c, num_elements >= 0,\\n+                errors::InvalidArgument(\"The num_elements to reserve must be a \"\\n+                                        \"non negative number, but got \",\\n+                                        num_elements));\\n     TensorList output;\\n     output.element_shape = element_shape;\\n     output.element_dtype = element_dtype_;'}}",
+      "message_norm":"validate num_elements input in tf.raw_ops.tensorlistreserve\n\npiperorigin-revid: 383954564\nchange-id: i454bd78eff85bc4f16ddb7e608596971cca47f8f",
+      "language":"en",
+      "entities":"[('validate', 'ACTION', ''), ('383954564', 'SHA', 'generic_sha')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['tensorflow\/core\/kernels\/list_kernels.cc'])",
+      "num_files":1.0,
+      "patch_content":"From 8a6e874437670045e6c7dc6154c7412b4a2135e2 Mon Sep 17 00:00:00 2001\nFrom: Laura Pak <lpak@google.com>\nDate: Fri, 9 Jul 2021 17:32:55 -0700\nSubject: [PATCH] Validate num_elements input in tf.raw_ops.TensorListReserve\n\nPiperOrigin-RevId: 383954564\nChange-Id: I454bd78eff85bc4f16ddb7e608596971cca47f8f\n---\n tensorflow\/core\/kernels\/list_kernels.cc | 4 ++++\n 1 file changed, 4 insertions(+)\n\ndiff --git a\/tensorflow\/core\/kernels\/list_kernels.cc b\/tensorflow\/core\/kernels\/list_kernels.cc\nindex 9a2f373f5ce0cf..488e02337f707b 100644\n--- a\/tensorflow\/core\/kernels\/list_kernels.cc\n+++ b\/tensorflow\/core\/kernels\/list_kernels.cc\n@@ -302,6 +302,10 @@ class TensorListReserve : public OpKernel {\n     PartialTensorShape element_shape;\n     OP_REQUIRES_OK(c, TensorShapeFromTensor(c->input(0), &element_shape));\n     int32 num_elements = c->input(1).scalar<int32>()();\n+    OP_REQUIRES(c, num_elements >= 0,\n+                errors::InvalidArgument(\"The num_elements to reserve must be a \"\n+                                        \"non negative number, but got \",\n+                                        num_elements));\n     TensorList output;\n     output.element_shape = element_shape;\n     output.element_dtype = element_dtype_;",
+      "code_diff":"@@ -302,6 +302,10 @@ class TensorListReserve : public OpKernel {\n     PartialTensorShape element_shape;\n     OP_REQUIRES_OK(c, TensorShapeFromTensor(c->input(0), &element_shape));\n     int32 num_elements = c->input(1).scalar<int32>()();\n+    OP_REQUIRES(c, num_elements >= 0,\n+                errors::InvalidArgument(\"The num_elements to reserve must be a \"\n+                                        \"non negative number, but got \",\n+                                        num_elements));\n     TensorList output;\n     output.element_shape = element_shape;\n     output.element_dtype = element_dtype_;"
+    },
+    {
+      "index":6,
+      "vuln_id":"GHSA-j3mj-fhpq-qqjj",
+      "cwe_id":"{'CWE-617'}",
+      "score":6.5,
+      "chain":"{'https:\/\/github.com\/tensorflow\/tensorflow\/commit\/5b491cd5e41ad63735161cec9c2a568172c8b6a3'}",
+      "dataset":"osv",
+      "summary":"Reachable Assertion in Tensorflow ### Impact\nWhen decoding a tensor from protobuf, a TensorFlow process can encounter cases where a `CHECK` assertion is invalidated based on user controlled arguments, if the tensors have an invalid `dtype` and 0 elements or an invalid shape. This allows attackers to cause denial of services in TensorFlow processes.\n\n### Patches\nWe have patched the issue in GitHub commit [5b491cd5e41ad63735161cec9c2a568172c8b6a3](https:\/\/github.com\/tensorflow\/tensorflow\/commit\/5b491cd5e41ad63735161cec9c2a568172c8b6a3).\n  \nThe fix will be included in TensorFlow 2.8.0. We will also cherrypick this commit on TensorFlow 2.7.1, TensorFlow 2.6.3, and TensorFlow 2.5.3, as these are also affected and still in supported range. \n  \n### For more information\nPlease consult [our security guide](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/master\/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.",
+      "published_date":"2022-02-09",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/tensorflow\/tensorflow",
+      "commit_href":"https:\/\/github.com\/tensorflow\/tensorflow\/commit\/5b491cd5e41ad63735161cec9c2a568172c8b6a3",
+      "commit_sha":"5b491cd5e41ad63735161cec9c2a568172c8b6a3",
+      "patch":"SINGLE",
+      "chain_ord":"['5b491cd5e41ad63735161cec9c2a568172c8b6a3']",
+      "before_first_fix_commit":"{'9f3eb61a8033efa4ef45b1f291ef67d5beef8b0e'}",
+      "last_fix_commit":"5b491cd5e41ad63735161cec9c2a568172c8b6a3",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"11\/08\/2021, 17:51:28",
+      "message":"Validate `proto.dtype()` before calling `set_dtype()`.\n\nThis prevents a `DCHECK`-fail when the proto contains an invalid dtype for a tensor shape with 0 elements or for an incomplete tensor shape.\n\nPiperOrigin-RevId: 408369083\nChange-Id: Ia21a3e3d62a90d642a4561f08f3b543e5ad00c46",
+      "author":"Mihai Maruseac",
+      "comments":null,
+      "stats":"{'additions': 9, 'deletions': 0, 'total': 9}",
+      "files":"{'tensorflow\/core\/framework\/tensor.cc': {'additions': 9, 'deletions': 0, 'changes': 9, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/tensorflow\/tensorflow\/raw\/5b491cd5e41ad63735161cec9c2a568172c8b6a3\/tensorflow%2Fcore%2Fframework%2Ftensor.cc', 'patch': '@@ -983,6 +983,15 @@ bool Tensor::FromProto(Allocator* a, const TensorProto& proto) {\\n                          dtype_error = true, dtype_error = true);\\n     }\\n     if (dtype_error || p == nullptr) return false;\\n+  } else {\\n+    \/\/ Handle the case of empty tensors (N = 0) or tensors with incomplete shape\\n+    \/\/ (N = -1). All other values of `shape.num_elements()` should be invalid by\\n+    \/\/ construction.\\n+    \/\/ Here, we just need to validate that the `proto.dtype()` value is valid.\\n+    bool dtype_error = false;\\n+    CASES_WITH_DEFAULT(proto.dtype(), break, dtype_error = true,\\n+                       dtype_error = true);\\n+    if (dtype_error) return false;\\n   }\\n   shape_ = shape;\\n   set_dtype(proto.dtype());'}}",
+      "message_norm":"validate `proto.dtype()` before calling `set_dtype()`.\n\nthis prevents a `dcheck`-fail when the proto contains an invalid dtype for a tensor shape with 0 elements or for an incomplete tensor shape.\n\npiperorigin-revid: 408369083\nchange-id: ia21a3e3d62a90d642a4561f08f3b543e5ad00c46",
+      "language":"en",
+      "entities":"[('validate', 'ACTION', ''), ('prevents', 'ACTION', ''), ('408369083', 'SHA', 'generic_sha')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['tensorflow\/core\/framework\/tensor.cc'])",
+      "num_files":1.0,
+      "patch_content":"From 5b491cd5e41ad63735161cec9c2a568172c8b6a3 Mon Sep 17 00:00:00 2001\nFrom: Mihai Maruseac <mihaimaruseac@google.com>\nDate: Mon, 8 Nov 2021 09:51:28 -0800\nSubject: [PATCH] Validate `proto.dtype()` before calling `set_dtype()`.\n\nThis prevents a `DCHECK`-fail when the proto contains an invalid dtype for a tensor shape with 0 elements or for an incomplete tensor shape.\n\nPiperOrigin-RevId: 408369083\nChange-Id: Ia21a3e3d62a90d642a4561f08f3b543e5ad00c46\n---\n tensorflow\/core\/framework\/tensor.cc | 9 +++++++++\n 1 file changed, 9 insertions(+)\n\ndiff --git a\/tensorflow\/core\/framework\/tensor.cc b\/tensorflow\/core\/framework\/tensor.cc\nindex 8ae9fd0051652c..c7a08ee0808043 100644\n--- a\/tensorflow\/core\/framework\/tensor.cc\n+++ b\/tensorflow\/core\/framework\/tensor.cc\n@@ -983,6 +983,15 @@ bool Tensor::FromProto(Allocator* a, const TensorProto& proto) {\n                          dtype_error = true, dtype_error = true);\n     }\n     if (dtype_error || p == nullptr) return false;\n+  } else {\n+    \/\/ Handle the case of empty tensors (N = 0) or tensors with incomplete shape\n+    \/\/ (N = -1). All other values of `shape.num_elements()` should be invalid by\n+    \/\/ construction.\n+    \/\/ Here, we just need to validate that the `proto.dtype()` value is valid.\n+    bool dtype_error = false;\n+    CASES_WITH_DEFAULT(proto.dtype(), break, dtype_error = true,\n+                       dtype_error = true);\n+    if (dtype_error) return false;\n   }\n   shape_ = shape;\n   set_dtype(proto.dtype());",
+      "code_diff":"@@ -983,6 +983,15 @@ bool Tensor::FromProto(Allocator* a, const TensorProto& proto) {\n                          dtype_error = true, dtype_error = true);\n     }\n     if (dtype_error || p == nullptr) return false;\n+  } else {\n+    \/\/ Handle the case of empty tensors (N = 0) or tensors with incomplete shape\n+    \/\/ (N = -1). All other values of `shape.num_elements()` should be invalid by\n+    \/\/ construction.\n+    \/\/ Here, we just need to validate that the `proto.dtype()` value is valid.\n+    bool dtype_error = false;\n+    CASES_WITH_DEFAULT(proto.dtype(), break, dtype_error = true,\n+                       dtype_error = true);\n+    if (dtype_error) return false;\n   }\n   shape_ = shape;\n   set_dtype(proto.dtype());"
+    },
+    {
+      "index":7,
+      "vuln_id":"GHSA-5f2r-qp73-37mr",
+      "cwe_id":"{'CWE-617'}",
+      "score":6.5,
+      "chain":"{'https:\/\/github.com\/tensorflow\/tensorflow\/commit\/92dba16749fae36c246bec3f9ba474d9ddeb7662'}",
+      "dataset":"osv",
+      "summary":"`CHECK`-failures during Grappler's `SafeToRemoveIdentity` in Tensorflow ### Impact\nThe Grappler optimizer in TensorFlow can be used to cause a denial of service by altering a `SavedModel` such that [`SafeToRemoveIdentity`](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/a1320ec1eac186da1d03f033109191f715b2b130\/tensorflow\/core\/grappler\/optimizers\/dependency_optimizer.cc#L59-L98) would trigger `CHECK` failures.\n\n### Patches\nWe have patched the issue in GitHub commit [92dba16749fae36c246bec3f9ba474d9ddeb7662](https:\/\/github.com\/tensorflow\/tensorflow\/commit\/92dba16749fae36c246bec3f9ba474d9ddeb7662).\nThe fix will be included in TensorFlow 2.8.0. We will also cherrypick this commit on TensorFlow 2.7.1, TensorFlow 2.6.3, and TensorFlow 2.5.3, as these are also affected and still in supported range.\n### For more information\nPlease consult [our security guide](https:\/\/github.com\/tensorflow\/tensorflow\/blob\/master\/SECURITY.md) for more information regarding the security model and how to contact us with issues and questions.",
+      "published_date":"2022-02-10",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/tensorflow\/tensorflow",
+      "commit_href":"https:\/\/github.com\/tensorflow\/tensorflow\/commit\/92dba16749fae36c246bec3f9ba474d9ddeb7662",
+      "commit_sha":"92dba16749fae36c246bec3f9ba474d9ddeb7662",
+      "patch":"SINGLE",
+      "chain_ord":"['92dba16749fae36c246bec3f9ba474d9ddeb7662']",
+      "before_first_fix_commit":"{'1cda4d4a26acea3814d06e7d9525772ab357fc1c'}",
+      "last_fix_commit":"92dba16749fae36c246bec3f9ba474d9ddeb7662",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"11\/11\/2021, 18:43:29",
+      "message":"Prevent a null-pointer dereference \/ `CHECK`-fail in grappler.\n\nPiperOrigin-RevId: 409187354\nChange-Id: I369c249cca32e6c56ec193f0ebbf2f2768fc7d43",
+      "author":"Mihai Maruseac",
+      "comments":null,
+      "stats":"{'additions': 4, 'deletions': 2, 'total': 6}",
+      "files":"{'tensorflow\/core\/grappler\/optimizers\/dependency_optimizer.cc': {'additions': 4, 'deletions': 2, 'changes': 6, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/tensorflow\/tensorflow\/raw\/92dba16749fae36c246bec3f9ba474d9ddeb7662\/tensorflow%2Fcore%2Fgrappler%2Foptimizers%2Fdependency_optimizer.cc', 'patch': '@@ -75,8 +75,10 @@ bool DependencyOptimizer::SafeToRemoveIdentity(const NodeDef& node) const {\\n   }\\n \\n   const NodeDef* input = node_map_->GetNode(NodeName(node.input(0)));\\n-  CHECK(input != nullptr) << \"node = \" << node.name()\\n-                          << \" input = \" << node.input(0);\\n+  if (input == nullptr) {\\n+    VLOG(1) << \"node = \" << node.name() << \" input = \" << node.input(0);\\n+    return false;\\n+  }\\n   \/\/ Don\\'t remove Identity nodes corresponding to Variable reads or following\\n   \/\/ Recv.\\n   if (IsVariable(*input) || IsRecv(*input)) {'}}",
+      "message_norm":"prevent a null-pointer dereference \/ `check`-fail in grappler.\n\npiperorigin-revid: 409187354\nchange-id: i369c249cca32e6c56ec193f0ebbf2f2768fc7d43",
+      "language":"en",
+      "entities":"[('prevent', 'ACTION', ''), ('null-pointer dereference', 'SECWORD', ''), ('409187354', 'SHA', 'generic_sha')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['tensorflow\/core\/grappler\/optimizers\/dependency_optimizer.cc'])",
+      "num_files":1.0,
+      "patch_content":"From 92dba16749fae36c246bec3f9ba474d9ddeb7662 Mon Sep 17 00:00:00 2001\nFrom: Mihai Maruseac <mihaimaruseac@google.com>\nDate: Thu, 11 Nov 2021 10:43:29 -0800\nSubject: [PATCH] Prevent a null-pointer dereference \/ `CHECK`-fail in\n grappler.\n\nPiperOrigin-RevId: 409187354\nChange-Id: I369c249cca32e6c56ec193f0ebbf2f2768fc7d43\n---\n tensorflow\/core\/grappler\/optimizers\/dependency_optimizer.cc | 6 ++++--\n 1 file changed, 4 insertions(+), 2 deletions(-)\n\ndiff --git a\/tensorflow\/core\/grappler\/optimizers\/dependency_optimizer.cc b\/tensorflow\/core\/grappler\/optimizers\/dependency_optimizer.cc\nindex aadea833a4fc48..bfd98a58a77718 100644\n--- a\/tensorflow\/core\/grappler\/optimizers\/dependency_optimizer.cc\n+++ b\/tensorflow\/core\/grappler\/optimizers\/dependency_optimizer.cc\n@@ -75,8 +75,10 @@ bool DependencyOptimizer::SafeToRemoveIdentity(const NodeDef& node) const {\n   }\n \n   const NodeDef* input = node_map_->GetNode(NodeName(node.input(0)));\n-  CHECK(input != nullptr) << \"node = \" << node.name()\n-                          << \" input = \" << node.input(0);\n+  if (input == nullptr) {\n+    VLOG(1) << \"node = \" << node.name() << \" input = \" << node.input(0);\n+    return false;\n+  }\n   \/\/ Don't remove Identity nodes corresponding to Variable reads or following\n   \/\/ Recv.\n   if (IsVariable(*input) || IsRecv(*input)) {",
+      "code_diff":"@@ -75,8 +75,10 @@ bool DependencyOptimizer::SafeToRemoveIdentity(const NodeDef& node) const {\n   }\n \n   const NodeDef* input = node_map_->GetNode(NodeName(node.input(0)));\n-  CHECK(input != nullptr) << \"node = \" << node.name()\n-                          << \" input = \" << node.input(0);\n+  if (input == nullptr) {\n+    VLOG(1) << \"node = \" << node.name() << \" input = \" << node.input(0);\n+    return false;\n+  }\n   \/\/ Don't remove Identity nodes corresponding to Variable reads or following\n   \/\/ Recv.\n   if (IsVariable(*input) || IsRecv(*input)) {"
+    }
+  ]
+}

@@ -8,7 +8,12 @@ def filter_web_vulnerabilities():
     os.makedirs(output_dir, exist_ok=True)
     
     # Define the CWE IDs we're interested in
-    cwe_ids = [f'CWE-{i}' for i in range(79, 89)]  # CWE-79 through CWE-88
+    # CWE-617
+    # CWE-79
+    # CWE-125
+    # CWE-89
+    # CWE-918
+    cwe_ids = [f'CWE-{i}' for i in ('617', '79', '125', '89', '918')]  # CWE-79 through CWE-88
     print(f"Looking for vulnerabilities: {', '.join(cwe_ids)}")
     
     # Dictionary to store samples by CWE ID
@@ -52,15 +57,15 @@ def filter_web_vulnerabilities():
         else:
             print(f"\nNo {cwe_id} samples found in any subset")
     
-    # Save combined file with all web vulnerabilities
-    if all_samples:
-        combined_df = pd.concat(all_samples, ignore_index=True)
-        combined_file = f'{output_dir}/all_web_vulnerabilities.json'
-        print(f"\nSaving combined file with {len(combined_df)} total samples to {combined_file}...")
-        combined_df.to_json(combined_file, orient='table', indent=2)
-        print(f"Summary for combined file:")
-        print(f"- Total samples: {len(combined_df)}")
-        print(f"- Output file: {combined_file}")
+    # # Save combined file with all web vulnerabilities
+    # if all_samples:
+    #     combined_df = pd.concat(all_samples, ignore_index=True)
+    #     combined_file = f'{output_dir}/all_web_vulnerabilities.json'
+    #     print(f"\nSaving combined file with {len(combined_df)} total samples to {combined_file}...")
+    #     combined_df.to_json(combined_file, orient='table', indent=2)
+    #     print(f"Summary for combined file:")
+    #     print(f"- Total samples: {len(combined_df)}")
+    #     print(f"- Output file: {combined_file}")
 
 if __name__ == "__main__":
     filter_web_vulnerabilities() 

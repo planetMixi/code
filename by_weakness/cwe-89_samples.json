@@ -1,0 +1,446 @@
+{
+  "schema":{
+    "fields":[
+      {
+        "name":"index",
+        "type":"integer"
+      },
+      {
+        "name":"vuln_id",
+        "type":"string"
+      },
+      {
+        "name":"cwe_id",
+        "type":"string"
+      },
+      {
+        "name":"score",
+        "type":"number"
+      },
+      {
+        "name":"chain",
+        "type":"string"
+      },
+      {
+        "name":"dataset",
+        "type":"string"
+      },
+      {
+        "name":"summary",
+        "type":"string"
+      },
+      {
+        "name":"published_date",
+        "type":"string"
+      },
+      {
+        "name":"chain_len",
+        "type":"integer"
+      },
+      {
+        "name":"project",
+        "type":"string"
+      },
+      {
+        "name":"commit_href",
+        "type":"string"
+      },
+      {
+        "name":"commit_sha",
+        "type":"string"
+      },
+      {
+        "name":"patch",
+        "type":"string"
+      },
+      {
+        "name":"chain_ord",
+        "type":"string"
+      },
+      {
+        "name":"before_first_fix_commit",
+        "type":"string"
+      },
+      {
+        "name":"last_fix_commit",
+        "type":"string"
+      },
+      {
+        "name":"chain_ord_pos",
+        "type":"number"
+      },
+      {
+        "name":"commit_datetime",
+        "type":"string"
+      },
+      {
+        "name":"message",
+        "type":"string"
+      },
+      {
+        "name":"author",
+        "type":"string"
+      },
+      {
+        "name":"comments",
+        "type":"string"
+      },
+      {
+        "name":"stats",
+        "type":"string"
+      },
+      {
+        "name":"files",
+        "type":"string"
+      },
+      {
+        "name":"message_norm",
+        "type":"string"
+      },
+      {
+        "name":"language",
+        "type":"string"
+      },
+      {
+        "name":"entities",
+        "type":"string"
+      },
+      {
+        "name":"classification_level_1",
+        "type":"string"
+      },
+      {
+        "name":"classification_level_2",
+        "type":"string"
+      },
+      {
+        "name":"list_files",
+        "type":"string"
+      },
+      {
+        "name":"num_files",
+        "type":"number"
+      },
+      {
+        "name":"patch_content",
+        "type":"string"
+      },
+      {
+        "name":"code_diff",
+        "type":"string"
+      }
+    ],
+    "primaryKey":[
+      "index"
+    ],
+    "pandas_version":"1.4.0"
+  },
+  "data":[
+    {
+      "index":0,
+      "vuln_id":"GHSA-q863-cchm-c6c6",
+      "cwe_id":"{'CWE-89'}",
+      "score":7.5,
+      "chain":"{'https:\/\/github.com\/forkcms\/forkcms\/commit\/7a12046a67ae5d8cf04face3ee75e55f03a1a608'}",
+      "dataset":"osv",
+      "summary":"SQL Injection in Fork CMS Fork CMS contains a SQL injection vulnerability in versions prior to version 5.11.1. When deleting submissions which belong to a formular (made with module `FormBuilder`), the parameter `id[]` is vulnerable to SQL injection.",
+      "published_date":"2022-03-25",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/forkcms\/forkcms",
+      "commit_href":"https:\/\/github.com\/forkcms\/forkcms\/commit\/7a12046a67ae5d8cf04face3ee75e55f03a1a608",
+      "commit_sha":"7a12046a67ae5d8cf04face3ee75e55f03a1a608",
+      "patch":"SINGLE",
+      "chain_ord":"['7a12046a67ae5d8cf04face3ee75e55f03a1a608']",
+      "before_first_fix_commit":"{'1b38e33a98992793e998a937b717355212346993'}",
+      "last_fix_commit":"7a12046a67ae5d8cf04face3ee75e55f03a1a608",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"03\/23\/2022, 12:16:53",
+      "message":"Prevent sql injection through the ids of the action",
+      "author":"Jelmer Prins",
+      "comments":null,
+      "stats":"{'additions': 1, 'deletions': 0, 'total': 1}",
+      "files":"{'src\/Backend\/Modules\/FormBuilder\/Engine\/Model.php': {'additions': 1, 'deletions': 0, 'changes': 1, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/forkcms\/forkcms\/raw\/7a12046a67ae5d8cf04face3ee75e55f03a1a608\/src%2FBackend%2FModules%2FFormBuilder%2FEngine%2FModel.php', 'patch': \"@@ -152,6 +152,7 @@ public static function delete(int $id): void\\n     public static function deleteData(array $ids): void\\n     {\\n         $database = BackendModel::getContainer()->get('database');\\n+        $ids = array_map('intval', $ids);\\n \\n         $database->delete('forms_data', 'id IN(' . implode(',', $ids) . ')');\\n         $database->delete('forms_data_fields', 'data_id IN(' . implode(',', $ids) . ')');\"}}",
+      "message_norm":"prevent sql injection through the ids of the action",
+      "language":"en",
+      "entities":"[('prevent', 'ACTION', ''), ('sql injection', 'SECWORD', '')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['src\/Backend\/Modules\/FormBuilder\/Engine\/Model.php'])",
+      "num_files":1.0,
+      "patch_content":"From 7a12046a67ae5d8cf04face3ee75e55f03a1a608 Mon Sep 17 00:00:00 2001\nFrom: Jelmer Prins <jelmer@pageon.be>\nDate: Wed, 23 Mar 2022 13:16:53 +0100\nSubject: [PATCH] Prevent sql injection through the ids of the action\n\n---\n src\/Backend\/Modules\/FormBuilder\/Engine\/Model.php | 1 +\n 1 file changed, 1 insertion(+)\n\ndiff --git a\/src\/Backend\/Modules\/FormBuilder\/Engine\/Model.php b\/src\/Backend\/Modules\/FormBuilder\/Engine\/Model.php\nindex 6a13543526..6028b7607f 100644\n--- a\/src\/Backend\/Modules\/FormBuilder\/Engine\/Model.php\n+++ b\/src\/Backend\/Modules\/FormBuilder\/Engine\/Model.php\n@@ -152,6 +152,7 @@ public static function delete(int $id): void\n     public static function deleteData(array $ids): void\n     {\n         $database = BackendModel::getContainer()->get('database');\n+        $ids = array_map('intval', $ids);\n \n         $database->delete('forms_data', 'id IN(' . implode(',', $ids) . ')');\n         $database->delete('forms_data_fields', 'data_id IN(' . implode(',', $ids) . ')');",
+      "code_diff":"@@ -152,6 +152,7 @@ public static function delete(int $id): void\n     public static function deleteData(array $ids): void\n     {\n         $database = BackendModel::getContainer()->get('database');\n+        $ids = array_map('intval', $ids);\n \n         $database->delete('forms_data', 'id IN(' . implode(',', $ids) . ')');\n         $database->delete('forms_data_fields', 'data_id IN(' . implode(',', $ids) . ')');"
+    },
+    {
+      "index":1,
+      "vuln_id":"GHSA-69c3-5xxf-58q2",
+      "cwe_id":"{'CWE-89'}",
+      "score":9.8,
+      "chain":"{'https:\/\/github.com\/moodle\/moodle\/commit\/a0f47c8bc4d6f5971025de7d63f22475701d2f86'}",
+      "dataset":"osv",
+      "summary":"SQL injection in moodle A flaw was found in moodle where an SQL injection risk was identified in Badges code relating to configuring criteria.",
+      "published_date":"2022-05-19",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/moodle\/moodle",
+      "commit_href":"https:\/\/github.com\/moodle\/moodle\/commit\/a0f47c8bc4d6f5971025de7d63f22475701d2f86",
+      "commit_sha":"a0f47c8bc4d6f5971025de7d63f22475701d2f86",
+      "patch":"SINGLE",
+      "chain_ord":"['a0f47c8bc4d6f5971025de7d63f22475701d2f86']",
+      "before_first_fix_commit":"{'9478dc6b07b162f63b823480aecd4e2fb4e3c59f'}",
+      "last_fix_commit":"a0f47c8bc4d6f5971025de7d63f22475701d2f86",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"03\/31\/2022, 10:17:31",
+      "message":"MDL-74333 badges: Check profile criteria valid when reviewing",
+      "author":"Michael Hawkins",
+      "comments":null,
+      "stats":"{'additions': 2, 'deletions': 2, 'total': 4}",
+      "files":"{'badges\/criteria\/award_criteria_profile.php': {'additions': 2, 'deletions': 2, 'changes': 4, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/moodle\/moodle\/raw\/a0f47c8bc4d6f5971025de7d63f22475701d2f86\/badges%2Fcriteria%2Faward_criteria_profile.php', 'patch': '@@ -202,8 +202,8 @@ public function review($userid, $filtered = false) {\\n                 $join .= \" LEFT JOIN {user_info_data} uid{$idx} ON uid{$idx}.userid = u.id AND uid{$idx}.fieldid = :fieldid{$idx} \";\\n                 $sqlparams[\"fieldid{$idx}\"] = $param[\\'field\\'];\\n                 $whereparts[] = \"uid{$idx}.id IS NOT NULL\";\\n-            } else {\\n-                \/\/ This is a field from {user} table.\\n+            } else if (in_array($param[\\'field\\'], $this->allowed_default_fields)) {\\n+                \/\/ This is a valid field from {user} table.\\n                 if ($param[\\'field\\'] == \\'picture\\') {\\n                     \/\/ The picture field is numeric and requires special handling.\\n                     $whereparts[] = \"u.{$param[\\'field\\']} != 0\";'}}",
+      "message_norm":"mdl-74333 badges: check profile criteria valid when reviewing",
+      "language":"en",
+      "entities":null,
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['badges\/criteria\/award_criteria_profile.php'])",
+      "num_files":1.0,
+      "patch_content":"From a0f47c8bc4d6f5971025de7d63f22475701d2f86 Mon Sep 17 00:00:00 2001\nFrom: Michael Hawkins <michaelh@moodle.com>\nDate: Thu, 31 Mar 2022 18:17:31 +0800\nSubject: [PATCH] MDL-74333 badges: Check profile criteria valid when reviewing\n\n---\n badges\/criteria\/award_criteria_profile.php | 4 ++--\n 1 file changed, 2 insertions(+), 2 deletions(-)\n\ndiff --git a\/badges\/criteria\/award_criteria_profile.php b\/badges\/criteria\/award_criteria_profile.php\nindex d3ac2f25556f8..d1f30961535d6 100644\n--- a\/badges\/criteria\/award_criteria_profile.php\n+++ b\/badges\/criteria\/award_criteria_profile.php\n@@ -202,8 +202,8 @@ public function review($userid, $filtered = false) {\n                 $join .= \" LEFT JOIN {user_info_data} uid{$idx} ON uid{$idx}.userid = u.id AND uid{$idx}.fieldid = :fieldid{$idx} \";\n                 $sqlparams[\"fieldid{$idx}\"] = $param['field'];\n                 $whereparts[] = \"uid{$idx}.id IS NOT NULL\";\n-            } else {\n-                \/\/ This is a field from {user} table.\n+            } else if (in_array($param['field'], $this->allowed_default_fields)) {\n+                \/\/ This is a valid field from {user} table.\n                 if ($param['field'] == 'picture') {\n                     \/\/ The picture field is numeric and requires special handling.\n                     $whereparts[] = \"u.{$param['field']} != 0\";",
+      "code_diff":"@@ -202,8 +202,8 @@ public function review($userid, $filtered = false) {\n                 $join .= \" LEFT JOIN {user_info_data} uid{$idx} ON uid{$idx}.userid = u.id AND uid{$idx}.fieldid = :fieldid{$idx} \";\n                 $sqlparams[\"fieldid{$idx}\"] = $param['field'];\n                 $whereparts[] = \"uid{$idx}.id IS NOT NULL\";\n-            } else {\n-                \/\/ This is a field from {user} table.\n+            } else if (in_array($param['field'], $this->allowed_default_fields)) {\n+                \/\/ This is a valid field from {user} table.\n                 if ($param['field'] == 'picture') {\n                     \/\/ The picture field is numeric and requires special handling.\n                     $whereparts[] = \"u.{$param['field']} != 0\";"
+    },
+    {
+      "index":2,
+      "vuln_id":"GHSA-h2fw-93qx-vrcq",
+      "cwe_id":"{'CWE-89'}",
+      "score":8.8,
+      "chain":"{'https:\/\/github.com\/moodle\/moodle\/commit\/c2794752ea3cdda2d64a0651da08b2cdf730d9f1'}",
+      "dataset":"osv",
+      "summary":"SQL Injection in Moodle An SQL injection risk was identified in Badges code relating to configuring criteria. Access to the relevant capability was limited to teachers and managers by default.",
+      "published_date":"2022-03-26",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/moodle\/moodle",
+      "commit_href":"https:\/\/github.com\/moodle\/moodle\/commit\/c2794752ea3cdda2d64a0651da08b2cdf730d9f1",
+      "commit_sha":"c2794752ea3cdda2d64a0651da08b2cdf730d9f1",
+      "patch":"SINGLE",
+      "chain_ord":"['c2794752ea3cdda2d64a0651da08b2cdf730d9f1']",
+      "before_first_fix_commit":"{'addd4f894d8173ec8ff0ae2212d51a1977e7bcad'}",
+      "last_fix_commit":"c2794752ea3cdda2d64a0651da08b2cdf730d9f1",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"03\/03\/2022, 18:02:15",
+      "message":"MDL-74074 badges: Ensure profile criteria exists before completion check",
+      "author":"Michael Hawkins",
+      "comments":null,
+      "stats":"{'additions': 23, 'deletions': 6, 'total': 29}",
+      "files":"{'badges\/criteria\/award_criteria_profile.php': {'additions': 23, 'deletions': 6, 'changes': 29, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/moodle\/moodle\/raw\/c2794752ea3cdda2d64a0651da08b2cdf730d9f1\/badges%2Fcriteria%2Faward_criteria_profile.php', 'patch': '@@ -39,6 +39,26 @@ class award_criteria_profile extends award_criteria {\\n     public $required_param = \\'field\\';\\n     public $optional_params = array();\\n \\n+    \/* @var array The default profile fields allowed to be used as award criteria.\\n+     *\\n+     * Note: This is used instead of user_get_default_fields(), because it is not possible to\\n+     * determine which fields the user can modify.\\n+     *\/\\n+    protected $allowed_default_fields = [\\n+        \\'firstname\\',\\n+        \\'lastname\\',\\n+        \\'email\\',\\n+        \\'address\\',\\n+        \\'phone1\\',\\n+        \\'phone2\\',\\n+        \\'department\\',\\n+        \\'institution\\',\\n+        \\'description\\',\\n+        \\'picture\\',\\n+        \\'city\\',\\n+        \\'country\\',\\n+    ];\\n+\\n     \/**\\n      * Add appropriate new criteria options to the form\\n      *\\n@@ -50,10 +70,7 @@ public function get_options(&$mform) {\\n         $none = true;\\n         $existing = array();\\n         $missing = array();\\n-\\n-        \/\/ Note: cannot use user_get_default_fields() here because it is not possible to decide which fields user can modify.\\n-        $dfields = array(\\'firstname\\', \\'lastname\\', \\'email\\', \\'address\\', \\'phone1\\', \\'phone2\\',\\n-                         \\'department\\', \\'institution\\', \\'description\\', \\'picture\\', \\'city\\', \\'country\\');\\n+        $dfields = $this->allowed_default_fields;\\n \\n         \/\/ Get custom fields.\\n         $cfields = array_filter(profile_get_custom_fields(), function($field) {\\n@@ -230,8 +247,8 @@ public function get_completed_criteria_sql() {\\n                 $join .= \" LEFT JOIN {user_info_data} uid{$idx} ON uid{$idx}.userid = u.id AND uid{$idx}.fieldid = :fieldid{$idx} \";\\n                 $params[\"fieldid{$idx}\"] = $param[\\'field\\'];\\n                 $whereparts[] = \"uid{$idx}.id IS NOT NULL\";\\n-            } else {\\n-                \/\/ This is a field from {user} table.\\n+            } else if (in_array($param[\\'field\\'], $this->allowed_default_fields)) {\\n+                \/\/ This is a valid field from {user} table.\\n                 if ($param[\\'field\\'] == \\'picture\\') {\\n                     \/\/ The picture field is numeric and requires special handling.\\n                     $whereparts[] = \"u.{$param[\\'field\\']} != 0\";'}}",
+      "message_norm":"mdl-74074 badges: ensure profile criteria exists before completion check",
+      "language":"en",
+      "entities":"[('ensure', 'ACTION', '')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['badges\/criteria\/award_criteria_profile.php'])",
+      "num_files":1.0,
+      "patch_content":"From c2794752ea3cdda2d64a0651da08b2cdf730d9f1 Mon Sep 17 00:00:00 2001\nFrom: Michael Hawkins <michaelh@moodle.com>\nDate: Fri, 4 Mar 2022 02:02:15 +0800\nSubject: [PATCH] MDL-74074 badges: Ensure profile criteria exists before\n completion check\n\n---\n badges\/criteria\/award_criteria_profile.php | 29 +++++++++++++++++-----\n 1 file changed, 23 insertions(+), 6 deletions(-)\n\ndiff --git a\/badges\/criteria\/award_criteria_profile.php b\/badges\/criteria\/award_criteria_profile.php\nindex b014cf5a92b00..d3ac2f25556f8 100644\n--- a\/badges\/criteria\/award_criteria_profile.php\n+++ b\/badges\/criteria\/award_criteria_profile.php\n@@ -39,6 +39,26 @@ class award_criteria_profile extends award_criteria {\n     public $required_param = 'field';\n     public $optional_params = array();\n \n+    \/* @var array The default profile fields allowed to be used as award criteria.\n+     *\n+     * Note: This is used instead of user_get_default_fields(), because it is not possible to\n+     * determine which fields the user can modify.\n+     *\/\n+    protected $allowed_default_fields = [\n+        'firstname',\n+        'lastname',\n+        'email',\n+        'address',\n+        'phone1',\n+        'phone2',\n+        'department',\n+        'institution',\n+        'description',\n+        'picture',\n+        'city',\n+        'country',\n+    ];\n+\n     \/**\n      * Add appropriate new criteria options to the form\n      *\n@@ -50,10 +70,7 @@ public function get_options(&$mform) {\n         $none = true;\n         $existing = array();\n         $missing = array();\n-\n-        \/\/ Note: cannot use user_get_default_fields() here because it is not possible to decide which fields user can modify.\n-        $dfields = array('firstname', 'lastname', 'email', 'address', 'phone1', 'phone2',\n-                         'department', 'institution', 'description', 'picture', 'city', 'country');\n+        $dfields = $this->allowed_default_fields;\n \n         \/\/ Get custom fields.\n         $cfields = array_filter(profile_get_custom_fields(), function($field) {\n@@ -230,8 +247,8 @@ public function get_completed_criteria_sql() {\n                 $join .= \" LEFT JOIN {user_info_data} uid{$idx} ON uid{$idx}.userid = u.id AND uid{$idx}.fieldid = :fieldid{$idx} \";\n                 $params[\"fieldid{$idx}\"] = $param['field'];\n                 $whereparts[] = \"uid{$idx}.id IS NOT NULL\";\n-            } else {\n-                \/\/ This is a field from {user} table.\n+            } else if (in_array($param['field'], $this->allowed_default_fields)) {\n+                \/\/ This is a valid field from {user} table.\n                 if ($param['field'] == 'picture') {\n                     \/\/ The picture field is numeric and requires special handling.\n                     $whereparts[] = \"u.{$param['field']} != 0\";",
+      "code_diff":"@@ -39,6 +39,26 @@ class award_criteria_profile extends award_criteria {\n     public $required_param = 'field';\n     public $optional_params = array();\n \n+    \/* @var array The default profile fields allowed to be used as award criteria.\n+     *\n+     * Note: This is used instead of user_get_default_fields(), because it is not possible to\n+     * determine which fields the user can modify.\n+     *\/\n+    protected $allowed_default_fields = [\n+        'firstname',\n+        'lastname',\n+        'email',\n+        'address',\n+        'phone1',\n+        'phone2',\n+        'department',\n+        'institution',\n+        'description',\n+        'picture',\n+        'city',\n+        'country',\n+    ];\n+\n     \/**\n      * Add appropriate new criteria options to the form\n      *\n@@ -50,10 +70,7 @@ public function get_options(&$mform) {\n         $none = true;\n         $existing = array();\n         $missing = array();\n-\n-        \/\/ Note: cannot use user_get_default_fields() here because it is not possible to decide which fields user can modify.\n-        $dfields = array('firstname', 'lastname', 'email', 'address', 'phone1', 'phone2',\n-                         'department', 'institution', 'description', 'picture', 'city', 'country');\n+        $dfields = $this->allowed_default_fields;\n \n         \/\/ Get custom fields.\n         $cfields = array_filter(profile_get_custom_fields(), function($field) {\n@@ -230,8 +247,8 @@ public function get_completed_criteria_sql() {\n                 $join .= \" LEFT JOIN {user_info_data} uid{$idx} ON uid{$idx}.userid = u.id AND uid{$idx}.fieldid = :fieldid{$idx} \";\n                 $params[\"fieldid{$idx}\"] = $param['field'];\n                 $whereparts[] = \"uid{$idx}.id IS NOT NULL\";\n-            } else {\n-                \/\/ This is a field from {user} table.\n+            } else if (in_array($param['field'], $this->allowed_default_fields)) {\n+                \/\/ This is a valid field from {user} table.\n                 if ($param['field'] == 'picture') {\n                     \/\/ The picture field is numeric and requires special handling.\n                     $whereparts[] = \"u.{$param['field']} != 0\";"
+    },
+    {
+      "index":3,
+      "vuln_id":"GHSA-rr8m-29g8-8cgc",
+      "cwe_id":"{'CWE-89'}",
+      "score":8.8,
+      "chain":"{'https:\/\/github.com\/forkcms\/forkcms\/commit\/6aca30e10b4181534f73f96d6e2ebeb45ec15069'}",
+      "dataset":"osv",
+      "summary":"SQL Injection in Fork CMS Fork CMS is vulnerable to SQL injection through marking blog comments on bulk as spam in versions prior to 5.11.1.",
+      "published_date":"2022-03-26",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/forkcms\/forkcms",
+      "commit_href":"https:\/\/github.com\/forkcms\/forkcms\/commit\/6aca30e10b4181534f73f96d6e2ebeb45ec15069",
+      "commit_sha":"6aca30e10b4181534f73f96d6e2ebeb45ec15069",
+      "patch":"SINGLE",
+      "chain_ord":"['6aca30e10b4181534f73f96d6e2ebeb45ec15069']",
+      "before_first_fix_commit":"{'1b38e33a98992793e998a937b717355212346993'}",
+      "last_fix_commit":"6aca30e10b4181534f73f96d6e2ebeb45ec15069",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"03\/23\/2022, 12:21:47",
+      "message":"Prevent sql injection through the ids of the blog comments",
+      "author":"Jelmer Prins",
+      "comments":null,
+      "stats":"{'additions': 1, 'deletions': 1, 'total': 2}",
+      "files":"{'src\/Backend\/Modules\/Blog\/Engine\/Model.php': {'additions': 1, 'deletions': 1, 'changes': 2, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/forkcms\/forkcms\/raw\/6aca30e10b4181534f73f96d6e2ebeb45ec15069\/src%2FBackend%2FModules%2FBlog%2FEngine%2FModel.php', 'patch': \"@@ -501,7 +501,7 @@ public static function getComments(array $ids): array\\n             'SELECT *\\n              FROM blog_comments AS i\\n              WHERE i.id IN (' . implode(', ', array_fill(0, count($ids), '?')) . ')',\\n-            $ids\\n+            array_map('intval', $ids)\\n         );\\n     }\"}}",
+      "message_norm":"prevent sql injection through the ids of the blog comments",
+      "language":"en",
+      "entities":"[('prevent', 'ACTION', ''), ('sql injection', 'SECWORD', '')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['src\/Backend\/Modules\/Blog\/Engine\/Model.php'])",
+      "num_files":1.0,
+      "patch_content":"From 6aca30e10b4181534f73f96d6e2ebeb45ec15069 Mon Sep 17 00:00:00 2001\nFrom: Jelmer Prins <jelmer@pageon.be>\nDate: Wed, 23 Mar 2022 13:21:47 +0100\nSubject: [PATCH] Prevent sql injection through the ids of the blog comments\n\n---\n src\/Backend\/Modules\/Blog\/Engine\/Model.php | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)\n\ndiff --git a\/src\/Backend\/Modules\/Blog\/Engine\/Model.php b\/src\/Backend\/Modules\/Blog\/Engine\/Model.php\nindex 6ee1dce527..129cfdf55a 100644\n--- a\/src\/Backend\/Modules\/Blog\/Engine\/Model.php\n+++ b\/src\/Backend\/Modules\/Blog\/Engine\/Model.php\n@@ -501,7 +501,7 @@ public static function getComments(array $ids): array\n             'SELECT *\n              FROM blog_comments AS i\n              WHERE i.id IN (' . implode(', ', array_fill(0, count($ids), '?')) . ')',\n-            $ids\n+            array_map('intval', $ids)\n         );\n     }",
+      "code_diff":"@@ -501,7 +501,7 @@ public static function getComments(array $ids): array\n             'SELECT *\n              FROM blog_comments AS i\n              WHERE i.id IN (' . implode(', ', array_fill(0, count($ids), '?')) . ')',\n-            $ids\n+            array_map('intval', $ids)\n         );\n     }"
+    },
+    {
+      "index":4,
+      "vuln_id":"GHSA-gvmf-wcx6-p974",
+      "cwe_id":"{'CWE-89'}",
+      "score":8.1,
+      "chain":"{'https:\/\/github.com\/pimcore\/pimcore\/commit\/21559c6bf0e4e828d33ff7af6e88caecb5ac6549'}",
+      "dataset":"osv",
+      "summary":"Improper quoting of columns when using setOrderBy() or setGroupBy() on listing classes in Pimcore ### Impact\nPimcore offers developers listing classes to make querying data easier. This listing classes also allow to order or group the results based on one or more columns which should be quoted by default. \nThe actual issue is that quoting is not done properly in both cases, so there's the theoretical possibility to inject custom SQL if the developer is using this methods with input data and not doing proper input validation in advance and  so relies on the auto-quoting being done by the listing classes. \n\n##### Example: \n```php\n\/\/ request url: https:\/\/example.com\/foo?groupBy=o_id`; SELECT SLEEP(20);--\n\n$list = new DataObject\\Car\\Listing();\n$list->setOrderKey($request->get('orderBy'));\n$list->setGroupBy($request->get('groupBy'));\n$list->load();\n```\n\n### Patches\nUpgrade to >= 10.4.4 or apply the following patch manually: \nhttps:\/\/github.com\/pimcore\/pimcore\/commit\/21559c6bf0e4e828d33ff7af6e88caecb5ac6549.patch\n\n### Workarounds\nApply this patch manually: \nhttps:\/\/github.com\/pimcore\/pimcore\/commit\/21559c6bf0e4e828d33ff7af6e88caecb5ac6549.patch\n\n### References\nhttps:\/\/github.com\/pimcore\/pimcore\/pull\/12444",
+      "published_date":"2022-06-22",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/pimcore\/pimcore",
+      "commit_href":"https:\/\/github.com\/pimcore\/pimcore\/commit\/21559c6bf0e4e828d33ff7af6e88caecb5ac6549",
+      "commit_sha":"21559c6bf0e4e828d33ff7af6e88caecb5ac6549",
+      "patch":"SINGLE",
+      "chain_ord":"['21559c6bf0e4e828d33ff7af6e88caecb5ac6549']",
+      "before_first_fix_commit":"{'4c66ac7305ee0a5027ade88020d811761555148b'}",
+      "last_fix_commit":"21559c6bf0e4e828d33ff7af6e88caecb5ac6549",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"06\/20\/2022, 13:37:31",
+      "message":"[Security] SQL Injection in Data Hub GraphQL (#12444)\n\n* [Security] SQL Injection in Data Hub GraphQL (AbstractListing)\r\n\r\n* Update lib\/Model\/Listing\/AbstractListing.php\r\n\r\nCo-authored-by: Jacob Dreesen <j.dreesen@neusta.de>\r\n\r\n* Update lib\/Model\/Listing\/AbstractListing.php\r\n\r\nCo-authored-by: mcop1 <89011527+mcop1@users.noreply.github.com>\r\n\r\nCo-authored-by: Jacob Dreesen <j.dreesen@neusta.de>\r\nCo-authored-by: Bernhard Rusch <brusch@users.noreply.github.com>",
+      "author":"mcop1",
+      "comments":null,
+      "stats":"{'additions': 16, 'deletions': 3, 'total': 19}",
+      "files":"{'lib\/Model\/Listing\/AbstractListing.php': {'additions': 16, 'deletions': 3, 'changes': 19, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/pimcore\/pimcore\/raw\/21559c6bf0e4e828d33ff7af6e88caecb5ac6549\/lib%2FModel%2FListing%2FAbstractListing.php', 'patch': '@@ -235,7 +235,7 @@ public function setOrderKey($orderKey, $quote = true)\\n                 if ($quote === false) {\\n                     $this->orderKey[] = $o;\\n                 } elseif ($this->isValidOrderKey($o)) {\\n-                    $this->orderKey[] = \\'`\\' . $o . \\'`\\';\\n+                    $this->orderKey[] = $this->quoteIdentifier($o);\\n                 }\\n             }\\n         }\\n@@ -411,8 +411,14 @@ public function setGroupBy($groupBy, $qoute = true)\\n         if ($groupBy) {\\n             $this->groupBy = $groupBy;\\n \\n-            if ($qoute && strpos($groupBy, \\'`\\') !== 0) {\\n-                $this->groupBy = \\'`\\' . $this->groupBy . \\'`\\';\\n+          if ($qoute) {\\n+                $quotedParts = [];\\n+                $parts = explode(\",\", trim($groupBy, \\'`\\'));\\n+                foreach($parts as $part) {\\n+                    $quotedParts[] = $this->quoteIdentifier(trim($part));\\n+                }\\n+\\n+                $this->groupBy = implode(\", \", $quotedParts);\\n             }\\n         }\\n \\n@@ -431,6 +437,13 @@ public function setValidOrders($validOrders)\\n         return $this;\\n     }\\n \\n+    public function quoteIdentifier(string $value): string\\n+    {\\n+        $db = Db::get();\\n+\\n+        return $db->quoteIdentifier($value);\\n+    }\\n+\\n     \/**\\n      * @param mixed $value\\n      * @param int|null $type'}}",
+      "message_norm":"[security] sql injection in data hub graphql (#12444)\n\n* [security] sql injection in data hub graphql (abstractlisting)\r\n\r\n* update lib\/model\/listing\/abstractlisting.php\r\n\r\nco-authored-by: jacob dreesen <j.dreesen@neusta.de>\r\n\r\n* update lib\/model\/listing\/abstractlisting.php\r\n\r\nco-authored-by: mcop1 <89011527+mcop1@users.noreply.github.com>\r\n\r\nco-authored-by: jacob dreesen <j.dreesen@neusta.de>\r\nco-authored-by: bernhard rusch <brusch@users.noreply.github.com>",
+      "language":"en",
+      "entities":"[('security', 'SECWORD', ''), ('sql injection', 'SECWORD', ''), ('#12444', 'ISSUE', ''), ('security', 'SECWORD', ''), ('sql injection', 'SECWORD', ''), ('j.dreesen@neusta.de', 'EMAIL', ''), ('j.dreesen@neusta.de', 'EMAIL', '')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['lib\/Model\/Listing\/AbstractListing.php'])",
+      "num_files":1.0,
+      "patch_content":"From 21559c6bf0e4e828d33ff7af6e88caecb5ac6549 Mon Sep 17 00:00:00 2001\nFrom: mcop1 <89011527+mcop1@users.noreply.github.com>\nDate: Mon, 20 Jun 2022 15:37:31 +0200\nSubject: [PATCH] [Security] SQL Injection in Data Hub GraphQL (#12444)\n\n* [Security] SQL Injection in Data Hub GraphQL (AbstractListing)\n\n* Update lib\/Model\/Listing\/AbstractListing.php\n\nCo-authored-by: Jacob Dreesen <j.dreesen@neusta.de>\n\n* Update lib\/Model\/Listing\/AbstractListing.php\n\nCo-authored-by: mcop1 <89011527+mcop1@users.noreply.github.com>\n\nCo-authored-by: Jacob Dreesen <j.dreesen@neusta.de>\nCo-authored-by: Bernhard Rusch <brusch@users.noreply.github.com>\n---\n lib\/Model\/Listing\/AbstractListing.php | 19 ++++++++++++++++---\n 1 file changed, 16 insertions(+), 3 deletions(-)\n\ndiff --git a\/lib\/Model\/Listing\/AbstractListing.php b\/lib\/Model\/Listing\/AbstractListing.php\nindex 1683a2e2734..66a4728635f 100644\n--- a\/lib\/Model\/Listing\/AbstractListing.php\n+++ b\/lib\/Model\/Listing\/AbstractListing.php\n@@ -235,7 +235,7 @@ public function setOrderKey($orderKey, $quote = true)\n                 if ($quote === false) {\n                     $this->orderKey[] = $o;\n                 } elseif ($this->isValidOrderKey($o)) {\n-                    $this->orderKey[] = '`' . $o . '`';\n+                    $this->orderKey[] = $this->quoteIdentifier($o);\n                 }\n             }\n         }\n@@ -411,8 +411,14 @@ public function setGroupBy($groupBy, $qoute = true)\n         if ($groupBy) {\n             $this->groupBy = $groupBy;\n \n-            if ($qoute && strpos($groupBy, '`') !== 0) {\n-                $this->groupBy = '`' . $this->groupBy . '`';\n+          if ($qoute) {\n+                $quotedParts = [];\n+                $parts = explode(\",\", trim($groupBy, '`'));\n+                foreach($parts as $part) {\n+                    $quotedParts[] = $this->quoteIdentifier(trim($part));\n+                }\n+\n+                $this->groupBy = implode(\", \", $quotedParts);\n             }\n         }\n \n@@ -431,6 +437,13 @@ public function setValidOrders($validOrders)\n         return $this;\n     }\n \n+    public function quoteIdentifier(string $value): string\n+    {\n+        $db = Db::get();\n+\n+        return $db->quoteIdentifier($value);\n+    }\n+\n     \/**\n      * @param mixed $value\n      * @param int|null $type",
+      "code_diff":"@@ -235,7 +235,7 @@ public function setOrderKey($orderKey, $quote = true)\n                 if ($quote === false) {\n                     $this->orderKey[] = $o;\n                 } elseif ($this->isValidOrderKey($o)) {\n-                    $this->orderKey[] = '`' . $o . '`';\n+                    $this->orderKey[] = $this->quoteIdentifier($o);\n                 }\n             }\n         }\n@@ -411,8 +411,14 @@ public function setGroupBy($groupBy, $qoute = true)\n         if ($groupBy) {\n             $this->groupBy = $groupBy;\n \n-            if ($qoute && strpos($groupBy, '`') !== 0) {\n-                $this->groupBy = '`' . $this->groupBy . '`';\n+          if ($qoute) {\n+                $quotedParts = [];\n+                $parts = explode(\",\", trim($groupBy, '`'));\n+                foreach($parts as $part) {\n+                    $quotedParts[] = $this->quoteIdentifier(trim($part));\n+                }\n+\n+                $this->groupBy = implode(\", \", $quotedParts);\n             }\n         }\n \n@@ -431,6 +437,13 @@ public function setValidOrders($validOrders)\n         return $this;\n     }\n \n+    public function quoteIdentifier(string $value): string\n+    {\n+        $db = Db::get();\n+\n+        return $db->quoteIdentifier($value);\n+    }\n+\n     \/**\n      * @param mixed $value\n      * @param int|null $type"
+    },
+    {
+      "index":5,
+      "vuln_id":"GHSA-hrgx-p36p-89q4",
+      "cwe_id":"{'CWE-89', 'CWE-95'}",
+      "score":9.8,
+      "chain":"{'https:\/\/github.com\/PrestaShop\/PrestaShop\/commit\/b6d96e7c2a4e35a44e96ffbcdfd34439b56af804'}",
+      "dataset":"osv",
+      "summary":"PrestaShop eval injection possible if shop vulnerable to SQL injection ### Impact\nEval injection possible if the shop is vulnerable to an SQL injection.\n\n### Patches\nThe problem is fixed in version 1.7.8.7\n\n### Workarounds\nDelete the MySQL Smarty cache feature by removing these lines in the file `config\/smarty.config.inc.php` lines 43-46 (PrestaShop 1.7) or 40-43 (PrestaShop 1.6):\n```php\nif (Configuration::get('PS_SMARTY_CACHING_TYPE') == 'mysql') {\n    include _PS_CLASS_DIR_.'Smarty\/SmartyCacheResourceMysql.php';\n    $smarty->caching_type = 'mysql';\n}\n```",
+      "published_date":"2022-07-29",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/PrestaShop\/PrestaShop",
+      "commit_href":"https:\/\/github.com\/PrestaShop\/PrestaShop\/commit\/b6d96e7c2a4e35a44e96ffbcdfd34439b56af804",
+      "commit_sha":"b6d96e7c2a4e35a44e96ffbcdfd34439b56af804",
+      "patch":"SINGLE",
+      "chain_ord":"['b6d96e7c2a4e35a44e96ffbcdfd34439b56af804']",
+      "before_first_fix_commit":"{'dc8dc1faef7185ad30fc8dcb0653524d9bfb7c82', 'f342765697f5f980e4c6bb537f6575bf5e657077'}",
+      "last_fix_commit":"b6d96e7c2a4e35a44e96ffbcdfd34439b56af804",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"07\/25\/2022, 08:51:31",
+      "message":"Merge pull request from GHSA-hrgx-p36p-89q4\n\nCrypt\/decrypt smarty cache in DB",
+      "author":"atomiix",
+      "comments":null,
+      "stats":"{'additions': 10, 'deletions': 2, 'total': 12}",
+      "files":"{'classes\/Smarty\/SmartyCacheResourceMysql.php': {'additions': 10, 'deletions': 2, 'changes': 12, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/PrestaShop\/PrestaShop\/raw\/b6d96e7c2a4e35a44e96ffbcdfd34439b56af804\/classes%2FSmarty%2FSmartyCacheResourceMysql.php', 'patch': '@@ -25,6 +25,14 @@\\n  *\/\\n class Smarty_CacheResource_Mysql extends Smarty_CacheResource_Custom\\n {\\n+    \/** @var PhpEncryption *\/\\n+    private $phpEncryption;\\n+\\n+    public function __construct()\\n+    {\\n+        $this->phpEncryption = new PhpEncryption(_NEW_COOKIE_KEY_);\\n+    }\\n+\\n     \/**\\n      * fetch cached content and its modification time from data source.\\n      *\\n@@ -39,7 +47,7 @@ protected function fetch($id, $name, $cache_id, $compile_id, &$content, &$mtime)\\n     {\\n         $row = Db::getInstance()->getRow(\\'SELECT modified, content FROM \\' . _DB_PREFIX_ . \\'smarty_cache WHERE id_smarty_cache = \"\\' . pSQL($id, true) . \\'\"\\');\\n         if ($row) {\\n-            $content = $row[\\'content\\'];\\n+            $content = $this->phpEncryption->decrypt($row[\\'content\\']);\\n             $mtime = strtotime($row[\\'modified\\']);\\n         } else {\\n             $content = null;\\n@@ -87,7 +95,7 @@ protected function save($id, $name, $cache_id, $compile_id, $exp_time, $content)\\n \\t\\t\\t\"\\' . pSQL($id, true) . \\'\",\\n \\t\\t\\t\"\\' . pSQL(sha1($name)) . \\'\",\\n \\t\\t\\t\"\\' . pSQL($cache_id, true) . \\'\",\\n-\\t\\t\\t\"\\' . pSQL($content, true) . \\'\"\\n+\\t\\t\\t\"\\' . $this->phpEncryption->encrypt($content) . \\'\"\\n \\t\\t)\\');\\n \\n         return (bool) Db::getInstance()->Affected_Rows();'}}",
+      "message_norm":"merge pull request from ghsa-hrgx-p36p-89q4\n\ncrypt\/decrypt smarty cache in db",
+      "language":"en",
+      "entities":"[('ghsa-hrgx-p36p-89q4', 'VULNID', 'GHSA'), ('crypt', 'SECWORD', '')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['classes\/Smarty\/SmartyCacheResourceMysql.php'])",
+      "num_files":1.0,
+      "patch_content":"From f342765697f5f980e4c6bb537f6575bf5e657077 Mon Sep 17 00:00:00 2001\nFrom: atomiix <thomas.baccelli@prestashop.com>\nDate: Wed, 20 Jul 2022 12:44:20 +0200\nSubject: [PATCH] Crypt\/decrypt smarty cache in DB\n\n---\n classes\/Smarty\/SmartyCacheResourceMysql.php | 12 ++++++++++--\n 1 file changed, 10 insertions(+), 2 deletions(-)\n\ndiff --git a\/classes\/Smarty\/SmartyCacheResourceMysql.php b\/classes\/Smarty\/SmartyCacheResourceMysql.php\nindex d3f684624649b..b4f928d485109 100644\n--- a\/classes\/Smarty\/SmartyCacheResourceMysql.php\n+++ b\/classes\/Smarty\/SmartyCacheResourceMysql.php\n@@ -25,6 +25,14 @@\n  *\/\n class Smarty_CacheResource_Mysql extends Smarty_CacheResource_Custom\n {\n+    \/** @var PhpEncryption *\/\n+    private $phpEncryption;\n+\n+    public function __construct()\n+    {\n+        $this->phpEncryption = new PhpEncryption(_NEW_COOKIE_KEY_);\n+    }\n+\n     \/**\n      * fetch cached content and its modification time from data source.\n      *\n@@ -39,7 +47,7 @@ protected function fetch($id, $name, $cache_id, $compile_id, &$content, &$mtime)\n     {\n         $row = Db::getInstance()->getRow('SELECT modified, content FROM ' . _DB_PREFIX_ . 'smarty_cache WHERE id_smarty_cache = \"' . pSQL($id, true) . '\"');\n         if ($row) {\n-            $content = $row['content'];\n+            $content = $this->phpEncryption->decrypt($row['content']);\n             $mtime = strtotime($row['modified']);\n         } else {\n             $content = null;\n@@ -87,7 +95,7 @@ protected function save($id, $name, $cache_id, $compile_id, $exp_time, $content)\n \t\t\t\"' . pSQL($id, true) . '\",\n \t\t\t\"' . pSQL(sha1($name)) . '\",\n \t\t\t\"' . pSQL($cache_id, true) . '\",\n-\t\t\t\"' . pSQL($content, true) . '\"\n+\t\t\t\"' . $this->phpEncryption->encrypt($content) . '\"\n \t\t)');\n \n         return (bool) Db::getInstance()->Affected_Rows();",
+      "code_diff":"@@ -25,6 +25,14 @@\n  *\/\n class Smarty_CacheResource_Mysql extends Smarty_CacheResource_Custom\n {\n+    \/** @var PhpEncryption *\/\n+    private $phpEncryption;\n+\n+    public function __construct()\n+    {\n+        $this->phpEncryption = new PhpEncryption(_NEW_COOKIE_KEY_);\n+    }\n+\n     \/**\n      * fetch cached content and its modification time from data source.\n      *\n@@ -39,7 +47,7 @@ protected function fetch($id, $name, $cache_id, $compile_id, &$content, &$mtime)\n     {\n         $row = Db::getInstance()->getRow('SELECT modified, content FROM ' . _DB_PREFIX_ . 'smarty_cache WHERE id_smarty_cache = \"' . pSQL($id, true) . '\"');\n         if ($row) {\n-            $content = $row['content'];\n+            $content = $this->phpEncryption->decrypt($row['content']);\n             $mtime = strtotime($row['modified']);\n         } else {\n             $content = null;\n@@ -87,7 +95,7 @@ protected function save($id, $name, $cache_id, $compile_id, $exp_time, $content)\n \t\t\t\"' . pSQL($id, true) . '\",\n \t\t\t\"' . pSQL(sha1($name)) . '\",\n \t\t\t\"' . pSQL($cache_id, true) . '\",\n-\t\t\t\"' . pSQL($content, true) . '\"\n+\t\t\t\"' . $this->phpEncryption->encrypt($content) . '\"\n \t\t)');\n \n         return (bool) Db::getInstance()->Affected_Rows();"
+    },
+    {
+      "index":6,
+      "vuln_id":"GHSA-7hmh-8gwv-mfvq",
+      "cwe_id":"{'CWE-89'}",
+      "score":6.5,
+      "chain":"{'https:\/\/github.com\/apache\/kylin\/commit\/e373c64c96a54a7abfe4bccb82e8feb60db04749'}",
+      "dataset":"osv",
+      "summary":"SQL Injection in Kylin Kylin has some restful apis which will concatenate SQLs with the user input string, a user is likely to be able to run malicious database queries.",
+      "published_date":"2020-07-27",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/apache\/kylin",
+      "commit_href":"https:\/\/github.com\/apache\/kylin\/commit\/e373c64c96a54a7abfe4bccb82e8feb60db04749",
+      "commit_sha":"e373c64c96a54a7abfe4bccb82e8feb60db04749",
+      "patch":"SINGLE",
+      "chain_ord":"['e373c64c96a54a7abfe4bccb82e8feb60db04749']",
+      "before_first_fix_commit":"{'ebfc745dd681d7e0c129ded50bd50ff509d2a393'}",
+      "last_fix_commit":"e373c64c96a54a7abfe4bccb82e8feb60db04749",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"02\/07\/2020, 12:22:59",
+      "message":"Fix sql injection issue",
+      "author":"nichunen",
+      "comments":null,
+      "stats":"{'additions': 51, 'deletions': 30, 'total': 81}",
+      "files":"{'server-base\/src\/main\/java\/org\/apache\/kylin\/rest\/service\/CubeService.java': {'additions': 51, 'deletions': 30, 'changes': 81, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/apache\/kylin\/raw\/e373c64c96a54a7abfe4bccb82e8feb60db04749\/server-base%2Fsrc%2Fmain%2Fjava%2Forg%2Fapache%2Fkylin%2Frest%2Fservice%2FCubeService.java', 'patch': '@@ -71,6 +71,7 @@\\n import org.apache.kylin.metadata.project.RealizationEntry;\\n import org.apache.kylin.metadata.realization.RealizationStatusEnum;\\n import org.apache.kylin.metadata.realization.RealizationType;\\n+import org.apache.kylin.metrics.MetricsManager;\\n import org.apache.kylin.metrics.property.QueryCubePropertyEnum;\\n import org.apache.kylin.rest.constant.Constant;\\n import org.apache.kylin.rest.exception.BadRequestException;\\n@@ -79,6 +80,7 @@\\n import org.apache.kylin.rest.msg.Message;\\n import org.apache.kylin.rest.msg.MsgPicker;\\n import org.apache.kylin.rest.request.MetricsRequest;\\n+import org.apache.kylin.rest.request.PrepareSqlRequest;\\n import org.apache.kylin.rest.response.CubeInstanceResponse;\\n import org.apache.kylin.rest.response.CuboidTreeResponse;\\n import org.apache.kylin.rest.response.CuboidTreeResponse.NodeInfo;\\n@@ -544,7 +546,8 @@ public HBaseResponse getHTableInfo(String cubeName, String tableName) throws IOE\\n \\n         hr = new HBaseResponse();\\n         CubeInstance cube = CubeManager.getInstance(getConfig()).getCube(cubeName);\\n-        if (cube.getStorageType() == IStorageAware.ID_HBASE || cube.getStorageType() == IStorageAware.ID_SHARDED_HBASE || cube.getStorageType() == IStorageAware.ID_REALTIME_AND_HBASE) {\\n+        if (cube.getStorageType() == IStorageAware.ID_HBASE || cube.getStorageType() == IStorageAware.ID_SHARDED_HBASE\\n+                || cube.getStorageType() == IStorageAware.ID_REALTIME_AND_HBASE) {\\n             try {\\n                 logger.debug(\"Loading HTable info \" + cubeName + \", \" + tableName);\\n \\n@@ -633,7 +636,8 @@ private void cleanSegmentStorage(List<CubeSegment> toRemoveSegs) throws IOExcept\\n             List<String> toDelHDFSPaths = Lists.newArrayListWithCapacity(toRemoveSegs.size());\\n             for (CubeSegment seg : toRemoveSegs) {\\n                 toDropHTables.add(seg.getStorageLocationIdentifier());\\n-                toDelHDFSPaths.add(JobBuilderSupport.getJobWorkingDir(seg.getConfig().getHdfsWorkingDirectory(), seg.getLastBuildJobID()));\\n+                toDelHDFSPaths.add(JobBuilderSupport.getJobWorkingDir(seg.getConfig().getHdfsWorkingDirectory(),\\n+                        seg.getLastBuildJobID()));\\n             }\\n \\n             StorageCleanUtil.dropHTables(new HBaseAdmin(HBaseConnection.getCurrentHBaseConfiguration()), toDropHTables);\\n@@ -763,10 +767,12 @@ public String mergeCubeSegment(String cubeName) {\\n     }\\n \\n     \/\/Don\\'t merge the job that has been discarded manually before\\n-    private boolean isMergingJobBeenDiscarded(CubeInstance cubeInstance, String cubeName, String projectName, SegmentRange offsets) {\\n+    private boolean isMergingJobBeenDiscarded(CubeInstance cubeInstance, String cubeName, String projectName,\\n+            SegmentRange offsets) {\\n         SegmentRange.TSRange tsRange = new SegmentRange.TSRange((Long) offsets.start.v, (Long) offsets.end.v);\\n         String segmentName = CubeSegment.makeSegmentName(tsRange, null, cubeInstance.getModel());\\n-        final List<CubingJob> jobInstanceList = jobService.listJobsByRealizationName(cubeName, projectName, EnumSet.of(ExecutableState.DISCARDED));\\n+        final List<CubingJob> jobInstanceList = jobService.listJobsByRealizationName(cubeName, projectName,\\n+                EnumSet.of(ExecutableState.DISCARDED));\\n         for (CubingJob cubingJob : jobInstanceList) {\\n             if (cubingJob.getSegmentName().equals(segmentName)) {\\n                 logger.debug(\"Merge job {} has been discarded before, will not merge.\", segmentName);\\n@@ -777,7 +783,6 @@ private boolean isMergingJobBeenDiscarded(CubeInstance cubeInstance, String cube\\n         return false;\\n     }\\n \\n-\\n     public void validateCubeDesc(CubeDesc desc, boolean isDraft) {\\n         Message msg = MsgPicker.getMsg();\\n \\n@@ -931,24 +936,6 @@ public void afterPropertiesSet() throws Exception {\\n         Broadcaster.getInstance(getConfig()).registerStaticListener(new HTableInfoSyncListener(), \"cube\");\\n     }\\n \\n-    private class HTableInfoSyncListener extends Broadcaster.Listener {\\n-        @Override\\n-        public void onClearAll(Broadcaster broadcaster) throws IOException {\\n-            htableInfoCache.invalidateAll();\\n-        }\\n-\\n-        @Override\\n-        public void onEntityChange(Broadcaster broadcaster, String entity, Broadcaster.Event event, String cacheKey)\\n-                throws IOException {\\n-            String cubeName = cacheKey;\\n-            String keyPrefix = cubeName + \"\/\";\\n-            for (String k : htableInfoCache.asMap().keySet()) {\\n-                if (k.startsWith(keyPrefix))\\n-                    htableInfoCache.invalidate(k);\\n-            }\\n-        }\\n-    }\\n-\\n     public CubeInstanceResponse createCubeInstanceResponse(CubeInstance cube) {\\n         return new CubeInstanceResponse(cube, projectService.getProjectOfCube(cube.getName()));\\n     }\\n@@ -995,7 +982,7 @@ private NodeInfo generateNodeInfo(long cuboidId, int dimensionCount, long cubeQu\\n         long queryExactlyMatchCount = queryMatchMap == null || queryMatchMap.get(cuboidId) == null ? 0L\\n                 : queryMatchMap.get(cuboidId);\\n         boolean ifExist = currentCuboidSet.contains(cuboidId);\\n-        long rowCount = rowCountMap == null ? 0L : rowCountMap.get(cuboidId);\\n+        long rowCount = (rowCountMap == null || rowCountMap.size() == 0) ? 0L : rowCountMap.get(cuboidId);\\n \\n         NodeInfo node = new NodeInfo();\\n         node.setId(cuboidId);\\n@@ -1044,9 +1031,10 @@ public Map<Long, Long> getCuboidHitFrequency(String cubeName, boolean isCuboidSo\\n         String table = getMetricsManager().getSystemTableFromSubject(getConfig().getKylinMetricsSubjectQueryCube());\\n         String sql = \"select \" + cuboidColumn + \", sum(\" + hitMeasure + \")\" \/\/\\n                 + \" from \" + table\/\/\\n-                + \" where \" + QueryCubePropertyEnum.CUBE.toString() + \" = \\'\" + cubeName + \"\\'\" \/\/\\n+                + \" where \" + QueryCubePropertyEnum.CUBE.toString() + \" = ?\" \/\/\\n                 + \" group by \" + cuboidColumn;\\n-        List<List<String>> orgHitFrequency = queryService.querySystemCube(sql).getResults();\\n+\\n+        List<List<String>> orgHitFrequency = getPrepareQueryResult(cubeName, sql);\\n         return formatQueryCount(orgHitFrequency);\\n     }\\n \\n@@ -1058,9 +1046,10 @@ public Map<Long, Map<Long, Pair<Long, Long>>> getCuboidRollingUpStats(String cub\\n         String table = getMetricsManager().getSystemTableFromSubject(getConfig().getKylinMetricsSubjectQueryCube());\\n         String sql = \"select \" + cuboidSource + \", \" + cuboidTgt + \", avg(\" + aggCount + \"), avg(\" + returnCount + \")\"\/\/\\n                 + \" from \" + table \/\/\\n-                + \" where \" + QueryCubePropertyEnum.CUBE.toString() + \" = \\'\" + cubeName + \"\\' \" \/\/\\n+                + \" where \" + QueryCubePropertyEnum.CUBE.toString() + \" = ?\" \/\/\\n                 + \" group by \" + cuboidSource + \", \" + cuboidTgt;\\n-        List<List<String>> orgRollingUpCount = queryService.querySystemCube(sql).getResults();\\n+\\n+        List<List<String>> orgRollingUpCount = getPrepareQueryResult(cubeName, sql);\\n         return formatRollingUpStats(orgRollingUpCount);\\n     }\\n \\n@@ -1070,13 +1059,27 @@ public Map<Long, Long> getCuboidQueryMatchCount(String cubeName) {\\n         String table = getMetricsManager().getSystemTableFromSubject(getConfig().getKylinMetricsSubjectQueryCube());\\n         String sql = \"select \" + cuboidSource + \", sum(\" + hitMeasure + \")\" \/\/\\n                 + \" from \" + table \/\/\\n-                + \" where \" + QueryCubePropertyEnum.CUBE.toString() + \" = \\'\" + cubeName + \"\\'\" \/\/\\n+                + \" where \" + QueryCubePropertyEnum.CUBE.toString() + \" = ?\" \/\/\\n                 + \" and \" + QueryCubePropertyEnum.IF_MATCH.toString() + \" = true\" \/\/\\n                 + \" group by \" + cuboidSource;\\n-        List<List<String>> orgMatchHitFrequency = queryService.querySystemCube(sql).getResults();\\n+\\n+        List<List<String>> orgMatchHitFrequency = getPrepareQueryResult(cubeName, sql);\\n         return formatQueryCount(orgMatchHitFrequency);\\n     }\\n \\n+    private List<List<String>> getPrepareQueryResult(String cubeName, String sql) {\\n+        PrepareSqlRequest sqlRequest = new PrepareSqlRequest();\\n+        sqlRequest.setProject(MetricsManager.SYSTEM_PROJECT);\\n+        PrepareSqlRequest.StateParam[] params = new PrepareSqlRequest.StateParam[1];\\n+        params[0] = new PrepareSqlRequest.StateParam();\\n+        params[0].setClassName(\"java.lang.String\");\\n+        params[0].setValue(cubeName);\\n+        sqlRequest.setParams(params);\\n+        sqlRequest.setSql(sql);\\n+\\n+        return queryService.doQueryWithCache(sqlRequest, false).getResults();\\n+    }\\n+\\n     @PreAuthorize(Constant.ACCESS_HAS_ROLE_ADMIN\\n             + \" or hasPermission(#cube, \\'ADMINISTRATION\\') or hasPermission(#cube, \\'MANAGEMENT\\')\")\\n     public void migrateCube(CubeInstance cube, String projectName) {\\n@@ -1114,4 +1117,22 @@ public void migrateCube(CubeInstance cube, String projectName) {\\n             throw new InternalErrorException(\"Failed to perform one-click migrating\", e);\\n         }\\n     }\\n+\\n+    private class HTableInfoSyncListener extends Broadcaster.Listener {\\n+        @Override\\n+        public void onClearAll(Broadcaster broadcaster) throws IOException {\\n+            htableInfoCache.invalidateAll();\\n+        }\\n+\\n+        @Override\\n+        public void onEntityChange(Broadcaster broadcaster, String entity, Broadcaster.Event event, String cacheKey)\\n+                throws IOException {\\n+            String cubeName = cacheKey;\\n+            String keyPrefix = cubeName + \"\/\";\\n+            for (String k : htableInfoCache.asMap().keySet()) {\\n+                if (k.startsWith(keyPrefix))\\n+                    htableInfoCache.invalidate(k);\\n+            }\\n+        }\\n+    }\\n }'}}",
+      "message_norm":"fix sql injection issue",
+      "language":"fr",
+      "entities":"[('fix', 'ACTION', ''), ('sql injection', 'SECWORD', ''), ('issue', 'FLAW', '')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['server-base\/src\/main\/java\/org\/apache\/kylin\/rest\/service\/CubeService.java'])",
+      "num_files":1.0,
+      "patch_content":"From e373c64c96a54a7abfe4bccb82e8feb60db04749 Mon Sep 17 00:00:00 2001\nFrom: nichunen <nic@apache.org>\nDate: Fri, 7 Feb 2020 20:22:59 +0800\nSubject: [PATCH] Fix sql injection issue\n\n---\n ...\/kylin\/rest\/service\/CubeService.java       | 81 ++++++++++++-------\n 1 file changed, 51 insertions(+), 30 deletions(-)\n\ndiff --git a\/server-base\/src\/main\/java\/org\/apache\/kylin\/rest\/service\/CubeService.java b\/server-base\/src\/main\/java\/org\/apache\/kylin\/rest\/service\/CubeService.java\nindex 4fb258029cc..11b06a119f4 100644\n--- a\/server-base\/src\/main\/java\/org\/apache\/kylin\/rest\/service\/CubeService.java\n+++ b\/server-base\/src\/main\/java\/org\/apache\/kylin\/rest\/service\/CubeService.java\n@@ -71,6 +71,7 @@\n import org.apache.kylin.metadata.project.RealizationEntry;\n import org.apache.kylin.metadata.realization.RealizationStatusEnum;\n import org.apache.kylin.metadata.realization.RealizationType;\n+import org.apache.kylin.metrics.MetricsManager;\n import org.apache.kylin.metrics.property.QueryCubePropertyEnum;\n import org.apache.kylin.rest.constant.Constant;\n import org.apache.kylin.rest.exception.BadRequestException;\n@@ -79,6 +80,7 @@\n import org.apache.kylin.rest.msg.Message;\n import org.apache.kylin.rest.msg.MsgPicker;\n import org.apache.kylin.rest.request.MetricsRequest;\n+import org.apache.kylin.rest.request.PrepareSqlRequest;\n import org.apache.kylin.rest.response.CubeInstanceResponse;\n import org.apache.kylin.rest.response.CuboidTreeResponse;\n import org.apache.kylin.rest.response.CuboidTreeResponse.NodeInfo;\n@@ -544,7 +546,8 @@ public HBaseResponse getHTableInfo(String cubeName, String tableName) throws IOE\n \n         hr = new HBaseResponse();\n         CubeInstance cube = CubeManager.getInstance(getConfig()).getCube(cubeName);\n-        if (cube.getStorageType() == IStorageAware.ID_HBASE || cube.getStorageType() == IStorageAware.ID_SHARDED_HBASE || cube.getStorageType() == IStorageAware.ID_REALTIME_AND_HBASE) {\n+        if (cube.getStorageType() == IStorageAware.ID_HBASE || cube.getStorageType() == IStorageAware.ID_SHARDED_HBASE\n+                || cube.getStorageType() == IStorageAware.ID_REALTIME_AND_HBASE) {\n             try {\n                 logger.debug(\"Loading HTable info \" + cubeName + \", \" + tableName);\n \n@@ -633,7 +636,8 @@ private void cleanSegmentStorage(List<CubeSegment> toRemoveSegs) throws IOExcept\n             List<String> toDelHDFSPaths = Lists.newArrayListWithCapacity(toRemoveSegs.size());\n             for (CubeSegment seg : toRemoveSegs) {\n                 toDropHTables.add(seg.getStorageLocationIdentifier());\n-                toDelHDFSPaths.add(JobBuilderSupport.getJobWorkingDir(seg.getConfig().getHdfsWorkingDirectory(), seg.getLastBuildJobID()));\n+                toDelHDFSPaths.add(JobBuilderSupport.getJobWorkingDir(seg.getConfig().getHdfsWorkingDirectory(),\n+                        seg.getLastBuildJobID()));\n             }\n \n             StorageCleanUtil.dropHTables(new HBaseAdmin(HBaseConnection.getCurrentHBaseConfiguration()), toDropHTables);\n@@ -763,10 +767,12 @@ public String mergeCubeSegment(String cubeName) {\n     }\n \n     \/\/Don't merge the job that has been discarded manually before\n-    private boolean isMergingJobBeenDiscarded(CubeInstance cubeInstance, String cubeName, String projectName, SegmentRange offsets) {\n+    private boolean isMergingJobBeenDiscarded(CubeInstance cubeInstance, String cubeName, String projectName,\n+            SegmentRange offsets) {\n         SegmentRange.TSRange tsRange = new SegmentRange.TSRange((Long) offsets.start.v, (Long) offsets.end.v);\n         String segmentName = CubeSegment.makeSegmentName(tsRange, null, cubeInstance.getModel());\n-        final List<CubingJob> jobInstanceList = jobService.listJobsByRealizationName(cubeName, projectName, EnumSet.of(ExecutableState.DISCARDED));\n+        final List<CubingJob> jobInstanceList = jobService.listJobsByRealizationName(cubeName, projectName,\n+                EnumSet.of(ExecutableState.DISCARDED));\n         for (CubingJob cubingJob : jobInstanceList) {\n             if (cubingJob.getSegmentName().equals(segmentName)) {\n                 logger.debug(\"Merge job {} has been discarded before, will not merge.\", segmentName);\n@@ -777,7 +783,6 @@ private boolean isMergingJobBeenDiscarded(CubeInstance cubeInstance, String cube\n         return false;\n     }\n \n-\n     public void validateCubeDesc(CubeDesc desc, boolean isDraft) {\n         Message msg = MsgPicker.getMsg();\n \n@@ -931,24 +936,6 @@ public void afterPropertiesSet() throws Exception {\n         Broadcaster.getInstance(getConfig()).registerStaticListener(new HTableInfoSyncListener(), \"cube\");\n     }\n \n-    private class HTableInfoSyncListener extends Broadcaster.Listener {\n-        @Override\n-        public void onClearAll(Broadcaster broadcaster) throws IOException {\n-            htableInfoCache.invalidateAll();\n-        }\n-\n-        @Override\n-        public void onEntityChange(Broadcaster broadcaster, String entity, Broadcaster.Event event, String cacheKey)\n-                throws IOException {\n-            String cubeName = cacheKey;\n-            String keyPrefix = cubeName + \"\/\";\n-            for (String k : htableInfoCache.asMap().keySet()) {\n-                if (k.startsWith(keyPrefix))\n-                    htableInfoCache.invalidate(k);\n-            }\n-        }\n-    }\n-\n     public CubeInstanceResponse createCubeInstanceResponse(CubeInstance cube) {\n         return new CubeInstanceResponse(cube, projectService.getProjectOfCube(cube.getName()));\n     }\n@@ -995,7 +982,7 @@ private NodeInfo generateNodeInfo(long cuboidId, int dimensionCount, long cubeQu\n         long queryExactlyMatchCount = queryMatchMap == null || queryMatchMap.get(cuboidId) == null ? 0L\n                 : queryMatchMap.get(cuboidId);\n         boolean ifExist = currentCuboidSet.contains(cuboidId);\n-        long rowCount = rowCountMap == null ? 0L : rowCountMap.get(cuboidId);\n+        long rowCount = (rowCountMap == null || rowCountMap.size() == 0) ? 0L : rowCountMap.get(cuboidId);\n \n         NodeInfo node = new NodeInfo();\n         node.setId(cuboidId);\n@@ -1044,9 +1031,10 @@ public Map<Long, Long> getCuboidHitFrequency(String cubeName, boolean isCuboidSo\n         String table = getMetricsManager().getSystemTableFromSubject(getConfig().getKylinMetricsSubjectQueryCube());\n         String sql = \"select \" + cuboidColumn + \", sum(\" + hitMeasure + \")\" \/\/\n                 + \" from \" + table\/\/\n-                + \" where \" + QueryCubePropertyEnum.CUBE.toString() + \" = '\" + cubeName + \"'\" \/\/\n+                + \" where \" + QueryCubePropertyEnum.CUBE.toString() + \" = ?\" \/\/\n                 + \" group by \" + cuboidColumn;\n-        List<List<String>> orgHitFrequency = queryService.querySystemCube(sql).getResults();\n+\n+        List<List<String>> orgHitFrequency = getPrepareQueryResult(cubeName, sql);\n         return formatQueryCount(orgHitFrequency);\n     }\n \n@@ -1058,9 +1046,10 @@ public Map<Long, Map<Long, Pair<Long, Long>>> getCuboidRollingUpStats(String cub\n         String table = getMetricsManager().getSystemTableFromSubject(getConfig().getKylinMetricsSubjectQueryCube());\n         String sql = \"select \" + cuboidSource + \", \" + cuboidTgt + \", avg(\" + aggCount + \"), avg(\" + returnCount + \")\"\/\/\n                 + \" from \" + table \/\/\n-                + \" where \" + QueryCubePropertyEnum.CUBE.toString() + \" = '\" + cubeName + \"' \" \/\/\n+                + \" where \" + QueryCubePropertyEnum.CUBE.toString() + \" = ?\" \/\/\n                 + \" group by \" + cuboidSource + \", \" + cuboidTgt;\n-        List<List<String>> orgRollingUpCount = queryService.querySystemCube(sql).getResults();\n+\n+        List<List<String>> orgRollingUpCount = getPrepareQueryResult(cubeName, sql);\n         return formatRollingUpStats(orgRollingUpCount);\n     }\n \n@@ -1070,13 +1059,27 @@ public Map<Long, Long> getCuboidQueryMatchCount(String cubeName) {\n         String table = getMetricsManager().getSystemTableFromSubject(getConfig().getKylinMetricsSubjectQueryCube());\n         String sql = \"select \" + cuboidSource + \", sum(\" + hitMeasure + \")\" \/\/\n                 + \" from \" + table \/\/\n-                + \" where \" + QueryCubePropertyEnum.CUBE.toString() + \" = '\" + cubeName + \"'\" \/\/\n+                + \" where \" + QueryCubePropertyEnum.CUBE.toString() + \" = ?\" \/\/\n                 + \" and \" + QueryCubePropertyEnum.IF_MATCH.toString() + \" = true\" \/\/\n                 + \" group by \" + cuboidSource;\n-        List<List<String>> orgMatchHitFrequency = queryService.querySystemCube(sql).getResults();\n+\n+        List<List<String>> orgMatchHitFrequency = getPrepareQueryResult(cubeName, sql);\n         return formatQueryCount(orgMatchHitFrequency);\n     }\n \n+    private List<List<String>> getPrepareQueryResult(String cubeName, String sql) {\n+        PrepareSqlRequest sqlRequest = new PrepareSqlRequest();\n+        sqlRequest.setProject(MetricsManager.SYSTEM_PROJECT);\n+        PrepareSqlRequest.StateParam[] params = new PrepareSqlRequest.StateParam[1];\n+        params[0] = new PrepareSqlRequest.StateParam();\n+        params[0].setClassName(\"java.lang.String\");\n+        params[0].setValue(cubeName);\n+        sqlRequest.setParams(params);\n+        sqlRequest.setSql(sql);\n+\n+        return queryService.doQueryWithCache(sqlRequest, false).getResults();\n+    }\n+\n     @PreAuthorize(Constant.ACCESS_HAS_ROLE_ADMIN\n             + \" or hasPermission(#cube, 'ADMINISTRATION') or hasPermission(#cube, 'MANAGEMENT')\")\n     public void migrateCube(CubeInstance cube, String projectName) {\n@@ -1114,4 +1117,22 @@ public void migrateCube(CubeInstance cube, String projectName) {\n             throw new InternalErrorException(\"Failed to perform one-click migrating\", e);\n         }\n     }\n+\n+    private class HTableInfoSyncListener extends Broadcaster.Listener {\n+        @Override\n+        public void onClearAll(Broadcaster broadcaster) throws IOException {\n+            htableInfoCache.invalidateAll();\n+        }\n+\n+        @Override\n+        public void onEntityChange(Broadcaster broadcaster, String entity, Broadcaster.Event event, String cacheKey)\n+                throws IOException {\n+            String cubeName = cacheKey;\n+            String keyPrefix = cubeName + \"\/\";\n+            for (String k : htableInfoCache.asMap().keySet()) {\n+                if (k.startsWith(keyPrefix))\n+                    htableInfoCache.invalidate(k);\n+            }\n+        }\n+    }\n }",
+      "code_diff":"@@ -71,6 +71,7 @@\n import org.apache.kylin.metadata.project.RealizationEntry;\n import org.apache.kylin.metadata.realization.RealizationStatusEnum;\n import org.apache.kylin.metadata.realization.RealizationType;\n+import org.apache.kylin.metrics.MetricsManager;\n import org.apache.kylin.metrics.property.QueryCubePropertyEnum;\n import org.apache.kylin.rest.constant.Constant;\n import org.apache.kylin.rest.exception.BadRequestException;\n@@ -79,6 +80,7 @@\n import org.apache.kylin.rest.msg.Message;\n import org.apache.kylin.rest.msg.MsgPicker;\n import org.apache.kylin.rest.request.MetricsRequest;\n+import org.apache.kylin.rest.request.PrepareSqlRequest;\n import org.apache.kylin.rest.response.CubeInstanceResponse;\n import org.apache.kylin.rest.response.CuboidTreeResponse;\n import org.apache.kylin.rest.response.CuboidTreeResponse.NodeInfo;\n@@ -544,7 +546,8 @@ public HBaseResponse getHTableInfo(String cubeName, String tableName) throws IOE\n \n         hr = new HBaseResponse();\n         CubeInstance cube = CubeManager.getInstance(getConfig()).getCube(cubeName);\n-        if (cube.getStorageType() == IStorageAware.ID_HBASE || cube.getStorageType() == IStorageAware.ID_SHARDED_HBASE || cube.getStorageType() == IStorageAware.ID_REALTIME_AND_HBASE) {\n+        if (cube.getStorageType() == IStorageAware.ID_HBASE || cube.getStorageType() == IStorageAware.ID_SHARDED_HBASE\n+                || cube.getStorageType() == IStorageAware.ID_REALTIME_AND_HBASE) {\n             try {\n                 logger.debug(\"Loading HTable info \" + cubeName + \", \" + tableName);\n \n@@ -633,7 +636,8 @@ private void cleanSegmentStorage(List<CubeSegment> toRemoveSegs) throws IOExcept\n             List<String> toDelHDFSPaths = Lists.newArrayListWithCapacity(toRemoveSegs.size());\n             for (CubeSegment seg : toRemoveSegs) {\n                 toDropHTables.add(seg.getStorageLocationIdentifier());\n-                toDelHDFSPaths.add(JobBuilderSupport.getJobWorkingDir(seg.getConfig().getHdfsWorkingDirectory(), seg.getLastBuildJobID()));\n+                toDelHDFSPaths.add(JobBuilderSupport.getJobWorkingDir(seg.getConfig().getHdfsWorkingDirectory(),\n+                        seg.getLastBuildJobID()));\n             }\n \n             StorageCleanUtil.dropHTables(new HBaseAdmin(HBaseConnection.getCurrentHBaseConfiguration()), toDropHTables);\n@@ -763,10 +767,12 @@ public String mergeCubeSegment(String cubeName) {\n     }\n \n     \/\/Don't merge the job that has been discarded manually before\n-    private boolean isMergingJobBeenDiscarded(CubeInstance cubeInstance, String cubeName, String projectName, SegmentRange offsets) {\n+    private boolean isMergingJobBeenDiscarded(CubeInstance cubeInstance, String cubeName, String projectName,\n+            SegmentRange offsets) {\n         SegmentRange.TSRange tsRange = new SegmentRange.TSRange((Long) offsets.start.v, (Long) offsets.end.v);\n         String segmentName = CubeSegment.makeSegmentName(tsRange, null, cubeInstance.getModel());\n-        final List<CubingJob> jobInstanceList = jobService.listJobsByRealizationName(cubeName, projectName, EnumSet.of(ExecutableState.DISCARDED));\n+        final List<CubingJob> jobInstanceList = jobService.listJobsByRealizationName(cubeName, projectName,\n+                EnumSet.of(ExecutableState.DISCARDED));\n         for (CubingJob cubingJob : jobInstanceList) {\n             if (cubingJob.getSegmentName().equals(segmentName)) {\n                 logger.debug(\"Merge job {} has been discarded before, will not merge.\", segmentName);\n@@ -777,7 +783,6 @@ private boolean isMergingJobBeenDiscarded(CubeInstance cubeInstance, String cube\n         return false;\n     }\n \n-\n     public void validateCubeDesc(CubeDesc desc, boolean isDraft) {\n         Message msg = MsgPicker.getMsg();\n \n@@ -931,24 +936,6 @@ public void afterPropertiesSet() throws Exception {\n         Broadcaster.getInstance(getConfig()).registerStaticListener(new HTableInfoSyncListener(), \"cube\");\n     }\n \n-    private class HTableInfoSyncListener extends Broadcaster.Listener {\n-        @Override\n-        public void onClearAll(Broadcaster broadcaster) throws IOException {\n-            htableInfoCache.invalidateAll();\n-        }\n-\n-        @Override\n-        public void onEntityChange(Broadcaster broadcaster, String entity, Broadcaster.Event event, String cacheKey)\n-                throws IOException {\n-            String cubeName = cacheKey;\n-            String keyPrefix = cubeName + \"\/\";\n-            for (String k : htableInfoCache.asMap().keySet()) {\n-                if (k.startsWith(keyPrefix))\n-                    htableInfoCache.invalidate(k);\n-            }\n-        }\n-    }\n-\n     public CubeInstanceResponse createCubeInstanceResponse(CubeInstance cube) {\n         return new CubeInstanceResponse(cube, projectService.getProjectOfCube(cube.getName()));\n     }\n@@ -995,7 +982,7 @@ private NodeInfo generateNodeInfo(long cuboidId, int dimensionCount, long cubeQu\n         long queryExactlyMatchCount = queryMatchMap == null || queryMatchMap.get(cuboidId) == null ? 0L\n                 : queryMatchMap.get(cuboidId);\n         boolean ifExist = currentCuboidSet.contains(cuboidId);\n-        long rowCount = rowCountMap == null ? 0L : rowCountMap.get(cuboidId);\n+        long rowCount = (rowCountMap == null || rowCountMap.size() == 0) ? 0L : rowCountMap.get(cuboidId);\n \n         NodeInfo node = new NodeInfo();\n         node.setId(cuboidId);\n@@ -1044,9 +1031,10 @@ public Map<Long, Long> getCuboidHitFrequency(String cubeName, boolean isCuboidSo\n         String table = getMetricsManager().getSystemTableFromSubject(getConfig().getKylinMetricsSubjectQueryCube());\n         String sql = \"select \" + cuboidColumn + \", sum(\" + hitMeasure + \")\" \/\/\n                 + \" from \" + table\/\/\n-                + \" where \" + QueryCubePropertyEnum.CUBE.toString() + \" = '\" + cubeName + \"'\" \/\/\n+                + \" where \" + QueryCubePropertyEnum.CUBE.toString() + \" = ?\" \/\/\n                 + \" group by \" + cuboidColumn;\n-        List<List<String>> orgHitFrequency = queryService.querySystemCube(sql).getResults();\n+\n+        List<List<String>> orgHitFrequency = getPrepareQueryResult(cubeName, sql);\n         return formatQueryCount(orgHitFrequency);\n     }\n \n@@ -1058,9 +1046,10 @@ public Map<Long, Map<Long, Pair<Long, Long>>> getCuboidRollingUpStats(String cub\n         String table = getMetricsManager().getSystemTableFromSubject(getConfig().getKylinMetricsSubjectQueryCube());\n         String sql = \"select \" + cuboidSource + \", \" + cuboidTgt + \", avg(\" + aggCount + \"), avg(\" + returnCount + \")\"\/\/\n                 + \" from \" + table \/\/\n-                + \" where \" + QueryCubePropertyEnum.CUBE.toString() + \" = '\" + cubeName + \"' \" \/\/\n+                + \" where \" + QueryCubePropertyEnum.CUBE.toString() + \" = ?\" \/\/\n                 + \" group by \" + cuboidSource + \", \" + cuboidTgt;\n-        List<List<String>> orgRollingUpCount = queryService.querySystemCube(sql).getResults();\n+\n+        List<List<String>> orgRollingUpCount = getPrepareQueryResult(cubeName, sql);\n         return formatRollingUpStats(orgRollingUpCount);\n     }\n \n@@ -1070,13 +1059,27 @@ public Map<Long, Long> getCuboidQueryMatchCount(String cubeName) {\n         String table = getMetricsManager().getSystemTableFromSubject(getConfig().getKylinMetricsSubjectQueryCube());\n         String sql = \"select \" + cuboidSource + \", sum(\" + hitMeasure + \")\" \/\/\n                 + \" from \" + table \/\/\n-                + \" where \" + QueryCubePropertyEnum.CUBE.toString() + \" = '\" + cubeName + \"'\" \/\/\n+                + \" where \" + QueryCubePropertyEnum.CUBE.toString() + \" = ?\" \/\/\n                 + \" and \" + QueryCubePropertyEnum.IF_MATCH.toString() + \" = true\" \/\/\n                 + \" group by \" + cuboidSource;\n-        List<List<String>> orgMatchHitFrequency = queryService.querySystemCube(sql).getResults();\n+\n+        List<List<String>> orgMatchHitFrequency = getPrepareQueryResult(cubeName, sql);\n         return formatQueryCount(orgMatchHitFrequency);\n     }\n \n+    private List<List<String>> getPrepareQueryResult(String cubeName, String sql) {\n+        PrepareSqlRequest sqlRequest = new PrepareSqlRequest();\n+        sqlRequest.setProject(MetricsManager.SYSTEM_PROJECT);\n+        PrepareSqlRequest.StateParam[] params = new PrepareSqlRequest.StateParam[1];\n+        params[0] = new PrepareSqlRequest.StateParam();\n+        params[0].setClassName(\"java.lang.String\");\n+        params[0].setValue(cubeName);\n+        sqlRequest.setParams(params);\n+        sqlRequest.setSql(sql);\n+\n+        return queryService.doQueryWithCache(sqlRequest, false).getResults();\n+    }\n+\n     @PreAuthorize(Constant.ACCESS_HAS_ROLE_ADMIN\n             + \" or hasPermission(#cube, 'ADMINISTRATION') or hasPermission(#cube, 'MANAGEMENT')\")\n     public void migrateCube(CubeInstance cube, String projectName) {\n@@ -1114,4 +1117,22 @@ public void migrateCube(CubeInstance cube, String projectName) {\n             throw new InternalErrorException(\"Failed to perform one-click migrating\", e);\n         }\n     }\n+\n+    private class HTableInfoSyncListener extends Broadcaster.Listener {\n+        @Override\n+        public void onClearAll(Broadcaster broadcaster) throws IOException {\n+            htableInfoCache.invalidateAll();\n+        }\n+\n+        @Override\n+        public void onEntityChange(Broadcaster broadcaster, String entity, Broadcaster.Event event, String cacheKey)\n+                throws IOException {\n+            String cubeName = cacheKey;\n+            String keyPrefix = cubeName + \"\/\";\n+            for (String k : htableInfoCache.asMap().keySet()) {\n+                if (k.startsWith(keyPrefix))\n+                    htableInfoCache.invalidate(k);\n+            }\n+        }\n+    }\n }"
+    },
+    {
+      "index":7,
+      "vuln_id":"GHSA-q9p4-qfc8-fvpp",
+      "cwe_id":"{'CWE-89'}",
+      "score":9.8,
+      "chain":"{'https:\/\/github.com\/catfan\/Medoo\/commit\/659864b393961bf224bba1efc03b7dcbed7de533'}",
+      "dataset":"osv",
+      "summary":"SQL Injection in medoo columnQuote in medoo before 1.7.5 allows remote attackers to perform a SQL Injection due to improper escaping.",
+      "published_date":"2021-10-12",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/catfan\/Medoo",
+      "commit_href":"https:\/\/github.com\/catfan\/Medoo\/commit\/659864b393961bf224bba1efc03b7dcbed7de533",
+      "commit_sha":"659864b393961bf224bba1efc03b7dcbed7de533",
+      "patch":"SINGLE",
+      "chain_ord":"['659864b393961bf224bba1efc03b7dcbed7de533']",
+      "before_first_fix_commit":"{'b3f05edf256d63ec3cfd31d6a078c564daf9863d'}",
+      "last_fix_commit":"659864b393961bf224bba1efc03b7dcbed7de533",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"10\/11\/2019, 15:50:40",
+      "message":"[fix] Fix columnQuote for \bsecurity issue reported by Snyk",
+      "author":"Angel Lai",
+      "comments":"{'com_1': {'author': 'jfcherng', 'datetime': '10\/12\/2019, 11:57:36', 'body': \"It's perfect valid to use `_` in a column name and I believe it's used quite often. This change would make `v1.7.4` literally unusable for most of people.\\r\\n\\r\\nNot sure about other SQL standard. For MySQL, it's valid to use some of UTF-8 chars as the column name.\\r\\nhttps:\/\/dev.mysql.com\/doc\/refman\/8.0\/en\/identifiers.html\"}, 'com_2': {'author': 'catfan', 'datetime': '10\/12\/2019, 13:18:09', 'body': \"Thanks for this great spot. The `_` should be added. Although it's possible to use UTF-8 chars for column name, it may have some problem for some databases. Using `a-zA-Z0-9_` is enough for most case.\"}}",
+      "stats":"{'additions': 5, 'deletions': 0, 'total': 5}",
+      "files":"{'src\/Medoo.php': {'additions': 5, 'deletions': 0, 'changes': 5, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/catfan\/Medoo\/raw\/659864b393961bf224bba1efc03b7dcbed7de533\/src%2FMedoo.php', 'patch': '@@ -500,6 +500,11 @@ protected function typeMap($value, $type)\\n \\n \\tprotected function columnQuote($string)\\n \\t{\\n+\\t\\tif (!preg_match(\\'\/^[a-zA-Z0-9]+(\\\\.?[a-zA-Z0-9]+)?$\/i\\', $string))\\n+\\t\\t{\\n+\\t\\t\\tthrow new InvalidArgumentException(\"Incorrect column name \\\\\"$string\\\\\"\");\\n+\\t\\t}\\n+\\n \\t\\tif (strpos($string, \\'.\\') !== false)\\n \\t\\t{\\n \\t\\t\\treturn \\'\"\\' . $this->prefix . str_replace(\\'.\\', \\'\".\"\\', $string) . \\'\"\\';'}}",
+      "message_norm":"[fix] fix columnquote for \bsecurity issue reported by snyk",
+      "language":"en",
+      "entities":"[('fix', 'ACTION', ''), ('fix', 'ACTION', ''), ('\\x08security', 'SECWORD', ''), ('issue', 'FLAW', '')]",
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['src\/Medoo.php'])",
+      "num_files":1.0,
+      "patch_content":"From 659864b393961bf224bba1efc03b7dcbed7de533 Mon Sep 17 00:00:00 2001\nFrom: Angel Lai <catfan.me@gmail.com>\nDate: Fri, 11 Oct 2019 23:50:40 +0800\nSubject: [PATCH] [fix] Fix columnQuote for \bsecurity issue reported by Snyk\n\n---\n src\/Medoo.php | 5 +++++\n 1 file changed, 5 insertions(+)\n\ndiff --git a\/src\/Medoo.php b\/src\/Medoo.php\nindex 6d68f4c2..478e0a87 100644\n--- a\/src\/Medoo.php\n+++ b\/src\/Medoo.php\n@@ -500,6 +500,11 @@ protected function typeMap($value, $type)\n \n \tprotected function columnQuote($string)\n \t{\n+\t\tif (!preg_match('\/^[a-zA-Z0-9]+(\\.?[a-zA-Z0-9]+)?$\/i', $string))\n+\t\t{\n+\t\t\tthrow new InvalidArgumentException(\"Incorrect column name \\\"$string\\\"\");\n+\t\t}\n+\n \t\tif (strpos($string, '.') !== false)\n \t\t{\n \t\t\treturn '\"' . $this->prefix . str_replace('.', '\".\"', $string) . '\"';",
+      "code_diff":"@@ -500,6 +500,11 @@ protected function typeMap($value, $type)\n \n \tprotected function columnQuote($string)\n \t{\n+\t\tif (!preg_match('\/^[a-zA-Z0-9]+(\\.?[a-zA-Z0-9]+)?$\/i', $string))\n+\t\t{\n+\t\t\tthrow new InvalidArgumentException(\"Incorrect column name \\\"$string\\\"\");\n+\t\t}\n+\n \t\tif (strpos($string, '.') !== false)\n \t\t{\n \t\t\treturn '\"' . $this->prefix . str_replace('.', '\".\"', $string) . '\"';"
+    },
+    {
+      "index":8,
+      "vuln_id":"GHSA-x92h-wmg2-6hp7",
+      "cwe_id":"{'CWE-89', 'CWE-79'}",
+      "score":9.8,
+      "chain":"{'https:\/\/github.com\/symfony\/symfony\/commit\/944e60f083c3bffbc6a0b5112db127a10a66a8ec'}",
+      "dataset":"osv",
+      "summary":"Invalid HTTP method overrides allow possible XSS or other attacks in Symfony In Symfony before 2.7.51, 2.8.x before 2.8.50, 3.x before 3.4.26, 4.x before 4.1.12, and 4.2.x before 4.2.7, HTTP Methods provided as verbs or using the override header may be treated as trusted input, but they are not validated, possibly causing SQL injection or XSS. This is related to symfony\/http-foundation.",
+      "published_date":"2019-12-02",
+      "chain_len":1,
+      "project":"https:\/\/github.com\/symfony\/symfony",
+      "commit_href":"https:\/\/github.com\/symfony\/symfony\/commit\/944e60f083c3bffbc6a0b5112db127a10a66a8ec",
+      "commit_sha":"944e60f083c3bffbc6a0b5112db127a10a66a8ec",
+      "patch":"SINGLE",
+      "chain_ord":"['944e60f083c3bffbc6a0b5112db127a10a66a8ec']",
+      "before_first_fix_commit":"{'b7bdf2ce435b0aeb8edb8349f0456f7ca3d21035'}",
+      "last_fix_commit":"944e60f083c3bffbc6a0b5112db127a10a66a8ec",
+      "chain_ord_pos":1.0,
+      "commit_datetime":"04\/02\/2019, 16:28:16",
+      "message":"[HttpFoundation] reject invalid method override",
+      "author":"Nicolas Grekas",
+      "comments":"{'com_1': {'author': 'jirayutza1', 'datetime': '12\/04\/2019, 20:11:46', 'body': '944e60f'}}",
+      "stats":"{'additions': 29, 'deletions': 14, 'total': 43}",
+      "files":"{'src\/Symfony\/Component\/HttpFoundation\/Request.php': {'additions': 29, 'deletions': 14, 'changes': 43, 'status': 'modified', 'raw_url': 'https:\/\/github.com\/symfony\/symfony\/raw\/944e60f083c3bffbc6a0b5112db127a10a66a8ec\/src%2FSymfony%2FComponent%2FHttpFoundation%2FRequest.php', 'patch': '@@ -1346,22 +1346,37 @@ public function setMethod($method)\\n      *\/\\n     public function getMethod()\\n     {\\n-        if (null === $this->method) {\\n-            $this->method = strtoupper($this->server->get(\\'REQUEST_METHOD\\', \\'GET\\'));\\n-\\n-            if (\\'POST\\' === $this->method) {\\n-                if ($method = $this->headers->get(\\'X-HTTP-METHOD-OVERRIDE\\')) {\\n-                    $this->method = strtoupper($method);\\n-                } elseif (self::$httpMethodParameterOverride) {\\n-                    $method = $this->request->get(\\'_method\\', $this->query->get(\\'_method\\', \\'POST\\'));\\n-                    if (\\\\is_string($method)) {\\n-                        $this->method = strtoupper($method);\\n-                    }\\n-                }\\n-            }\\n+        if (null !== $this->method) {\\n+            return $this->method;\\n+        }\\n+\\n+        $this->method = strtoupper($this->server->get(\\'REQUEST_METHOD\\', \\'GET\\'));\\n+\\n+        if (\\'POST\\' !== $this->method) {\\n+            return $this->method;\\n+        }\\n+\\n+        $method = $this->headers->get(\\'X-HTTP-METHOD-OVERRIDE\\');\\n+\\n+        if (!$method && self::$httpMethodParameterOverride) {\\n+            $method = $this->request->get(\\'_method\\', $this->query->get(\\'_method\\', \\'POST\\'));\\n+        }\\n+\\n+        if (!\\\\is_string($method)) {\\n+            return $this->method;\\n+        }\\n+\\n+        $method = strtoupper($method);\\n+\\n+        if (\\\\in_array($method, [\\'GET\\', \\'HEAD\\', \\'POST\\', \\'PUT\\', \\'DELETE\\', \\'CONNECT\\', \\'OPTIONS\\', \\'PATCH\\', \\'PURGE\\', \\'TRACE\\'], true)) {\\n+            return $this->method = $method;\\n+        }\\n+\\n+        if (!preg_match(\\'\/^[A-Z]++$\/D\\', $method)) {\\n+            throw new SuspiciousOperationException(sprintf(\\'Invalid method override \"%s\".\\', $method));\\n         }\\n \\n-        return $this->method;\\n+        return $this->method = $method;\\n     }\\n \\n     \/**'}}",
+      "message_norm":"[httpfoundation] reject invalid method override",
+      "language":"en",
+      "entities":null,
+      "classification_level_1":null,
+      "classification_level_2":null,
+      "list_files":"dict_keys(['src\/Symfony\/Component\/HttpFoundation\/Request.php'])",
+      "num_files":1.0,
+      "patch_content":"From 944e60f083c3bffbc6a0b5112db127a10a66a8ec Mon Sep 17 00:00:00 2001\nFrom: Nicolas Grekas <nicolas.grekas@gmail.com>\nDate: Tue, 2 Apr 2019 18:28:16 +0200\nSubject: [PATCH] [HttpFoundation] reject invalid method override\n\n---\n ...\/Component\/HttpFoundation\/Request.php      | 43 +++++++++++++------\n 1 file changed, 29 insertions(+), 14 deletions(-)\n\ndiff --git a\/src\/Symfony\/Component\/HttpFoundation\/Request.php b\/src\/Symfony\/Component\/HttpFoundation\/Request.php\nindex fe1a33a597a3e..ae3f51b1724fc 100644\n--- a\/src\/Symfony\/Component\/HttpFoundation\/Request.php\n+++ b\/src\/Symfony\/Component\/HttpFoundation\/Request.php\n@@ -1346,22 +1346,37 @@ public function setMethod($method)\n      *\/\n     public function getMethod()\n     {\n-        if (null === $this->method) {\n-            $this->method = strtoupper($this->server->get('REQUEST_METHOD', 'GET'));\n-\n-            if ('POST' === $this->method) {\n-                if ($method = $this->headers->get('X-HTTP-METHOD-OVERRIDE')) {\n-                    $this->method = strtoupper($method);\n-                } elseif (self::$httpMethodParameterOverride) {\n-                    $method = $this->request->get('_method', $this->query->get('_method', 'POST'));\n-                    if (\\is_string($method)) {\n-                        $this->method = strtoupper($method);\n-                    }\n-                }\n-            }\n+        if (null !== $this->method) {\n+            return $this->method;\n+        }\n+\n+        $this->method = strtoupper($this->server->get('REQUEST_METHOD', 'GET'));\n+\n+        if ('POST' !== $this->method) {\n+            return $this->method;\n+        }\n+\n+        $method = $this->headers->get('X-HTTP-METHOD-OVERRIDE');\n+\n+        if (!$method && self::$httpMethodParameterOverride) {\n+            $method = $this->request->get('_method', $this->query->get('_method', 'POST'));\n+        }\n+\n+        if (!\\is_string($method)) {\n+            return $this->method;\n+        }\n+\n+        $method = strtoupper($method);\n+\n+        if (\\in_array($method, ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'PATCH', 'PURGE', 'TRACE'], true)) {\n+            return $this->method = $method;\n+        }\n+\n+        if (!preg_match('\/^[A-Z]++$\/D', $method)) {\n+            throw new SuspiciousOperationException(sprintf('Invalid method override \"%s\".', $method));\n         }\n \n-        return $this->method;\n+        return $this->method = $method;\n     }\n \n     \/**",
+      "code_diff":"@@ -1346,22 +1346,37 @@ public function setMethod($method)\n      *\/\n     public function getMethod()\n     {\n-        if (null === $this->method) {\n-            $this->method = strtoupper($this->server->get('REQUEST_METHOD', 'GET'));\n-\n-            if ('POST' === $this->method) {\n-                if ($method = $this->headers->get('X-HTTP-METHOD-OVERRIDE')) {\n-                    $this->method = strtoupper($method);\n-                } elseif (self::$httpMethodParameterOverride) {\n-                    $method = $this->request->get('_method', $this->query->get('_method', 'POST'));\n-                    if (\\is_string($method)) {\n-                        $this->method = strtoupper($method);\n-                    }\n-                }\n-            }\n+        if (null !== $this->method) {\n+            return $this->method;\n+        }\n+\n+        $this->method = strtoupper($this->server->get('REQUEST_METHOD', 'GET'));\n+\n+        if ('POST' !== $this->method) {\n+            return $this->method;\n+        }\n+\n+        $method = $this->headers->get('X-HTTP-METHOD-OVERRIDE');\n+\n+        if (!$method && self::$httpMethodParameterOverride) {\n+            $method = $this->request->get('_method', $this->query->get('_method', 'POST'));\n+        }\n+\n+        if (!\\is_string($method)) {\n+            return $this->method;\n+        }\n+\n+        $method = strtoupper($method);\n+\n+        if (\\in_array($method, ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'PATCH', 'PURGE', 'TRACE'], true)) {\n+            return $this->method = $method;\n+        }\n+\n+        if (!preg_match('\/^[A-Z]++$\/D', $method)) {\n+            throw new SuspiciousOperationException(sprintf('Invalid method override \"%s\".', $method));\n         }\n \n-        return $this->method;\n+        return $this->method = $method;\n     }\n \n     \/**"
+    }
+  ]
+}
