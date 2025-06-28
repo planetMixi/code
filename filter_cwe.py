@@ -21,7 +21,7 @@ def filter_web_vulnerabilities():
     all_samples = []  # List to store all samples for combined file
     
     # Process each subset file
-    for i in range(1, 5):  # Since we have 4 subsets
+    for i in range(2, 11):  # Since we have 4 subsets
         subset_file = f'subsets/subset_{i}.json'
         if os.path.exists(subset_file):
             print(f"\nReading {subset_file}...")
