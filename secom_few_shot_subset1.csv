@@ -1,5 +1,5 @@
 id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message
-135,{'CWE-20'},GHSA-h2wq-prv9-2f56,"@@ -174,13 +174,13 @@ class QuantizeAndDequantizeV4GradientOp : public OpKernel {
+135,CWE-20,GHSA-h2wq-prv9-2f56,"@@ -174,13 +174,13 @@ class QuantizeAndDequantizeV4GradientOp : public OpKernel {
      OP_REQUIRES(ctx,
                  input_min_tensor.dims() == 0 || input_min_tensor.dims() == 1,
                  errors::InvalidArgument(
@@ -31,28 +31,32 @@ id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message
 
 Check that argument is actually a scalar before treating it as such.
 
-PiperOrigin-RevId: 445198280","vuln-fix: Validate tensor dimensions to prevent shape confusion (CVE-2024-12345)
+PiperOrigin-RevId: 445198280","vuln-fix: Validate input_min and input_max dimensions properly (CVE-2024-0001)
 
-The vulnerability involved insufficient validation of input_min and input_max tensor dimensions, allowing unexpected shapes to bypass checks. This posed a risk of out-of-bounds memory access or incorrect computations leading to potential denial of service or data corruption. The fix enforces strict dimension checks, requiring scalars when axis is unspecified and only allowing dimension 0 or 1 tensors, preventing malformed inputs.
+The QuantizeAndDequantizeV4GradientOp kernel did not enforce correct tensor dimensions for input_min and input_max when axis was unspecified or set, allowing inconsistent internal states.
+This could cause invalid tensor accesses or computations, potentially leading to runtime errors or crashes during model execution, resulting in denial-of-service.
+The fix adds explicit checks ensuring that input_min and input_max tensors are either scalar or one-dimensional as required, rejecting malformed inputs early.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5"
-474,{'CWE-79'},GHSA-2xw8-j43j-5vxp,"@@ -18,7 +18,7 @@
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 6.0"
+474,CWE-79,GHSA-2xw8-j43j-5vxp,"@@ -18,7 +18,7 @@
  $report = new ElggReportedContent();
  $report->owner_guid = elgg_get_logged_in_user_guid();
  $report->title = $title;
 -$report->address = $address;
 +$report->address = elgg_normalize_site_url($address);
  $report->description = $description;
- $report->access_id = $access;",fix(reported_content): sanitize report URLs,"vuln-fix: Normalize URLs to prevent open redirect (CVE-2024-1234)
+ $report->access_id = $access;",fix(reported_content): sanitize report URLs,"vuln-fix: Sanitize address field to prevent malformed URLs (CVE-XXXX-XXXX)
 
-The vulnerability allowed untrusted URLs to be stored without validation, enabling potential open redirect attacks through manipulated address fields. Open redirects can lead to phishing or malware distribution by redirecting users to malicious sites without their knowledge. The fix normalizes the address URLs using a site URL normalization function to ensure only valid, safe URLs are accepted and stored.
+The application previously accepted raw address input without normalization, potentially allowing malicious or malformed URLs to be stored and later used unsafely.
+This posed a risk of unsafe redirects or injection attacks via crafted URL payloads affecting users or system behavior.
+The fix applies elgg_normalize_site_url to the address field, ensuring URLs conform to a safe, standardized format before storage.
 
-Weakness: CWE-601 Open Redirect
-Severity: High
-CVSS: 7.5"
-934,{'CWE-617'},GHSA-fx5c-h9f6-rv7c,"@@ -1363,6 +1363,11 @@ Status ConstantFolding::EvaluateOneFoldable(const NodeDef& node,
+Weakness: CWE-601  
+Severity: Medium  
+CVSS: 5.4"
+934,CWE-617,GHSA-fx5c-h9f6-rv7c,"@@ -1363,6 +1363,11 @@ Status ConstantFolding::EvaluateOneFoldable(const NodeDef& node,
                            input_tensor.ToString(),
                            "" has a dtype of DT_INVALID.""));
      }
@@ -70,14 +74,16 @@ The tensor constructor does not allow reference dtypes, as these should not show
 Instead, before calling the constructor, we can check that the dtype is not a reference type and return an error otherwise, given that the dtype is user controlled so malicious users can trigger denial of service.
 
 PiperOrigin-RevId: 409662503
-Change-Id: I5892f831fde7f276cd7ab34519cf6b8061c71a59","vuln-fix: Prevent tensor construction with reference dtype (CVE-2024-12345)
+Change-Id: I5892f831fde7f276cd7ab34519cf6b8061c71a59","vuln-fix: Prevent tensor construction with reference dtype (CVE-2024-XXXX)
 
-The vulnerability allowed tensors with reference data types to be constructed, which could lead to unintended aliasing and memory corruption issues in the system. This posed a security risk by enabling attackers to manipulate internal memory references, potentially causing data leaks or crashes. The fix adds a validation check that rejects any attempt to create tensors with reference data types, ensuring only valid tensor types are constructed.
+The evaluation function allowed construction of tensors with reference data types, bypassing restrictions on unsupported tensor types.
+This could lead to unintended internal behavior or state corruption, posing a risk of denial of service through invalid tensor manipulations.
+The fix adds a validation step to reject tensors with reference data types by checking and erroring out before tensor allocation.
 
-Weakness: CWE-123: Write-what-where Condition  
-Severity: High  
-CVSS: 7.5"
-689,{'CWE-79'},GHSA-pjpc-87mp-4332,"@@ -8,6 +8,7 @@
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 5.9"
+689,CWE-79,GHSA-pjpc-87mp-4332,"@@ -8,6 +8,7 @@
   *
   * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
   */
@@ -103,14 +109,16 @@ Co-authored-by: John Linhart <admin@escope.cz>
 
 * removed obsolete use statement
 
-Co-authored-by: John Linhart <admin@escope.cz>","vuln-fix: Escape user agent output to prevent XSS (CVE-2024-XXXX)
+Co-authored-by: John Linhart <admin@escope.cz>","vuln-fix: Escape useragent output to prevent XSS (CVE-2024-0001)
 
-The user agent string was output directly into HTML without escaping, allowing injection of malicious scripts via crafted user agent headers. This vulnerability could lead to cross-site scripting attacks, compromising user sessions and data integrity. The fix applies proper escaping to the user agent output, ensuring any HTML special characters are safely encoded before rendering.
+The useragent string was output directly into HTML without escaping, allowing malicious users to inject JavaScript or HTML payloads.
+This exposed the application to cross-site scripting attacks that could hijack sessions or perform actions on behalf of victims.
+The patch fixes this by applying proper HTML escaping to the useragent string before rendering it.
 
-Weakness: Cross-Site Scripting (CWE-79)  
-Severity: High  
-CVSS: 7.4"
-24,{'CWE-601'},GHSA-763j-q7wv-vf3m,"@@ -14,6 +14,7 @@
+Weakness: CWE-79  
+Severity: Medium  
+CVSS: 5.4"
+24,CWE-601,GHSA-763j-q7wv-vf3m,"@@ -14,6 +14,7 @@
  import javax.servlet.http.HttpServletRequest;
  import javax.servlet.http.HttpServletResponse;
  
@@ -142,16 +150,16 @@ CVSS: 7.4"
 +
          if (request.getParameter(""ID"") != null)
          {
-             ID = request.getParameter(""ID"");",[DS-4133] Improve URL handling in Controlled Vocab JSPUI servlet,"vuln-fix: Validate callerUrl to prevent open redirect (CVE-2024-1234)
+             ID = request.getParameter(""ID"");",[DS-4133] Improve URL handling in Controlled Vocab JSPUI servlet,"vuln-fix: Restrict callerUrl redirect to internal context path (CVE-XXXX-YYYY)
 
-The vulnerability allowed an attacker to supply a callerUrl parameter that could redirect users outside the trusted DSpace web application context.  
-This posed a security risk by enabling open redirect attacks, potentially leading to phishing or malicious site redirection.  
-The fix enforces that callerUrl must start with the DSpace context path, rejecting requests with invalid URLs and returning a 400 Bad Request error.
+The servlet allowed callerUrl parameters that redirected outside the application context, enabling potential open redirect attacks.
+Open redirects can be exploited for phishing by redirecting users to malicious external sites without their knowledge.
+The fix enforces that callerUrl must start with the application's context path and rejects requests with out-of-scope URLs via HTTP 400 response.
 
-Weakness: CWE-601 Open Redirect  
-Severity: High  
-CVSS: 7.5"
-513,{'CWE-918'},GHSA-6mv9-hcx5-7mhh,"@@ -341,6 +341,8 @@ public FormValidation doValidateProxy(
+Weakness: CWE-601
+Severity: Medium
+CVSS: 5.3"
+513,CWE-918,GHSA-6mv9-hcx5-7mhh,"@@ -341,6 +341,8 @@ public FormValidation doValidateProxy(
                  @QueryParameter(""userName"") String userName, @QueryParameter(""password"") String password,
                  @QueryParameter(""noProxyHost"") String noProxyHost) {
  
@@ -159,14 +167,16 @@ CVSS: 7.5"
 +
              if (Util.fixEmptyAndTrim(testUrl) == null) {
                  return FormValidation.error(Messages.ProxyConfiguration_TestUrlRequired());
-             }",[SECURITY-506] Require admin permission to validate proxy config.,"vuln-fix: Enforce admin permission on proxy validation (CVE-2024-1234)
+             }",[SECURITY-506] Require admin permission to validate proxy config.,"vuln-fix: Restrict proxy validation to administrators (CVE-2024-0001)
 
-The proxy validation method lacked permission checks, allowing unauthorized users to trigger proxy tests and potentially gather sensitive network configuration information. This posed a risk of information disclosure and unauthorized system probing by non-admin users. The fix enforces an explicit admin permission check before executing the proxy validation logic to restrict access to authorized personnel only.
+The proxy validation endpoint allowed unrestricted access to anyone, enabling unprivileged users to trigger potentially harmful server-side HTTP requests.
+This poses a server-side request forgery (SSRF) risk by letting attackers send crafted requests to internal or external resources through the server.
+The patch enforces an administrative permission check, limiting proxy validation functionality to authorized administrators only.
 
-Weakness: Improper Access Control (CWE-284)  
-Severity: High  
-CVSS: 7.5"
-789,{'CWE-617'},GHSA-fq86-3f29-px2c,"@@ -1689,7 +1689,11 @@ Status ConstantFolding::IsSimplifiableReshape(
+Weakness: CWE-918  
+Severity: Medium  
+CVSS: 5.3"
+789,CWE-617,GHSA-fq86-3f29-px2c,"@@ -1689,7 +1689,11 @@ Status ConstantFolding::IsSimplifiableReshape(
    if (!IsReshape(node)) {
      return errors::Internal(""Node "", node.name(), "" is not a Reshape node"");
    }
@@ -194,14 +204,16 @@ CVSS: 7.5"
        properties.GetInputProperties(node.name());","Remove `CHECK`-fails from `IsSimplifiableReshape`
 
 PiperOrigin-RevId: 409164987
-Change-Id: I58c7dd459ff348c3dbae95e00c4c5e63b30a4e65","vuln-fix: Validate input and output sizes to prevent invalid node states (CVE-2024-1234)
+Change-Id: I58c7dd459ff348c3dbae95e00c4c5e63b30a4e65","vuln-fix: Replace reachable assertions with input validation (CVE-2023-XXXX)
 
-The vulnerability is caused by unchecked assumptions on node input and output sizes, leading to potential crashes or undefined behavior during graph processing. This is a security risk because attackers could craft malformed nodes that trigger memory corruption or denial of service in the system. The fix replaces unchecked assertions with explicit input and output size validations that return errors when constraints are violated.
+The previous code used CHECK macros to assert node input and output counts without proper error handling, leading to potential crashes when these conditions failed.
+Such unchecked assertions could cause denial of service by terminating the process if malformed internal node data existed.
+This fix replaces CHECK assertions with conditional checks that return structured error statuses, avoiding abrupt crashes and improving robustness.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5"
-749,{'CWE-352'},GHSA-h8hx-2c5r-32cf,"@@ -9,6 +9,9 @@ module Authentication
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 5.9"
+749,CWE-352,GHSA-h8hx-2c5r-32cf,"@@ -9,6 +9,9 @@ module Authentication
  
            prepend_before_action :require_authenticated_user
            prepend_before_action :authenticate_user
@@ -210,16 +222,16 @@ CVSS: 7.5"
 +          protect_from_forgery prepend: true
          end
  
-       protected",Ensure CSRF protection is prepended before authentication before_actions,"vuln-fix: Enforce CSRF protection before authentication (CVE-2024-1234)
+       protected",Ensure CSRF protection is prepended before authentication before_actions,"vuln-fix: Enforce CSRF protection before authentication (CVE-2024-XXXX)
 
-Cross-site request forgery protection was applied after user authentication, allowing attackers to exploit authenticated sessions via forged requests.
-This sequencing flaw risked unauthorized actions being performed without proper request validation, compromising user data integrity.
-The fix ensures CSRF protection is prepended to the filter chain, enforcing request validation before any authentication logic executes.
- 
-Weakness: CWE-352 Cross-Site Request Forgery (CSRF)
-Severity: High
-CVSS: 7.5"
-386,{'CWE-300'},GHSA-4r4m-hjwj-43p8,"@@ -90,7 +90,7 @@ function Socket (uri, opts) {
+The application previously applied CSRF protection after user authentication, allowing attackers to exploit sessions if authentication steps were bypassed or insecure.
+This created a risk that unauthorized commands could be executed via cross-site request forgery attacks, potentially compromising user data or actions.
+The fix ensures that CSRF checks are performed earlier by configuring `protect_from_forgery` to prepend before authentication filters, strengthening request validation order.
+
+Weakness: CWE-352
+Severity: Medium
+CVSS: 5.4"
+386,CWE-300,GHSA-4r4m-hjwj-43p8,"@@ -90,7 +90,7 @@ function Socket (uri, opts) {
    this.cert = opts.cert || null;
    this.ca = opts.ca || null;
    this.ciphers = opts.ciphers || null;
@@ -227,17 +239,16 @@ CVSS: 7.5"
 +  this.rejectUnauthorized = opts.rejectUnauthorized === undefined ? true : opts.rejectUnauthorized;
  
    // other options for Node.js client
-   var freeGlobal = typeof global === 'object' && global;",default `rejectUnauthorized` to `true`,"vuln-fix: Enforce TLS certificate validation by default (CVE-2024-0001)
+   var freeGlobal = typeof global === 'object' && global;",default `rejectUnauthorized` to `true`,"vuln-fix: Enforce rejectUnauthorized default in Socket constructor (CVE-2024-0001)
 
-TLS connections did not reject unauthorized certificates by default, allowing potential man-in-the-middle attacks with invalid or self-signed certificates.
-This posed a critical security risk by enabling attackers to intercept or tamper with encrypted communications undetected.
-The fix changes the default behavior to reject unauthorized certificates unless explicitly overridden, ensuring secure TLS validation by default.
+The Socket constructor allowed rejectUnauthorized to default to null, effectively disabling TLS certificate verification.
+This exposed applications to man-in-the-middle attacks by permitting connections without validating server certificates.
+The patch sets rejectUnauthorized to true by default when not explicitly provided, enforcing stricter TLS security checks.
 
-
-Weakness: CWE-295: Improper Certificate Validation  
-Severity: Critical  
-CVSS: 9.1"
-865,"{'CWE-12', 'CWE-22'}",GHSA-qh9q-34h6-hcv9,"@@ -4,6 +4,7 @@
+Weakness: CWE-295
+Severity: High
+CVSS: 7.8"
+865,"CWE-12', 'CWE-22",GHSA-qh9q-34h6-hcv9,"@@ -4,6 +4,7 @@
  import mimetypes
  import os
  import os.path
@@ -257,14 +268,16 @@ CVSS: 9.1"
 +            rel_file_path = posixpath.normpath(""/"" + rel_file_path).lstrip(""/"")
              file_path = os.path.join(self.root, rel_file_path)
          elif path == ""/"":
-             start_response(""302 Found"", [(""Location"", self.mount_path)])",Prevent directory traversal in the dev server,"vuln-fix: Prevent directory traversal in file path resolution (CVE-2024-XXXX)
+             start_response(""302 Found"", [(""Location"", self.mount_path)])",Prevent directory traversal in the dev server,"vuln-fix: Prevent directory traversal in file path handling (CVE-2024-0001)
 
-The vulnerability allowed attackers to exploit directory traversal by manipulating URL paths to access unauthorized files outside the intended root directory. This poses a critical security risk by exposing sensitive files and potentially enabling remote code execution. The fix normalizes and sanitizes the relative file path using posixpath.normpath to prevent traversal sequences before file access.
+The file serving code constructed file paths from URL input without normalizing, allowing traversal attacks to access files outside the intended root directory.
+This posed a security risk where attackers could read or serve arbitrary server files by crafting path parameters with ""../"" sequences.
+The fix normalizes the relative file path with posixpath.normpath and strips leading slashes to enforce boundary restrictions under the configured root.
 
-Weakness: CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')
-Severity: Critical
-CVSS: 9.8"
-524,{'CWE-116'},GHSA-p4v2-r99v-wjc2,"@@ -609,13 +609,22 @@ def load_shares(cls, shares, dbs, reset_shares=False):
+Weakness: CWE-22
+Severity: High
+CVSS: 7.5"
+524,CWE-116,GHSA-p4v2-r99v-wjc2,"@@ -609,13 +609,22 @@ def load_shares(cls, shares, dbs, reset_shares=False):
  
      def file_is_shared(self, user, virtualfilename, realfilename):
  
@@ -300,14 +313,16 @@ CVSS: 9.8"
              ""path"": realfilename
          })","Handle invalid file paths in file download requests
 
-Fixes #1777","vuln-fix: Handle exceptions in file access check to prevent crashes (CVE-2024-1234)
+Fixes #1777","vuln-fix: Handle exceptions when checking file accessibility (CVE-2024-0001)
 
-The vulnerability was caused by unhandled exceptions during file access checks, which could crash the service or leak information about file paths. This is a security risk because attackers might exploit these crashes to perform denial of service or gain insights into the file system structure. The fix adds exception handling around the file access check to safely log errors and prevent crashes without exposing sensitive details.
+The file sharing check did not handle exceptions from os.access, causing uncaught errors when file paths contained invalid characters or unexpected issues.  
+This flaw could lead to application crashes, enabling denial-of-service attacks via malformed file path inputs.  
+The patch introduces a try-except block around the os.access call to gracefully catch exceptions and prevent crashes by denying share access.  
 
-Weakness: Improper Exception Handling (CWE-703)  
+Weakness: CWE-617  
 Severity: Medium  
-CVSS: 5.3"
-183,{'CWE-787'},GHSA-v89p-5hr2-4rh4,"@@ -1278,13 +1278,20 @@ GlobOpt::InvalidateInductionVariables(IR::Instr * instr)
+CVSS: 5.9"
+183,CWE-787,GHSA-v89p-5hr2-4rh4,"@@ -1278,13 +1278,20 @@ GlobOpt::InvalidateInductionVariables(IR::Instr * instr)
      }
  
      // If this is an induction variable, then treat it the way the prepass would have if it had seen
@@ -331,16 +346,16 @@ CVSS: 5.3"
 +            }
          }
      }
- }",[CVE-2019-1197] Chakra JIT Type Confusion,"vuln-fix: Invalidate all loop induction variables on assignment (CVE-2024-12345)
+ }",[CVE-2019-1197] Chakra JIT Type Confusion,"vuln-fix: Invalidate all induction variables on assignment (CVE-2024-XXXX)
 
-Induction variables for loops were not fully invalidated when one variable changed, causing stale loop count and bound check calculations to persist.  
-This flaw could lead to incorrect memory bounds checks, enabling potential out-of-bounds accesses and security vulnerabilities in optimized loops.  
-The fix ensures all induction variables in the affected loop are marked indeterminate when any single induction variable is updated, preventing stale state usage.  
+The optimizer failed to mark all loop induction variables as indeterminate when one variable was assigned, risking incorrect loop bound calculations.
+This could lead to invalid bounds checks and incorrect memory accesses, potentially causing out-of-bounds reads or writes.
+The fix now invalidates every induction variable in affected loops to maintain correct loop count and memory safety.
 
-Weakness: CWE-125 Out-of-bounds Read  
+Weakness: CWE-125  
 Severity: High  
-CVSS: 7.5"
-518,{'CWE-611'},GHSA-mh83-jcw5-rjh8,"@@ -5,6 +5,7 @@
+CVSS: 7.3"
+518,CWE-611,GHSA-mh83-jcw5-rjh8,"@@ -5,6 +5,7 @@
  import java.io.*;
  import java.util.*;
  
@@ -356,14 +371,16 @@ CVSS: 7.5"
 +      spf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
        saxParser = SAXParserFactory.newInstance().newSAXParser();
      } catch (Exception e) {
-       log.info(""Error configuring XML parser: "" + e);",Fix SAXParser security issue,"vuln-fix: Enable secure processing in XML parser (CVE-2024-XXXX)
+       log.info(""Error configuring XML parser: "" + e);",Fix SAXParser security issue,"vuln-fix: Enable secure processing feature in XML parser (CVE-2024-XXXX)
 
-The XML parser was instantiated without enabling secure processing, leaving it vulnerable to XML External Entity (XXE) attacks and denial of service via malicious XML input. This security risk could allow attackers to access sensitive files or cause application crashes by exploiting XML parser features. The fix enables the FEATURE_SECURE_PROCESSING flag on the SAXParserFactory to mitigate XXE and related XML-based attacks.
+The XML parser was instantiated without enabling secure processing, leaving the application vulnerable to XML-based attacks like XXE and denial of service via crafted XML payloads.
+This allowed attackers to exploit external entity resolution and other XML features, potentially accessing sensitive data or causing resource exhaustion.
+The patch enables the FEATURE_SECURE_PROCESSING setting in SAXParserFactory to enforce safe XML parsing limits and disable dangerous XML constructs.
 
-Weakness: CWE-611: Improper Restriction of XML External Entity Reference  
-Severity: High  
-CVSS: 7.5"
-458,{'CWE-444'},GHSA-6hfq-h8hq-87mf,"@@ -213,6 +213,8 @@ impl Http1Transaction for Server {
+Weakness: CWE-611
+Severity: Medium
+CVSS: 5.8"
+458,CWE-444,GHSA-6hfq-h8hq-87mf,"@@ -213,6 +213,8 @@ impl Http1Transaction for Server {
                      if headers::is_chunked_(&value) {
                          is_te_chunked = true;
                          decoder = DecodedLength::CHUNKED;
@@ -394,14 +411,16 @@ When a request arrived with multiple `Transfer-Encoding` headers, hyper
 would check each if they ended with `chunked`. It should have only
 checked if the *last* header ended with `chunked`.
 
-See https://github.com/hyperium/hyper/security/advisories/GHSA-6hfq-h8hq-87mf","vuln-fix: Prevent HTTP Transfer-Encoding Header Smuggling (CVE-2024-XXXX)
+See https://github.com/hyperium/hyper/security/advisories/GHSA-6hfq-h8hq-87mf","vuln-fix: Enforce proper transfer-encoding header parsing (CVE-2024-XXXX)
 
-The vulnerability allowed multiple Transfer-Encoding headers where only the last value was checked for ""chunked,"" enabling HTTP request smuggling attacks. This is a security risk because attackers can bypass security controls and poison HTTP requests by exploiting inconsistent header parsing. The fix enforces that if multiple Transfer-Encoding headers exist, the last one must be ""chunked,"" otherwise the request is rejected.
+The HTTP parser incorrectly allowed multiple Transfer-Encoding headers that did not end with 'chunked', causing ambiguous or inconsistent parsing outcomes.
+This flaw could be exploited to bypass request length checks, potentially leading to request smuggling or desynchronization attacks.
+The fix explicitly sets the chunked flag to false when Transfer-Encoding headers fail to conclude with 'chunked', ensuring strict header interpretation.
 
-Weakness: HTTP Request Smuggling (CWE-444)  
-Severity: High  
-CVSS: 7.5"
-860,"{'CWE-1321', 'CWE-915'}",GHSA-896r-f27r-55mw,"@@ -207,7 +207,7 @@ var validate = exports._validate = function(/*Any*/instance,/*Object*/schema,/*O
+Weakness: CWE-20  
+Severity: Medium  
+CVSS: 5.7"
+860,"CWE-1321', 'CWE-915",GHSA-896r-f27r-55mw,"@@ -207,7 +207,7 @@ var validate = exports._validate = function(/*Any*/instance,/*Object*/schema,/*O
  			}
  			
  			for(var i in objTypeDef){ 
@@ -409,14 +428,16 @@ CVSS: 7.5"
 +				if(objTypeDef.hasOwnProperty(i) && i != '__proto__' && i != 'constructor'){
  					var value = instance[i];
  					// skip _not_ specified properties
- 					if (value === undefined && options.existingOnly) continue;","Protect against constructor modification, #84","vuln-fix: Prevent prototype pollution via constructor property (CVE-2024-XXXX)
+ 					if (value === undefined && options.existingOnly) continue;","Protect against constructor modification, #84","vuln-fix: Prevent prototype pollution by excluding constructor property (CVE-2024-XXXX)
 
-The vulnerability allowed prototype pollution by not excluding the 'constructor' property during object validation, enabling attackers to manipulate object prototypes maliciously. This is a critical security risk as it can lead to arbitrary code execution or denial of service through prototype chain manipulation. The fix adds a check to exclude the 'constructor' property alongside '__proto__' to prevent prototype pollution attacks.
+The validation function improperly iterated over all own properties including the constructor, allowing attacker-controlled input to modify the prototype chain.
+This enabled prototype pollution, which can lead to privilege escalation, arbitrary code execution, or denial of service in affected applications.
+The patch fixes the iteration to explicitly exclude the constructor property along with __proto__, preventing malicious prototype manipulation.
 
-Weakness: CWE-1321: Improper Restriction of Operations within the Bounds of a Memory Buffer
-Severity: Critical
-CVSS: 9.8"
-139,{'CWE-1321'},GHSA-jxvf-m3x5-mxwq,"@@ -217,7 +217,7 @@ PropertiesReader.prototype.set = function (key, value) {
+Weakness: CWE-471
+Severity: High
+CVSS: 7.8"
+139,CWE-1321,GHSA-jxvf-m3x5-mxwq,"@@ -217,7 +217,7 @@ PropertiesReader.prototype.set = function (key, value) {
        }
  
        if (!has(source, step)) {
@@ -424,14 +445,16 @@ CVSS: 9.8"
 +         Object.defineProperty(source, step, { value: {} });
        }
  
-       source = source[step]",Allow for relying on Object prototype in steps of the expanded properties,"vuln-fix: Prevent prototype pollution via object property assignment (CVE-2024-1234)
+       source = source[step]",Allow for relying on Object prototype in steps of the expanded properties,"vuln-fix: Correct object property initialization in PropertiesReader (CVE-2024-0001)
 
-The vulnerability allowed prototype pollution by assigning plain objects instead of null-prototype objects, enabling attackers to manipulate object prototypes unexpectedly. This is a security risk because it can lead to arbitrary code execution or denial of service through prototype chain manipulation. The fix replaces plain object assignments with objects created from null prototypes to prevent prototype pollution attacks.
+The original code used Object.create(null) which creates objects without a prototype, causing failure in downstream code expecting standard prototype methods.
+This inconsistency could lead to unexpected errors or security flaws when prototype methods like hasOwnProperty are called on these objects.
+The patch replaces Object.create(null) with a plain object literal {}, restoring the default prototype chain and ensuring predictable behavior.
 
-Weakness: Prototype Pollution (CWE-1321)  
-Severity: High  
-CVSS: 7.5"
-926,{'CWE-79'},GHSA-5x33-h32w-6vr2,"@@ -211,7 +211,7 @@
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 5.5"
+926,CWE-79,GHSA-5x33-h32w-6vr2,"@@ -211,7 +211,7 @@
  print('<div class=""tag-management-form generalbox""><label class=""accesshide"" for=""id_tagfilter"">'. get_string('search') .'</label>'.
      '<input type=""hidden"" name=""tc"" value=""'.$tagcollid.'"" />'.
      '<input type=""hidden"" name=""perpage"" value=""'.$perpage.'"" />'.
@@ -439,16 +462,16 @@ CVSS: 7.5"
 +    '<input id=""id_tagfilter"" name=""filter"" type=""text"" value=""' . s($filter) . '"">'.
      '<input value=""'. s(get_string('search')) .'"" type=""submit"" class=""btn btn-secondary""> '.
      ($filter !== '' ? html_writer::link(new moodle_url($PAGE->url, array('filter' => null)),
-         get_string('resetfilter', 'tag'), array('class' => 'resetfilterlink')) : '').",MDL-69340 tag: Correct the filter input HTML in the tag manager,"vuln-fix: Fix XSS vulnerability in tag filter input (CVE-2024-XXXX)
+         get_string('resetfilter', 'tag'), array('class' => 'resetfilterlink')) : '').",MDL-69340 tag: Correct the filter input HTML in the tag manager,"vuln-fix: Escape HTML attribute value in tag filter input field (CVE-2024-XXXX)
 
-The tag filter input field was missing proper HTML attribute quoting, allowing injection of malicious scripts via crafted filter values.
-This posed a cross-site scripting risk, enabling attackers to execute arbitrary JavaScript in users’ browsers and potentially hijack sessions.
-The fix adds double quotes around the input value attribute, ensuring proper HTML encoding and preventing script injection through the filter parameter.
+The tag filter input value was embedded into an HTML attribute without proper quotation, potentially causing malformed HTML and allowing injection of malicious content.
+This vulnerability could lead to cross-site scripting (XSS) attacks by enabling injection of arbitrary HTML or scripts via crafted filter input values.
+The fix surrounds the escaped filter value with double quotes in the input tag, ensuring correct HTML attribute delimitation and preventing injection.
 
-Weakness: Cross-Site Scripting (CWE-79)  
-Severity: High  
-CVSS: 7.4"
-2,{'CWE-787'},GHSA-whr9-vfh2-7hm6,"@@ -73,6 +73,12 @@ class DrawBoundingBoxesOp : public OpKernel {
+Weakness: CWE-79
+Severity: Medium
+CVSS: 5.4"
+2,CWE-787,GHSA-whr9-vfh2-7hm6,"@@ -73,6 +73,12 @@ class DrawBoundingBoxesOp : public OpKernel {
          errors::InvalidArgument(""Channel depth should be either 1 (GRY), ""
                                  ""3 (RGB), or 4 (RGBA)""));
  
@@ -463,14 +486,16 @@ CVSS: 7.4"
      const int64 width = images.dim_size(2);","Fix memory corruption issue with `tf.raw_ops.DrawBoundingBoxesV2`.
 
 PiperOrigin-RevId: 372033910
-Change-Id: I8a9f4efc1c8ddaacbc26ec1fbe4bfdd6791c226d","vuln-fix: Validate bounding box dimension to prevent malformed input (CVE-2024-1234)
+Change-Id: I8a9f4efc1c8ddaacbc26ec1fbe4bfdd6791c226d","vuln-fix: Validate bounding box tensor dimensions in DrawBoundingBoxesOp (CVE-2024-0001)
 
-The vulnerability was due to missing validation on the bounding box tensor’s third dimension size, allowing malformed inputs with incorrect box coordinates. This posed a security risk by potentially causing out-of-bounds memory access or undefined behavior during image processing. The fix enforces a strict check that the third dimension size of the boxes tensor must be exactly 4, rejecting invalid inputs early. 
+The DrawBoundingBoxesOp kernel did not verify that the bounding boxes tensor had a third dimension size of exactly 4, permitting malformed inputs to proceed unchecked.
+This could lead to out-of-bounds access or memory corruption when processing improperly shaped tensors, causing crashes or denial-of-service.
+The patch adds a dimension size check on the boxes tensor’s third dimension, rejecting invalid inputs with a clear error message.
 
-Weakness: Improper Input Validation (CWE-20)  
+Weakness: CWE-617  
 Severity: Medium  
-CVSS: 5.3"
-203,"{'CWE-79', 'CWE-843'}",GHSA-5f38-9jw2-6r6h,"@@ -96,8 +96,15 @@ function escapeEntities (value) {
+CVSS: 6.5"
+203,"CWE-79', 'CWE-843",GHSA-5f38-9jw2-6r6h,"@@ -96,8 +96,15 @@ function escapeEntities (value) {
    let i
    let j
  
@@ -564,16 +589,16 @@ From: Eric Newport <kethinov@gmail.com>
        if (value.length === 0) {
          return false // empty arrays are falsey","Merge pull request #518 from kethinov/refactor-escape-entities
 
-refactor escape entities for better type checking","vuln-fix: Prevent information leakage via object and array stringification (CVE-2024-XXXX)
+refactor escape entities for better type checking","vuln-fix: Improve handling of object and array types in escapeEntities (CVE-2024-0001)
 
-The escapeEntities function exposed internal object and array contents by returning truthy values or generic true, risking sensitive data leakage in logs or UI rendering.
-This could allow attackers to infer or extract sensitive application state or data structures, leading to privacy violations or information disclosure.
-The fix replaces generic truthy returns with explicit string placeholders ""[Object]"" and ""[Array]"" to mask contents, and ensures falsey values return false consistently, preventing unintended data exposure.
+The escapeEntities function mishandled object and array values by returning generic booleans, risking improper output escaping leading to potential logical errors or unexpected data exposure.
+This risk could cause incorrect rendering or interpretation of data structures within HTML contexts, possibly facilitating injection-like scenarios from improperly escaped content.
+The fix refines type checks by returning descriptive strings for non-empty arrays and objects, avoids ambiguous boolean outputs, and normalizes falsey values ensuring safer and clearer escaping behavior.
 
-Weakness: Information Exposure Through Log Files (CWE-532)  
+Weakness: CWE-20  
 Severity: Medium  
 CVSS: 5.3"
-826,{'CWE-843'},GHSA-f4rr-5m7v-wxcw,"@@ -348,12 +348,14 @@ string* MakeCheckOpString(const T1& v1, const T2& v2, const char* exprtext) {
+826,CWE-843,GHSA-f4rr-5m7v-wxcw,"@@ -348,12 +348,14 @@ string* MakeCheckOpString(const T1& v1, const T2& v2, const char* exprtext) {
  }
  
  // Helper functions for CHECK_OP macro.
@@ -822,14 +847,16 @@ From: Andrew Fitzgibbon <awf@graphcore.ai>
  
  // LogMessageFatal ensures the process will exit in failure after","Merge pull request #55730 from graphcore:awf/issue-55530
 
-PiperOrigin-RevId: 445252025","vuln-fix: Fix integer comparison handling in CHECK macros (CVE-2024-XXXX)
+PiperOrigin-RevId: 445252025","vuln-fix: Fix unsigned-signed check operations to prevent invalid comparisons (CVE-2024-0001)
 
-The vulnerability involves improper handling of signed and unsigned integer comparisons in CHECK macros, which could cause incorrect evaluation or bypass of critical assertions. This is a security risk because it may allow invalid states or logic errors to persist undetected, potentially leading to undefined behavior or exploitation. The fix refactors CHECK implementations to correctly handle mixed signedness by adding explicit checks and conversions, ensuring robust and secure comparison operations.
+The original CHECK_OP implementations did not properly handle comparisons between signed and unsigned integers, allowing negative signed values to bypass expected error reporting.
+This posed a risk of silent logical errors and potential assertion failures caused by unsigned-signed comparison anomalies, possibly leading to denial of service in debug builds.
+The patch adjusts CHECK_OP functions to correctly treat signed negative values, ensuring proper error strings are generated or null is returned to prevent incorrect assertions.
 
-Weakness: Improper Handling of Signedness in Comparisons (CWE-681)  
+Weakness: CWE-617  
 Severity: Medium  
-CVSS: 5.3"
-790,"{'CWE-285', 'CWE-287'}",GHSA-h6xx-pmxh-3wgp,"@@ -1166,6 +1166,27 @@ func (as *authStore) AuthInfoFromTLS(ctx context.Context) (ai *AuthInfo) {
+CVSS: 5.9"
+790,"CWE-285', 'CWE-287",GHSA-h6xx-pmxh-3wgp,"@@ -1166,6 +1166,27 @@ func (as *authStore) AuthInfoFromTLS(ctx context.Context) (ai *AuthInfo) {
  			Username: chains[0].Subject.CommonName,
  			Revision: as.Revision(),
  		}
@@ -858,16 +885,16 @@ CVSS: 5.3"
  			as.lg.Debug(
  				""found command name"",","auth: disable CommonName auth for gRPC-gateway
 
-Signed-off-by: Sam Batschelet <sbatsche@redhat.com>","vuln-fix: Prevent misuse of client certificate CommonName in gRPC-gateway (CVE-2024-12345)
+Signed-off-by: Sam Batschelet <sbatsche@redhat.com>","vuln-fix: Ignore client CN in gRPC-gateway proxy auth (CVE-2024-XXXX)
 
-The authentication logic incorrectly trusted the CommonName from client certificates in gRPC-gateway proxy requests, allowing potential impersonation.  
-This is a security risk because the proxy uses its own client certificate, which could cause the server to authenticate requests as the proxy rather than the actual user.  
-The fix detects gRPC-gateway proxy requests via metadata and ignores the CommonName for authentication, preventing misuse of proxy client certificates.  
+The authentication logic used the TLS client certificate's CommonName even for gRPC-gateway proxy requests, enabling bypass of authentication by relying on proxy-supplied certs.  
+This allowed attackers controlling the proxy to impersonate users by specifying arbitrary CommonNames, risking unauthorized access to the etcd server.  
+The fix detects the presence of the ""grpcgateway-accept"" header and disables CommonName-based authentication for such proxy requests, preventing misuse of client certificates.
 
-Weakness: CWE-290: Authentication Bypass by Spoofing  
-Severity: High  
-CVSS: 7.5"
-334,{'CWE-248'},GHSA-wm7h-9275-46v2,"@@ -82,26 +82,28 @@ HeaderParser.prototype._parseHeader = function() {
+Weakness: CWE-285  
+Severity: Medium  
+CVSS: 5.9"
+334,CWE-248,GHSA-wm7h-9275-46v2,"@@ -82,26 +82,28 @@ HeaderParser.prototype._parseHeader = function() {
        // folded header content
        // RFC2822 says to just remove the CRLF and not the whitespace following
        // it, so we follow the RFC and include the leading whitespace ...
@@ -913,14 +940,16 @@ CVSS: 7.5"
 +    }
    }
    if (!modded)
-     this.buffer = '';",removed bug caused by uninitialized variable h in function HeaderParser.prototype._parseHeader,"vuln-fix: Prevent header parsing bypass in HeaderParser (CVE-2024-1234)
+     this.buffer = '';",removed bug caused by uninitialized variable h in function HeaderParser.prototype._parseHeader,"vuln-fix: Fix header folding parsing to prevent malformed headers (CVE-2024-XXXX)
 
-The header parser allowed malformed folded headers to bypass proper parsing, causing incomplete or incorrect header processing. This flaw could be exploited to inject malicious headers or evade security checks relying on header integrity. The fix restructures the parsing logic to correctly handle folded headers and ensures all lines are properly matched or buffered.
+The header parsing logic incorrectly processed folded email headers, causing some folded lines to be ignored or mishandled.
+This flaw could allow crafted headers to bypass intended parsing limits or cause inconsistent header state, leading to potential denial of service or header injection vectors.
+The patch ensures all folded header lines are concatenated correctly and parsed fully, preventing premature termination and malformed header states.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5"
-201,{'CWE-74'},GHSA-p493-635q-r6gr,"@@ -57,6 +57,11 @@ function Compiler(node, options) {
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 6.0"
+201,CWE-74,GHSA-p493-635q-r6gr,"@@ -57,6 +57,11 @@ function Compiler(node, options) {
    if (this.pp && typeof this.pp !== 'string') {
      this.pp = '  ';
    }
@@ -953,14 +982,16 @@ CVSS: 7.5"
 +            ');'
          );
        if (block || attrs.length || attrsBlocks.length) {
-         this.buf.push(name + '.call({');",fix: sanitise and escape the `pretty` option (#3314),"vuln-fix: Prevent code injection via pretty parameter (CVE-2024-1234)
+         this.buf.push(name + '.call({');",fix: sanitise and escape the `pretty` option (#3314),"vuln-fix: Validate pretty parameter to prevent code injection (CVE-2024-0001)
 
-The vulnerability allowed arbitrary strings in the pretty parameter, enabling injection of malicious code into generated output. This posed a security risk by permitting attackers to execute unintended code through crafted whitespace strings. The fix enforces that the pretty parameter must be either a boolean or whitespace-only string and safely escapes inserted strings to prevent injection.
+The pretty parameter accepted arbitrary strings without sanitization, allowing crafted inputs to inject malicious code via string concatenation in generated output.
+This led to potential remote code injection or script execution when untrusted input controlled the pretty parameter, posing serious security risks.
+The fix enforces the pretty parameter to be either boolean or whitespace-only string and safely serializes indentation strings to prevent injection.
 
-Weakness: Improper Neutralization of Input During Web Page Generation (CWE-79)  
-Severity: High  
+Weakness: CWE-94
+Severity: High
 CVSS: 7.5"
-736,{'CWE-434'},GHSA-qm58-cvvm-c5qr,"@@ -281,6 +281,7 @@ abstract class elFinderVolumeDriver
+736,CWE-434,GHSA-qm58-cvvm-c5qr,"@@ -281,6 +281,7 @@ abstract class elFinderVolumeDriver
              'php5:*' => 'text/x-php',
              'php7:*' => 'text/x-php',
              'phtml:*' => 'text/x-php',
@@ -969,14 +1000,16 @@ CVSS: 7.5"
              'pl:*' => 'text/x-perl',
              'asp:*' => 'text/x-asap',","[VD:abstract] add `'phar:*' => 'text/x-php'` into 'staticMineMap'
 
-rel. #3295","vuln-fix: Prevent phar Stream Wrapper Execution (CVE-2024-XXXX)
+rel. #3295","vuln-fix: Add phar MIME type mapping to prevent incorrect handling (CVE-2024-xxxx)
 
-The addition of the 'phar:*' stream wrapper as 'text/x-php' allowed execution of PHP code embedded in PHAR archives, enabling remote code execution risks. This vulnerability is critical because attackers could upload malicious PHAR files and trigger arbitrary code execution on the server. The fix removes or restricts the 'phar:*' stream wrapper association to prevent unsafe PHP code execution from PHAR archives.
+The volume driver did not recognize 'phar' file types as PHP, potentially leading to unsafe file handling or execution bypass.
+This omission could allow malicious Phar archives to be misclassified, risking improper processing or execution of embedded PHP code.
+The patch adds a 'phar:*' MIME type mapping as 'text/x-php' to correctly identify and handle Phar archives securely.
 
-Weakness: CWE-94: Improper Control of Generation of Code ('Code Injection')
-Severity: Critical
-CVSS: 9.8"
-99,{'CWE-200'},GHSA-hjp8-2cm3-cc45,"@@ -11,6 +11,8 @@ var extend = require('extend');
+Weakness: CWE-617
+Severity: Medium
+CVSS: 5.9"
+99,CWE-200,GHSA-hjp8-2cm3-cc45,"@@ -11,6 +11,8 @@ var extend = require('extend');
  var request = require('request');
  var RetryStrategies = require('./strategies');
  var _ = require('lodash');
@@ -1036,16 +1069,16 @@ CVSS: 9.8"
 +  this.options = sanitizeHeaders(options);
  
    /**
-    * Return true if the request should be retried",Prevent Cookie & Authorization Headers from being forwarded when the URL redirects to another domain (information leak) #137,"vuln-fix: Prevent header leakage on cross-domain redirects (GHSA-137)
+    * Return true if the request should be retried",Prevent Cookie & Authorization Headers from being forwarded when the URL redirects to another domain (information leak) #137,"vuln-fix: Prevent leaking sensitive headers on external redirects (GHSA-137)
 
-The vulnerability allowed sensitive headers like Cookie and Authorization to be forwarded to external domains during URL redirects, risking credential exposure.  
-This posed a security risk by potentially leaking authentication tokens to untrusted third-party domains, enabling session hijacking or unauthorized access.  
-The fix sanitizes request headers by detecting external redirect URLs and removing sensitive headers before forwarding the request.  
+The HTTP request logic forwarded sensitive headers like Cookie and Authorization when redirecting to external domains or different ports.
+This leakage of sensitive headers risks unauthorized information disclosure and potential session hijacking attacks against third-party servers.
+The patch sanitizes request options by detecting external URLs in query parameters and removing these sensitive headers before sending the request.
 
-Weakness: Information Exposure Through Sent Data (CWE-200)  
-Severity: High  
-CVSS: 7.5"
-718,"{'CWE-119', 'CWE-20'}",GHSA-85rr-4rh9-hhwh,"@@ -464,14 +464,17 @@ static bool checkreturn decode_static_field(pb_istream_t *stream, pb_wire_type_t
+Weakness: CWE-200
+Severity: Medium
+CVSS: 5.8"
+718,"CWE-119', 'CWE-20",GHSA-85rr-4rh9-hhwh,"@@ -464,14 +464,17 @@ static bool checkreturn decode_static_field(pb_istream_t *stream, pb_wire_type_t
              }
  
          case PB_HTYPE_ONEOF:
@@ -1086,14 +1119,16 @@ contents of the union field is switched to a different oneof
 item, instead of merging with the same one.
 
 This commit changes it so that the field is memset() only when
-`which_field` contains a different tag.","vuln-fix: Prevent use-after-free in protobuf oneof decoding (CVE-2024-1234)
+`which_field` contains a different tag.","vuln-fix: Prevent union memory corruption in protobuf decoder (CVE-2023-XXXX)
 
-The vulnerability occurs due to improper handling of union fields in protobuf oneof decoding, causing stale callback pointers to persist across different union members. This can lead to use-after-free or execution of invalid callbacks, posing a critical security risk by enabling arbitrary code execution. The fix reorders the assignment and zero-initialization to clear callbacks before setting defaults, ensuring stale pointers are not retained.
+The protobuf decoder did not properly reset union field memory when switching between different oneof tags, causing stale callbacks and data corruption.
+This allowed attackers to induce undefined behavior or memory corruption, potentially leading to crashes or arbitrary code execution.
+The fix ensures the union memory is zeroed and default values set before updating the tag, preventing stale data access.
 
-Weakness: Use-After-Free (CWE-416)  
-Severity: Critical  
-CVSS: 9.8"
-434,{'CWE-824'},GHSA-qr82-2c78-4m8h,"@@ -210,9 +210,9 @@ class StagingMap : public ResourceBase {
+Weakness: CWE-617  
+Severity: High  
+CVSS: 7.8"
+434,CWE-824,GHSA-qr82-2c78-4m8h,"@@ -210,9 +210,9 @@ class StagingMap : public ResourceBase {
                                     const OptionalTuple& tuple)
        TF_EXCLUSIVE_LOCKS_REQUIRED(mu_) {
      if (tuple[index].has_value()) {
@@ -1141,14 +1176,16 @@ CVSS: 9.8"
      return Status::OK();","Prevent nullptr deref in validation of indexes in map ops.
 
 PiperOrigin-RevId: 387738023
-Change-Id: I83d18d36a7b82ffd2a40b5124a4e5b4c72238f27","vuln-fix: Prevent improper error handling in StagingMap (CVE-2024-XXXX)
+Change-Id: I83d18d36a7b82ffd2a40b5124a4e5b4c72238f27","vuln-fix: Enforce input validation and consistent error handling in StagingMap (CVE-2024-XXXX)
 
-The vulnerability involved inconsistent error status construction that could lead to improper error propagation and unchecked invalid inputs in tensor staging operations. This flaw risks denial of service or data corruption by allowing invalid or unordered indices to bypass proper validation. The fix standardizes error status returns and adds explicit checks for empty indices to ensure robust input validation and consistent error handling.
+The StagingMap class lacked validation for empty index tensors and exhibited inconsistent construction of error Status objects, risking improperly handled input and potential state confusion.
+This could allow malformed index inputs or unclear error propagation to cause incorrect resource usage or denial-of-service conditions.
+The fix adds explicit checks to reject empty index tensors and unifies error Status creation by returning errors::InvalidArgument directly, ensuring robust input validation and consistent error handling.
 
-Weakness: Improper Error Handling (CWE-390)  
+Weakness: CWE-20  
 Severity: Medium  
-CVSS: 5.3"
-469,{'CWE-755'},GHSA-xhp9-4947-rq78,"@@ -848,17 +848,19 @@ def default_error_handler(self, res):
+CVSS: 5.8"
+469,CWE-755,GHSA-xhp9-4947-rq78,"@@ -848,17 +848,19 @@ def default_error_handler(self, res):
          return tob(template(ERROR_PAGE_TEMPLATE, e=res))
  
      def _handle(self, environ):
@@ -1174,14 +1211,16 @@ CVSS: 5.3"
 +
              try:
                  self.trigger_hook('before_request')
-                 route, args = self.router.match(environ)",Gracefully handle errors during early request binding.,"vuln-fix: Fix Unicode path decoding vulnerability (CVE-2024-XXXX)
+                 route, args = self.router.match(environ)",Gracefully handle errors during early request binding.,"vuln-fix: Fix path decoding order to prevent route bypass (CVE-2024-XXXX)
 
-The application improperly handled Unicode path decoding before binding request and response objects, causing potential inconsistent state and security bypasses. This flaw could allow attackers to exploit malformed UTF-8 paths to trigger unexpected behavior or errors. The fix reorders the decoding logic to occur after binding, ensuring consistent environment state and proper error handling.
+The application decoded PATH_INFO before binding request and response objects, potentially causing inconsistent environment states that could lead to route matching errors.
+This flaw allowed attackers to craft malformed UTF-8 paths that might bypass security filters or cause unexpected application behavior.
+The fix reorders initialization to bind request and response before decoding PATH_INFO, ensuring correct environment setup and validation.
 
-Weakness: Improper Input Validation (CWE-20)  
+Weakness: CWE-617  
 Severity: Medium  
-CVSS: 5.3"
-844,{'CWE-295'},GHSA-rjmf-p882-645m,"@@ -217,7 +217,7 @@ module.exports = function(modules) {
+CVSS: 5.9"
+844,CWE-295,GHSA-rjmf-p882-645m,"@@ -217,7 +217,7 @@ module.exports = function(modules) {
      kmsRequest(request) {
        const parsedUrl = request.endpoint.split(':');
        const port = parsedUrl[1] != null ? Number.parseInt(parsedUrl[1], 10) : HTTPS_PORT;
@@ -1194,30 +1233,32 @@ CVSS: 5.3"
 TLS endpoints should always be authorized. 
 In order to properly communicate with GCP's KMS servers
 we need to provide a `servername`, so the endpoint can serve the
-correct TLS certificate.","vuln-fix: Enforce TLS servername verification in KMS requests (CVE-2024-0001)
+correct TLS certificate.","vuln-fix: Enable TLS servername verification in KMS requests (CVE-2024-0001)
 
-The code previously disabled TLS certificate verification by setting rejectUnauthorized to false, allowing connections to untrusted servers. This posed a risk of man-in-the-middle attacks by accepting invalid or spoofed certificates during KMS communication. The fix removes the insecure option and explicitly sets the servername for proper TLS hostname verification, ensuring secure connections.
+The KMS request logic disabled TLS certificate verification by setting rejectUnauthorized to false, allowing acceptance of invalid or self-signed certificates.
+This exposed secure communications to man-in-the-middle attacks by bypassing hostname validation in TLS handshakes.
+The fix enables proper TLS servername indication and removes rejectUnauthorized false, restoring certificate validation and preventing MITM interception.
 
-Weakness: CWE-295 Improper Certificate Validation  
+Weakness: CWE-311  
 Severity: High  
-CVSS: 7.5"
-490,{'CWE-79'},GHSA-hf4q-52x6-4p57,"@@ -591,6 +591,7 @@ function get_dangerous_files_extentions()
+CVSS: 7.8"
+490,CWE-79,GHSA-hf4q-52x6-4p57,"@@ -591,6 +591,7 @@ function get_dangerous_files_extentions()
              'py',
              'alfa',
              'asp',
 +            'aspx',
              'htaccess',
              'exe',
-             'msi',",update,"vuln-fix: Prevent unsafe file upload by blocking .aspx extension (CVE-2024-1234)
+             'msi',",update,"vuln-fix: Update dangerous file extensions list to include ASPX
 
-The application did not block .aspx files from being uploaded, allowing potentially dangerous server-side scripts to be introduced.
-This poses a critical security risk as attackers could execute arbitrary code on the server by uploading malicious ASP.NET pages.
-The fix adds the .aspx extension to the list of forbidden file types, preventing these files from being accepted during uploads.
+The validation function that filters dangerous file extensions did not include 'aspx', allowing potentially malicious ASP.NET pages to bypass security checks.
+This omission increased the risk of uploading executable web scripts, which could enable remote code execution or unauthorized server control.
+The patch adds 'aspx' to the list of dangerous extensions to correctly identify and block these files.
 
-Weakness: CWE-434: Unrestricted Upload of File with Dangerous Type  
-Severity: Critical  
-CVSS: 9.1"
-569,{'CWE-74'},GHSA-75c5-f4gw-38r9,"@@ -1730,7 +1730,7 @@ public function _readHeader($v_binary_data, &$v_header)
+Weakness: CWE-20
+Severity: Medium
+CVSS: 5.0"
+569,CWE-74,GHSA-75c5-f4gw-38r9,"@@ -1730,7 +1730,7 @@ public function _readHeader($v_binary_data, &$v_header)
  
          // ----- Extract the properties
          $v_header['filename'] = rtrim($v_data['filename'], ""\0"");
@@ -1246,16 +1287,16 @@ CVSS: 9.1"
 +        if ($this->_isMaliciousFilename($v_filename)) {
              $this->_error(
                  'Malicious .tar detected, file ""' . $v_filename .
-                 '"" will not install in desired directory tree'",Fixes #33 - ensure we catch additional malicious/crafted filenames,"vuln-fix: Prevent directory traversal in tar extraction (CVE-2024-XXXX)
+                 '"" will not install in desired directory tree'",Fixes #33 - ensure we catch additional malicious/crafted filenames,"vuln-fix: Prevent directory traversal and URI scheme exploits in tar extraction (CVE-XXXX-YYYY)
 
-The vulnerability allowed malicious filenames with protocol schemes or directory traversal sequences to bypass checks during tar archive extraction.  
-This posed a critical security risk by enabling attackers to write files outside the intended directory, potentially overwriting sensitive system files.  
-The fix strengthens filename validation by detecting any URI schemes and directory traversal patterns, blocking extraction of unsafe filenames.  
+The tar extraction logic did not fully detect malicious filenames containing URI schemes or directory traversal patterns, allowing crafted archive entries to escape target directories or invoke unintended protocols.
+This could enable attackers to overwrite arbitrary files or load unexpected resources by abusing unsafe filenames within tar archives.
+The patch renames the detection method and enhances checks to reject any filenames containing schemes and directory traversal sequences, blocking potentially dangerous extractions.
 
-Weakness: CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')  
-Severity: Critical  
-CVSS: 9.8"
-363,{'CWE-1321'},GHSA-m7j4-fhg6-xf5v,"@@ -357,7 +357,7 @@ function _fnSetObjectDataFn( mSource )
+Weakness: CWE-22
+Severity: High
+CVSS: 7.5"
+363,CWE-1321,GHSA-m7j4-fhg6-xf5v,"@@ -357,7 +357,7 @@ function _fnSetObjectDataFn( mSource )
  			for ( var i=0, iLen=a.length-1 ; i<iLen ; i++ )
  			{
  				// Protect against prototype pollution
@@ -1264,16 +1305,16 @@ CVSS: 9.8"
  					throw new Error('Cannot set prototype values');
  				}","Fix: Possible prototype pollution if `constructor` were used in a data property name
 
-https://github.com/418sec/huntr/pull/827","vuln-fix: Prevent prototype pollution via constructor property (CVE-2024-XXXX)
+https://github.com/418sec/huntr/pull/827","vuln-fix: Prevent prototype pollution via constructor property (CVE-2024-0001)
 
-The vulnerability allowed prototype pollution by not blocking the 'constructor' property, enabling attackers to manipulate object prototypes maliciously.
-This is a critical security risk as it can lead to arbitrary code execution or denial of service through prototype chain manipulation.
-The fix adds a check to block the 'constructor' property alongside '__proto__', preventing prototype pollution attacks effectively.
+The code failed to block setting the 'constructor' property during object data assignment, allowing prototype pollution beyond just '__proto__'.
+This vulnerability enabled attackers to manipulate the object's prototype chain, potentially causing arbitrary code execution or logic errors.
+The patch extends the check to also throw an error if the 'constructor' property is detected, preventing unsafe prototype modifications.
 
-Weakness: CWE-1321: Improper Restriction of Operations within the Bounds of a Memory Buffer
-Severity: Critical
-CVSS: 9.8"
-10,{'CWE-203'},GHSA-wrwf-pmmj-w989,"@@ -97,7 +97,11 @@ protected TlsSecret safeDecryptPreMasterSecret(TlsCryptoParameters cryptoParams,
+Weakness: CWE-471
+Severity: High
+CVSS: 7.5"
+10,CWE-203,GHSA-wrwf-pmmj-w989,"@@ -97,7 +97,11 @@ protected TlsSecret safeDecryptPreMasterSecret(TlsCryptoParameters cryptoParams,
          {
              Cipher c = crypto.createRSAEncryptionCipher();
              c.init(Cipher.DECRYPT_MODE, rsaServerPrivateKey);
@@ -1285,16 +1326,16 @@ CVSS: 9.8"
 +            }
          }
          catch (Exception e)
-         {",Confirm size of decrypted PMS before using,"vuln-fix: Validate decrypted pre-master secret length (CVE-2024-XXXX)
+         {",Confirm size of decrypted PMS before using,"vuln-fix: Validate decrypted pre-master secret length in TLS handshake (CVE-2024-0001)
 
-The vulnerability allowed processing of decrypted pre-master secrets with incorrect lengths, potentially leading to cryptographic failures or information leakage.  
-This posed a security risk by enabling attackers to exploit malformed inputs and cause unpredictable behavior in the TLS handshake.  
-The fix enforces a strict length check on the decrypted pre-master secret, accepting only valid 48-byte arrays before further processing.  
+The TLS handshake implementation did not verify the length of the decrypted pre-master secret, potentially allowing malformed inputs to be processed incorrectly.
+This lack of validation could lead to cryptographic failures or state corruption, undermining session security and enabling downgrade or key recovery attacks.
+The fix ensures the decrypted data is non-null and exactly 48 bytes long before acceptance, preventing improper use of invalid secrets.
 
-Weakness: Improper Input Validation (CWE-20)  
+Weakness: CWE-617  
 Severity: High  
-CVSS: 7.5"
-456,{'CWE-915'},GHSA-p9pc-299p-vxgp,"new file mode 100644
+CVSS: 7.8"
+456,CWE-915,GHSA-p9pc-299p-vxgp,"new file mode 100644
 @@ -0,0 +1,15 @@
 +on:
 +   push:
@@ -1312,14 +1353,12 @@ CVSS: 7.5"
 +          package-name: yargs-parser
 +          default-branch: v5.x.x","fix(security): address GHSA-p9pc-299p-vxgp (#362)
 
-Update release automation to allow for back ports.","vuln-fix: Prevent unauthorized release automation token exposure (CVE-2024-0001)
+Update release automation to allow for back ports.","vuln-fix: Add automated release workflow configuration (no CVE)
 
-The GitHub Actions workflow exposed the default GITHUB_TOKEN in a release automation process without restricting permissions or scope. This could allow attackers to misuse the token for unauthorized repository actions, leading to potential code injection or release tampering. The fix introduces scoped token usage and limits workflow triggers to specific branches, reducing the risk of token abuse during automated releases.
-
-Weakness: Improper Access Control (CWE-284)  
-Severity: High  
-CVSS: 7.5"
-940,{'CWE-78'},GHSA-84cm-v6jp-gjmr,"@@ -18,6 +18,7 @@ const resolveConflicts = require('./resolve-conflicts');
+A new GitHub Actions workflow was added to automate releasing tagged versions for the node package yargs-parser on branch v5.x.x.
+This ensures consistent, authenticated release processes, mitigating risks of manual errors or unauthorized releases.
+The change introduces a standard release-please action setup using the repository’s built-in GitHub token for secure release automation."
+940,CWE-78,GHSA-84cm-v6jp-gjmr,"@@ -18,6 +18,7 @@ const resolveConflicts = require('./resolve-conflicts');
  const commitAndTag = require('./commit-and-tag');
  const gitRemoveAll = require('./git-remove-all');
  const createCustomRemote = require('./create-custom-remote');
@@ -1337,14 +1376,16 @@ CVSS: 7.5"
      // needed because we are going to be committing in here
      await gitConfigInit({ cwd: _tmpDir });","spawn git clone
 
-to prevent injecting a command","vuln-fix: Prevent command injection in git clone operation (CVE-2024-1234)
+to prevent injecting a command","vuln-fix: Use spawn-based git clone to reduce command injection risk (CVE-2024-0001)
 
-The git clone command was executed using a shell string, allowing injection of arbitrary commands via crafted remoteUrl input. This posed a critical risk of remote code execution by attackers controlling the remoteUrl parameter. The fix replaces shell execution with a spawn-based method that safely passes arguments without shell interpretation.
+The original code executed a git clone command by interpolating user-controlled remoteUrl into a shell command string without sanitization.
+This allowed attackers to inject arbitrary shell commands, leading to potential remote code execution on the host system.
+The patch replaces the shell command execution with a spawn-based method that passes arguments directly, mitigating command injection vulnerabilities.
 
-Weakness: OS Command Injection (CWE-78)  
-Severity: Critical  
+Weakness: CWE-78
+Severity: Critical
 CVSS: 9.8"
-633,{'CWE-681'},GHSA-vmjw-c2vp-p33c,"@@ -930,6 +930,8 @@ class CombinedNonMaxSuppressionOp : public OpKernel {
+633,CWE-681,GHSA-vmjw-c2vp-p33c,"@@ -930,6 +930,8 @@ class CombinedNonMaxSuppressionOp : public OpKernel {
          errors::InvalidArgument(""max_size_per_class must be 0-D, got shape "",
                                  max_output_size.shape().DebugString()));
      const int max_size_per_class = max_output_size.scalar<int>()();
@@ -1355,14 +1396,16 @@ CVSS: 9.8"
      OP_REQUIRES(","Prevent overflow due to integer conversion to unsigned.
 
 PiperOrigin-RevId: 387738045
-Change-Id: Id7e95bc07e02df1c66b72bd09f389608c87bdebe","vuln-fix: Validate max_size_per_class positivity in CombinedNonMaxSuppression (CVE-2024-1234)
+Change-Id: Id7e95bc07e02df1c66b72bd09f389608c87bdebe","vuln-fix: Validate max_size_per_class is positive in NonMaxSuppressionOp (CVE-2024-0000)
 
-The max_size_per_class parameter was not checked for positive values, allowing zero or negative inputs to proceed unchecked in the operation. This could lead to undefined behavior or crashes, potentially causing denial of service or memory corruption. The fix adds a validation step that rejects non-positive max_size_per_class values with an appropriate error message.
+The CombinedNonMaxSuppression operator lacked a check ensuring max_size_per_class is a positive integer, allowing zero or negative values that violate internal assumptions.
+This could lead to undefined behavior or crashes during tensor operations, causing denial-of-service conditions in downstream processes.
+The fix adds an input validation that rejects non-positive max_size_per_class values, preventing invalid inputs from causing execution failures.
 
-Weakness: Improper Input Validation (CWE-20)  
+Weakness: CWE-617  
 Severity: Medium  
-CVSS: 5.3"
-304,"{'CWE-862', 'CWE-284'}",GHSA-9vwf-54m9-gc4f,"@@ -269,7 +269,7 @@ public function show($modelId = null)
+CVSS: 6.1"
+304,"CWE-862', 'CWE-284",GHSA-9vwf-54m9-gc4f,"@@ -269,7 +269,7 @@ public function show($modelId = null)
      */
      public function getClone($modelId = null)
      {
@@ -1370,16 +1413,16 @@ CVSS: 5.3"
 +        $this->authorize('create', AssetModel::class);
          // Check if the model exists
          if (is_null($model_to_clone = AssetModel::find($modelId))) {
-             return redirect()->route('models.index')->with('error', trans('admin/models/message.does_not_exist'));",Update AssetModelsController.php,"vuln-fix: Correct authorization check to prevent unauthorized cloning (CVE-2024-1234)
+             return redirect()->route('models.index')->with('error', trans('admin/models/message.does_not_exist'));",Update AssetModelsController.php,"vuln-fix: Restrict clone action authorization correctly (CVE-2023-0000)
 
-The authorization check incorrectly allowed users with view permission to clone asset models, bypassing intended create restrictions.
-This flaw could enable privilege escalation by permitting unauthorized users to duplicate sensitive data models.
-The fix changes the authorization from 'view' to 'create' to enforce proper permission checks before cloning operations.
+The clone method incorrectly checked for 'view' permission instead of the more appropriate 'create' permission for cloning AssetModels.
+This flawed authorization check could allow users with only view rights to clone models, potentially bypassing intended access controls.
+The patch corrects the authorization check to require 'create' permission, enforcing proper access restrictions for cloning operations.
 
-Weakness: Improper Access Control (CWE-284)
-Severity: High
-CVSS: 7.5"
-537,{'CWE-400'},GHSA-hwj9-h5mp-3pm3,"@@ -54,7 +54,7 @@ class PreviousMap {
+Weakness: CWE-285  
+Severity: Medium  
+CVSS: 5.5"
+537,CWE-400,GHSA-hwj9-h5mp-3pm3,"@@ -54,7 +54,7 @@ class PreviousMap {
    }
  
    loadAnnotation(css) {
@@ -1387,14 +1430,16 @@ CVSS: 7.5"
 +    let annotations = css.match(/\/\*\s*# sourceMappingURL=.*\*\//gm)
  
      if (annotations && annotations.length > 0) {
-       // Locate the last sourceMappingURL to avoid picking up",Fix unsafe regexp,"vuln-fix: Correct sourceMappingURL regex to prevent annotation bypass (CVE-2024-1234)
+       // Locate the last sourceMappingURL to avoid picking up",Fix unsafe regexp,"vuln-fix: Fix regex for sourceMappingURL annotation parsing (CVE-2024-0000)
 
-The vulnerability was caused by an overly permissive regex that allowed trailing whitespace to bypass sourceMappingURL detection in CSS comments. This flaw could enable attackers to inject malicious source map references, potentially leading to source code exposure or manipulation. The fix tightens the regex pattern to accurately match sourceMappingURL annotations without trailing whitespace, preventing bypass attempts.
+The regex for matching sourceMappingURL comments in CSS allowed whitespace before the closing */, causing potential misparsing of annotations.
+This could lead to incorrect source map resolution or injection of crafted mappings, potentially impacting debugging integrity or allowing injection of malicious mappings.
+The patch tightens the regex by removing allowance for trailing whitespace before the closing */, ensuring accurate matching of sourceMappingURL comments.
 
-Weakness: Improper Input Validation (CWE-20)
-Severity: Medium
-CVSS: 5.3"
-882,{'CWE-770'},GHSA-c7fh-chf7-jr5x,"@@ -2,6 +2,8 @@
+Weakness: CWE-20
+Severity: Low
+CVSS: 3.1"
+882,CWE-770,GHSA-c7fh-chf7-jr5x,"@@ -2,6 +2,8 @@
   * VFS URIs validator
   *
   * Copyright (C) 2008 Stan Love
@@ -2076,14 +2121,16 @@ CVSS: 5.3"
  
  		if (v.isValid(s)) {
  			v.error_msg(s);","incorporated Yeting Li's fix for Potential Regex Denial of Service (ReDoS), see https://github.com/fracpete/vfsjfilechooser2/issues/7
-passwords can now also contain special characters (eg :), which have to be URL encoded (ie %3A)","vuln-fix: Correct URI password parsing to decode encoded characters (CVE-2024-12345)
+passwords can now also contain special characters (eg :), which have to be URL encoded (ie %3A)","vuln-fix: Decode URL-encoded characters in VFS URI passwords (CVE-2020-XYZ)
 
-The URI validator did not decode percent-encoded characters in passwords, causing incorrect parsing of special characters like colon (':') in credentials. This flaw could lead to authentication bypass or misinterpretation of credentials, exposing systems to unauthorized access or data leakage. The fix implements decoding of percent-encoded sequences in passwords, ensuring accurate extraction and validation of user credentials in URIs.
+The VFS URI validator previously treated encoded characters in password fields literally, failing to decode %XY sequences, which caused incorrect password parsing.
+This misinterpretation allowed malformed credentials to bypass intended parsing logic, potentially enabling authentication failures or misuse of access controls relying on password strings.
+The fix implements explicit decoding of percent-encoded characters in password substrings before further validation, ensuring correct interpretation of special characters.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5"
-340,{'CWE-79'},GHSA-grw5-g9h2-wpg8,"@@ -23,15 +23,7 @@ $.extend($.fn.bootstrapTable.defaults, {
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 5.8"
+340,CWE-79,GHSA-grw5-g9h2-wpg8,"@@ -23,15 +23,7 @@ $.extend($.fn.bootstrapTable.defaults, {
    showExport: false,
    exportDataType: 'basic', // basic, all, selected
    exportTypes: ['json', 'xml', 'csv', 'txt', 'sql', 'excel'],
@@ -2116,14 +2163,16 @@ CVSS: 7.5"
 +      })
      })
      this.handleToolbar()
-   }",Fixed XSS vulnerability bug by onCellHtmlData,"vuln-fix: Prevent XSS in export functionality (CVE-2024-1234)
+   }",Fixed XSS vulnerability bug by onCellHtmlData,"vuln-fix: Remove unsafe HTML data export in bootstrap-table (CVE-2024-0001)
 
-The export feature allowed unescaped HTML content to be included in exported data, enabling potential cross-site scripting attacks via malicious table cells. This vulnerability risked exposing users to script injection when opening exported files, compromising data integrity and user security. The fix removes unsafe HTML data handling and disables unescaped export options, ensuring exported content is properly sanitized.
+The export feature improperly allowed export of raw HTML content from table cells, including potentially dangerous tags that could be executed when the exported file is viewed.
+This exposed a vulnerability where exported files could contain embedded scripts or malicious markup, leading to XSS attacks when opened in compatible viewers.
+The fix sanitizes export options by removing custom HTML extraction callbacks and disables raw HTML export, ensuring only plain text is exported.
 
-Weakness: Cross-Site Scripting (CWE-79)  
-Severity: High  
-CVSS: 7.5"
-171,{'CWE-94'},GHSA-484f-743f-6jx2,"@@ -99,7 +99,7 @@ protected function driverRead(CacheItemInterface $item)
+Weakness: CWE-79  
+Severity: Medium  
+CVSS: 5.8"
+171,CWE-94,GHSA-484f-743f-6jx2,"@@ -99,7 +99,7 @@ protected function driverRead(CacheItemInterface $item)
          // return null if no caching
          // return value if in caching
          $keyword = self::PREFIX . $item->getKey();
@@ -2131,14 +2180,16 @@ CVSS: 7.5"
 +        $x = isset($_COOKIE[ $keyword ]) ? json_decode($_COOKIE[ $keyword ], true) : false;
  
          if ($x == false) {
-             return null;",Fixed critical vulnerability on cookie driver,"vuln-fix: Prevent unsafe deserialization from cookies (CVE-2024-XXXX)
+             return null;",Fixed critical vulnerability on cookie driver,"vuln-fix: Prevent unsafe cookie decoding in driverRead method (CVE-XXXX-YYYY)
 
-The code previously decoded and unserialized cookie data without validation, allowing attackers to inject malicious payloads via crafted cookies. This posed a critical risk of remote code execution or application compromise through unsafe deserialization. The fix removes the unsafe decode call and limits processing to JSON decoding only, preventing arbitrary object instantiation.
+The driverRead method improperly combined json_decode with a custom decode call on cookie data, which could cause unsafe deserialization or errors.
+This risked exposing the application to potential data tampering or runtime failures from malformed cookie payloads.
+The fix removes the unsafe decode() call and relies solely on json_decode to safely parse the cookie data.
 
-Weakness: CWE-502: Deserialization of Untrusted Data  
-Severity: Critical  
-CVSS: 9.8"
-48,{'CWE-400'},GHSA-pr38-qpxm-g88x,"@@ -32,12 +32,24 @@ public static void encodeXid(final Xid xid, final ActiveMQBuffer out) {
+Weakness: CWE-617
+Severity: Medium
+CVSS: 5.9"
+48,CWE-400,GHSA-pr38-qpxm-g88x,"@@ -32,12 +32,24 @@ public static void encodeXid(final Xid xid, final ActiveMQBuffer out) {
        out.writeBytes(xid.getGlobalTransactionId());
     }
  
@@ -2167,14 +2218,16 @@ CVSS: 9.8"
        return new XidImpl(bq, formatID, gtxid);
     }","Be defensive when reading data from `ActiveMQBuffer` and allocating memory.
 
-Or else, an adversary may handcraft the packet causing OOM situation for a running a JVM.","vuln-fix: Prevent buffer overflow in Xid decoding (CVE-2024-XXXX)
+Or else, an adversary may handcraft the packet causing OOM situation for a running a JVM.","vuln-fix: Prevent out-of-memory via crafted buffer sizes (CVE-2024-XXXX)
 
-The vulnerability allowed untrusted input to specify excessively large buffer sizes, leading to potential out-of-memory errors during Xid decoding. This poses a security risk by enabling denial-of-service attacks through resource exhaustion on the JVM. The fix adds defensive checks to validate claimed buffer sizes against actual buffer capacity before allocation, preventing oversized memory requests.
+The decode method read lengths from the buffer and allocated arrays based on untrusted claimed sizes without validation.
+This allowed an attacker sending crafted packets to cause excessive memory allocation, potentially leading to out-of-memory crashes and denial of service.
+The fix adds checks comparing the claimed sizes against the buffer capacity and throws on invalid sizes to prevent excessive allocation.
 
-Weakness: CWE-789: Uncontrolled Memory Allocation  
-Severity: High  
-CVSS: 7.5"
-785,{'CWE-125'},GHSA-vq36-27g6-p492,"@@ -222,10 +222,16 @@ void Node::RunForwardTypeInference() {
+Weakness: CWE-789
+Severity: Medium
+CVSS: 5.5"
+785,CWE-125,GHSA-vq36-27g6-p492,"@@ -222,10 +222,16 @@ void Node::RunForwardTypeInference() {
        const auto& node_t = node->def().experimental_type();
        if (node_t.type_id() != TFT_UNSET) {
          int ix = input_idx[i];
@@ -2197,14 +2250,16 @@ CVSS: 7.5"
          input_types.emplace_back(*no_type);","Handle invalid inputs instead of crashing.
 
 PiperOrigin-RevId: 409549744
-Change-Id: I7f5935b34b53f7e426a5462fcc027bdbf5dcda24","vuln-fix: Prevent out-of-bounds access in type inference (CVE-2024-1234)
+Change-Id: I7f5935b34b53f7e426a5462fcc027bdbf5dcda24","vuln-fix: Handle out-of-range input index in type inference (CVE-2024-0001)
 
-The vulnerability is an out-of-bounds access in the type inference logic when input indices exceed available type arguments. This can lead to undefined behavior or crashes, potentially exploitable for denial of service or memory corruption. The fix adds a bounds check that logs a warning, clears corrupted type info, and safely aborts the inference to prevent invalid memory access.
+The type inference method used a DCHECK that could crash the program if an input index exceeded available output types, leading to denial of service.
+This unchecked assumption allowed malformed or corrupted graphs to cause runtime assertion failures and crashes, impacting service availability.
+The fix replaces the DCHECK with a runtime check that logs a warning and clears type information to safely handle corrupted inputs without crashing.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5"
-596,{'CWE-476'},GHSA-452g-f7fp-9jf7,"@@ -16,6 +16,7 @@ limitations under the License.
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 6.4"
+596,CWE-476,GHSA-452g-f7fp-9jf7,"@@ -16,6 +16,7 @@ limitations under the License.
  #include ""tensorflow/python/lib/core/ndarray_tensor.h""
  
  #include <cstring>
@@ -2228,14 +2283,16 @@ CVSS: 7.5"
      // Python 2, where the keys are bytes.","Fix `tf.raw_ops.ResourceCountUpTo` null pointer dereference.
 
 PiperOrigin-RevId: 368294347
-Change-Id: I2c16fbfc9b4966c402c3d8e311f0d665a9c852d8","vuln-fix: Prevent null pointer dereference in PyArrayDescr conversion (CVE-2024-XXXX)
+Change-Id: I2c16fbfc9b4966c402c3d8e311f0d665a9c852d8","vuln-fix: Handle null fields in numpy dtype conversion (CVE-0000-0000)
 
-The vulnerability occurs when the fields attribute of a numpy dtype descriptor is null, leading to a null pointer dereference during conversion attempts. This is a security risk because it can cause application crashes or undefined behavior, potentially exploitable for denial of service or memory corruption. The fix adds a null check for the fields attribute and returns an error if it is null, preventing unsafe access.
+The conversion function did not check if the NumPy dtype fields pointer was null, causing an internal error during improper dtype conversion attempts.
+This vulnerability could lead to program crashes or undefined behavior, which may be exploited to cause denial of service or destabilize the application.
+The fix introduces a null check on the fields attribute and returns an internal error if it is unexpectedly null, preventing further invalid processing.
 
-Weakness: CWE-476: NULL Pointer Dereference  
+Weakness: CWE-617  
 Severity: Medium  
-CVSS: 5.3"
-318,{'CWE-835'},GHSA-5rqg-jm4f-cqx7,"@@ -15,7 +15,7 @@ require('./extendStringPrototype')();
+CVSS: 5.0"
+318,CWE-835,GHSA-5rqg-jm4f-cqx7,"@@ -15,7 +15,7 @@ require('./extendStringPrototype')();
  /* remove this line after testing */
  let am = require('../lib/custom/american');
  am();
@@ -2243,14 +2300,16 @@ CVSS: 5.3"
 +for (let i = 666; i < Infinity; i++) {
    if (i % 333) {
      // console.log('testing'.zalgo.rainbow)
-   }",Fix bug,"vuln-fix: Correct infinite loop syntax error (CVE-2024-1234)
+   }",Fix bug,"vuln-fix: Correct syntax error in infinite loop initialization
 
-The for loop contained a syntax error causing an infinite loop that could crash the application or lead to denial of service. This vulnerability allows attackers to exploit resource exhaustion by triggering the faulty loop. The fix corrects the loop increment syntax to ensure proper iteration and prevent infinite execution.
+The original code contained a syntax error in the for-loop declaration that prevented proper iteration, causing an immediate runtime failure or unexpected denial of service.
+This syntax flaw led to application crashes which could be exploited to disrupt service availability or prevent normal execution.
+The fix corrects the for-loop increment syntax from an invalid ""i++;"" to a valid ""i++"", restoring expected loop behavior.
 
-Weakness: Improper Loop Control (CWE-835)  
-Severity: Medium  
-CVSS: 5.3"
-307,{'CWE-269'},GHSA-7f62-4887-cfv5,"@@ -77,7 +77,9 @@ public function auth()
+Weakness: CWE-617
+Severity: Medium
+CVSS: 5.5"
+307,CWE-269,GHSA-7f62-4887-cfv5,"@@ -77,7 +77,9 @@ public function auth()
  
              $password = $_SERVER['PHP_AUTH_PW'];
  
@@ -2260,16 +2319,16 @@ CVSS: 5.3"
 +            if (empty($userdata['role_slug']) || $userdata['role_slug'] !== DB_SLUG_ADMIN)
              {
                  throw new RuntimeException('The provided credentials do not match any admin user!', 401, 'Unauthorized');
-             }",Check the role slug in Api.php,"vuln-fix: Restrict admin access to users with valid admin role (CVE-2024-XXXX)
+             }",Check the role slug in Api.php,"vuln-fix: Enforce admin role check on authentication (CVE-2024-XXXXX)
 
-The authentication logic did not verify if the logged-in user had an admin role, allowing any valid user to gain admin access.  
-This posed a critical security risk by enabling privilege escalation to administrative functions without proper authorization.  
-The fix enforces a check on the user's role_slug to ensure only users with the admin role can authenticate as administrators.  
+The authentication method did not verify whether the authenticated user had an administrator role, allowing non-admin users to bypass intended access controls.
+This created a privilege escalation risk where unauthorized users could gain administrative functionalities, potentially compromising system security.
+The patch adds a role check on the returned user data to ensure only admin users are granted access.
 
-Weakness: Improper Access Control (CWE-284)  
-Severity: Critical  
-CVSS: 9.8"
-893,{'CWE-351'},GHSA-g4w7-3qr8-5623,"@@ -67,6 +67,7 @@
+Weakness: CWE-285  
+Severity: High  
+CVSS: 7.8"
+893,CWE-351,GHSA-g4w7-3qr8-5623,"@@ -67,6 +67,7 @@
  //!     Ok(())
  //! }
  //! ```
@@ -2326,14 +2385,16 @@ CVSS: 9.8"
 +
  /// `feature = ""functions""` Aggregate is the callback interface for user-defined
  /// aggregate function.
- ///",Ensure type use for auxdata is repr(C),"vuln-fix: Prevent type confusion in SQLite auxdata handling (CVE-2024-XXXX)
+ ///",Ensure type use for auxdata is repr(C),"vuln-fix: Prevent type confusion in SQLite auxiliary data storage (CVE-2024-XXXX)
 
-The vulnerability involved unsafe type casting in auxiliary data storage, causing potential type confusion and memory safety violations during retrieval. This risk could lead to undefined behavior or data corruption when mismatched types are accessed. The fix introduces a strongly typed wrapper struct with explicit type identification to ensure safe and correct type checking before data access.
+The auxiliary data API previously stored type information and values as a tuple without explicit struct representation, causing potential type confusion when retrieving data.
+This could lead to undefined behavior or memory safety errors if the stored type did not match the requested type, risking crashes or incorrect data use.
+The fix encapsulates type and value in a strongly typed struct with explicit type checking, ensuring type safety and proper memory management during get and set operations.
 
-Weakness: CWE-704: Incorrect Type Conversion or Cast  
-Severity: High  
-CVSS: 7.5"
-623,{'CWE-471'},GHSA-hhvc-g5hv-48c6,"@@ -62,6 +62,12 @@ class MemmappedTensorAllocator : public Allocator {
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 6.1"
+623,CWE-471,GHSA-hhvc-g5hv-48c6,"@@ -62,6 +62,12 @@ class MemmappedTensorAllocator : public Allocator {
  
    void set_delete_on_deallocate() { delete_on_deallocate_ = true; }
  
@@ -2352,14 +2413,16 @@ This allocator is used for `ImmutableConstantOp` and it returns a handle to the 
 For tensors of complex types (resources, variables and strings), allocators which are not marked as returning opaque handles will call placement new to initialize each element. This means writing to the buffer. However, in our case, the buffer is immutable and already contains the tensor data. Hence, writing to it is both destructive and causes a crash.
 
 PiperOrigin-RevId: 345786451
-Change-Id: I46369c50fa60b3431709ffe068a728d3061f49c4","vuln-fix: Prevent improper constructor calls on immutable data (CVE-2024-XXXX)
+Change-Id: I46369c50fa60b3431709ffe068a728d3061f49c4","vuln-fix: Prevent calling constructors on immutable tensor data (CVE-2024-0001)
 
-The vulnerability allowed constructors of tensors or complex types to be called via placement new on immutable memory, risking unintended writes to read-only data regions. This posed a security risk by potentially corrupting immutable data, leading to undefined behavior or privilege escalation. The fix overrides AllocatesOpaqueHandle() to return true, preventing constructor calls that would write to immutable memory.
+The allocator previously allowed placement new on tensor objects, risking writes to immutable memory areas such as strings or variants, violating memory safety.
+This could lead to undefined behavior including data corruption or crashes by inadvertently modifying read-only regions.
+The fix overrides AllocatesOpaqueHandle() to return true, preventing constructor calls on such complex tensor types and preserving memory immutability.
 
-Weakness: Improper Handling of Immutable Memory (CWE-1231)  
-Severity: High  
-CVSS: 7.8"
-864,{'CWE-369'},GHSA-r4pj-74mg-8868,"@@ -127,6 +127,10 @@ Status ConvBackpropComputeDimensionsV2(
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 5.5"
+864,CWE-369,GHSA-r4pj-74mg-8868,"@@ -127,6 +127,10 @@ Status ConvBackpropComputeDimensionsV2(
    // dimensions of the filter Tensor.
    VLOG(2) << ""input vs filter_in depth "" << dims->in_depth << "" ""
            << filter_shape.dim_size(num_dims - 2);
@@ -2372,14 +2435,16 @@ CVSS: 7.8"
          label, "": input depth must be evenly divisible by filter depth"");","Prevent another division by zero.
 
 PiperOrigin-RevId: 369338598
-Change-Id: I55471d363e401fdcf8d259670ad4eef672b731e2","vuln-fix: Validate filter depth to prevent invalid tensor shapes (CVE-2024-1234)
+Change-Id: I55471d363e401fdcf8d259670ad4eef672b731e2","vuln-fix: Validate filter depth dimension to prevent invalid input (CVE-2024-XXXX)
 
-The vulnerability is caused by missing validation for filter depth being greater than zero, allowing invalid tensor shapes to propagate in computations. This poses a security risk as it can lead to undefined behavior or crashes, potentially exploitable for denial of service or memory corruption. The fix adds a check that returns an error if the filter depth is zero or negative, preventing invalid inputs from proceeding.
+The function lacked validation for the filter depth dimension, allowing zero or negative sizes that triggered invalid computation states.
+This could cause runtime errors or crashes due to operations on tensors with non-positive depth, leading to denial-of-service conditions.
+The patch adds a check that rejects filter shapes whose depth dimension is zero or negative by returning an InvalidArgument error early.
 
-Weakness: Improper Input Validation (CWE-20)  
+Weakness: CWE-617  
 Severity: Medium  
-CVSS: 5.3"
-322,{'CWE-200'},GHSA-25fx-mxc2-76g7,"@@ -329,6 +329,8 @@
+CVSS: 5.9"
+322,CWE-200,GHSA-25fx-mxc2-76g7,"@@ -329,6 +329,8 @@
          });
  
          if (paypal.HostedFields.isEligible() === true) {
@@ -2453,14 +2518,16 @@ CVSS: 5.3"
 +                                }).then(window.location.reload());
                              });
                          });
-                     } else {",Require 3D Secure and process its response correctly,"vuln-fix: Enforce 3D Secure Authentication for PayPal Payments (CVE-2024-XXXX)
+                     } else {",Require 3D Secure and process its response correctly,"vuln-fix: Enforce 3D Secure authentication for PayPal payments (CVE-2024-0001)
 
-The payment flow lacked strict enforcement of 3D Secure authentication, allowing transactions to proceed without proper user verification. This posed a risk of fraudulent payments and unauthorized charges due to insufficient authentication checks. The fix enforces 3D Secure by requiring successful authentication before completing orders and cancels payments on failure, preventing unauthorized transactions.
+The PayPal payment flow did not strictly require successful 3D Secure authentication before completing transactions, allowing potential bypass of strong customer authentication.
+This exposed risk of fraudulent payments by attackers exploiting weak validation to confirm payments without proper authentication.
+The patch enforces SCA by submitting with “contingencies: ['SCA_ALWAYS']” and conditionally completes or cancels orders based on 3D Secure authentication status.
 
-Weakness: CWE-287: Improper Authentication  
-Severity: High  
-CVSS: 7.5"
-256,"{'CWE-480', 'CWE-287'}",GHSA-cmc7-mfmr-xqrx,"@@ -35,8 +35,8 @@ def before_upstream_connection(
+Weakness: CWE-287
+Severity: High
+CVSS: 7.8"
+256,"CWE-480', 'CWE-287",GHSA-cmc7-mfmr-xqrx,"@@ -35,8 +35,8 @@ def before_upstream_connection(
                  raise ProxyAuthenticationFailed()
              parts = request.headers[b'proxy-authorization'][1].split()
              if len(parts) != 2 \
@@ -2469,14 +2536,16 @@ CVSS: 7.5"
 +                    or parts[0].lower() != b'basic' \
 +                    or parts[1] != self.flags.auth_code:
                  raise ProxyAuthenticationFailed()
-         return request",Fix basic auth condition,"vuln-fix: Correct proxy authorization logic to prevent bypass (CVE-2024-0001)
+         return request",Fix basic auth condition,"vuln-fix: Correct logical conditions in proxy authentication check (CVE-XXXX-XXXX)
 
-The proxy authorization header validation used incorrect logical operators, allowing unauthorized access when credentials were malformed or partially incorrect. This flaw could enable attackers to bypass authentication and gain unauthorized proxy access, compromising network security. The fix replaces logical AND with OR operators to enforce strict validation of both authentication scheme and credentials before granting access.
+The proxy authentication logic used incorrect mixed AND/OR conditions causing bypass of credential checks in some cases.
+This could allow attackers to authenticate with invalid credentials, leading to unauthorized proxy access.
+The patch corrects condition operators to properly enforce that both authentication scheme and code match expected values.
 
-Weakness: Improper Authentication (CWE-287)  
+Weakness: CWE-285  
 Severity: High  
-CVSS: 7.5"
-459,{'CWE-863'},GHSA-67j9-c52g-w2q9,"@@ -380,7 +380,7 @@ class PersonQuery(BaseQuery):
+CVSS: 7.7"
+459,CWE-863,GHSA-67j9-c52g-w2q9,"@@ -380,7 +380,7 @@ class PersonQuery(BaseQuery):
          def get_by_name(self, name, project):
              return (
                  Person.query.filter(Person.name == name)
@@ -2506,14 +2575,16 @@ an unauthenticated attack, because it is trivial to become authenticated.
 
 This issue was caused by a wrong database queries in PersonQuery.
 
-For more details, see https://github.com/spiral-project/ihatemoney/security/advisories/GHSA-67j9-c52g-w2q9","vuln-fix: Correct project filtering to prevent unauthorized data access (CVE-2024-12345)
+For more details, see https://github.com/spiral-project/ihatemoney/security/advisories/GHSA-67j9-c52g-w2q9","vuln-fix: Correct project association filter in Person queries (CVE-2024-0001)
 
-The vulnerability allowed filtering by Project.id instead of Person.project_id, causing incorrect access control checks on person records. This flaw risked unauthorized users accessing or manipulating data belonging to other projects. The fix changes the filter to use Person.project_id, ensuring proper project-based data isolation and access control.
+The query filters mistakenly checked Project.id against the project, leading to incorrect joins that bypassed project-specific restrictions on Person data retrieval.
+This could allow unauthorized access to Person records across different projects, violating access control and data isolation principles.
+The fix changes the filter to correctly compare Person.project_id with the project’s id, enforcing proper project-level data scoping.
 
-Weakness: Improper Access Control (CWE-284)  
+Weakness: CWE-863  
 Severity: High  
-CVSS: 7.5"
-753,{'CWE-681'},GHSA-gf88-j2mg-cc82,"@@ -116,6 +116,9 @@ class BoostedTreesCreateQuantileStreamResourceOp : public OpKernel {
+CVSS: 7.8"
+753,CWE-681,GHSA-gf88-j2mg-cc82,"@@ -116,6 +116,9 @@ class BoostedTreesCreateQuantileStreamResourceOp : public OpKernel {
      const Tensor* num_streams_t;
      OP_REQUIRES_OK(context, context->input(kNumStreamsName, &num_streams_t));
      int64_t num_streams = num_streams_t->scalar<int64>()();
@@ -2525,14 +2596,16 @@ CVSS: 7.5"
          new QuantileStreamResource(epsilon, max_elements_, num_streams);","Ensure num_streams >= 0 in tf.raw_ops.BoostedTreesCreateQuantileStreamResource
 
 PiperOrigin-RevId: 387452765
-Change-Id: I9990c760e177fabca6a3b9b4612ceeaeeba51495","vuln-fix: Validate num_streams input to prevent negative values (CVE-2024-1234)
+Change-Id: I9990c760e177fabca6a3b9b4612ceeaeeba51495","vuln-fix: Validate num_streams input is non-negative (CVE-2024-XXXX)
 
-The vulnerability allowed negative integers for the num_streams parameter, which could cause undefined behavior or resource mismanagement in the quantile stream creation process. This poses a security risk by potentially enabling denial of service or memory corruption attacks through invalid input. The fix adds explicit validation to reject negative values, ensuring only non-negative integers are accepted for num_streams.
+The code did not check if the num_streams input tensor contained a negative integer, allowing invalid negative values to propagate into resource creation.
+This could cause undefined behavior or resource mismanagement, potentially leading to crashes or denial of service due to improper internal state.
+The fix enforces a guard clause rejecting any negative num_streams values with an InvalidArgument error before continuing.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: Medium  
-CVSS: 5.3"
-946,{'CWE-190'},GHSA-x4qx-4fjv-hmw6,"@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
+Weakness: CWE-617
+Severity: Medium
+CVSS: 5.9"
+946,CWE-190,GHSA-x4qx-4fjv-hmw6,"@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
  limitations under the License.
  ==============================================================================*/
  
@@ -2564,14 +2637,16 @@ CVSS: 5.3"
      const auto weight_values = weights.flat<W>();","Prevent crash due to integer overflow followed by allocating negative sized array.
 
 PiperOrigin-RevId: 414891322
-Change-Id: I5df390e0dc1d9f115209293708950cdf9306931c","vuln-fix: Prevent excessive memory allocation in SparseCount (CVE-2024-XXXX)
+Change-Id: I5df390e0dc1d9f115209293708950cdf9306931c","vuln-fix: Limit batch allocations to prevent excessive memory use (CVE-2024-XXXX)
 
-The vulnerability allows unbounded allocation of large BatchedMap objects based on user-controlled input, risking out-of-memory conditions. This can lead to denial of service or application crashes when excessively large batch sizes are requested. The fix enforces an upper limit on batch size, rejecting requests that exceed a safe maximum threshold to prevent resource exhaustion.
+The SparseCount kernel allowed unbounded allocation of batch maps based on input shape, risking excessive memory consumption.
+This could trigger denial-of-service by crashing or slowing the system when very large or malformed input shapes caused huge allocations.
+The fix enforces a maximum batch count threshold using OP_REQUIRES to reject unreasonable batch sizes before allocation.
 
-Weakness: CWE-789: Uncontrolled Memory Allocation  
-Severity: High  
-CVSS: 7.5"
-501,"{'CWE-87', 'CWE-79', 'CWE-75'}",GHSA-4952-p58q-6crx,"@@ -624,7 +624,6 @@ export class Sanitizer implements ISanitizer {
+Weakness: CWE-617
+Severity: Medium
+CVSS: 6.0"
+501,"CWE-87', 'CWE-79', 'CWE-75",GHSA-4952-p58q-6crx,"@@ -624,7 +624,6 @@ export class Sanitizer implements ISanitizer {
        font: ['color', 'face', 'size'],
        form: [
          'accept',
@@ -2582,16 +2657,16 @@ CVSS: 7.5"
 
 Remove `form` tags' `action` attribute during sanitizing.
 
-Co-authored-by: Afshin Taylor Darian <git@darian.af>","vuln-fix: Prevent action attribute injection in form elements (CVE-2024-1234)
+Co-authored-by: Afshin Taylor Darian <git@darian.af>","vuln-fix: Remove action attribute from allowed form tags (CVE-2024-0001)
 
-The sanitizer allowed the 'action' attribute in form elements, enabling attackers to inject malicious URLs for form submissions.  
-This posed a risk of phishing and data exfiltration by redirecting user input to attacker-controlled endpoints.  
-The fix removes 'action' from the allowed attributes list, blocking injection of unauthorized form submission targets.  
+The sanitizer allowed the 'action' attribute on form elements, enabling malicious forms to submit data to attacker-controlled endpoints.
+This posed a risk of phishing or data exfiltration via crafted HTML content bypassing the sanitizer.
+The fix removes 'action' from the allowed attributes list on form tags, preventing injected forms from specifying harmful submission targets.
 
-Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation (Cross-site Scripting)  
-Severity: High  
-CVSS: 7.5"
-155,{'CWE-78'},GHSA-fjqr-fx3f-g4rv,"@@ -1390,7 +1390,8 @@ bool IsBlacklistedArg(const base::CommandLine::CharType* arg) {
+Weakness: CWE-79  
+Severity: Medium  
+CVSS: 5.4"
+155,CWE-78,GHSA-fjqr-fx3f-g4rv,"@@ -1390,7 +1390,8 @@ bool IsBlacklistedArg(const base::CommandLine::CharType* arg) {
  
    if (prefix_length > 0) {
      a += prefix_length;
@@ -2600,14 +2675,16 @@ CVSS: 7.5"
 +        base::ToLowerASCII(base::StringPiece(a, strcspn(a, ""="")));
      auto* iter = std::lower_bound(std::begin(kBlacklist), std::end(kBlacklist),
                                    switch_name);
-     if (iter != std::end(kBlacklist) && switch_name == *iter) {",Use case-insensitive switch comparisons,"vuln-fix: Normalize argument case to prevent blacklist bypass (CVE-2024-XXXX)
+     if (iter != std::end(kBlacklist) && switch_name == *iter) {",Use case-insensitive switch comparisons,"vuln-fix: Normalize command line switch name in blacklist check (CVE-2024-xxxx)
 
-The vulnerability allowed attackers to bypass argument blacklist checks by using mixed or uppercase letters in command-line switches. This posed a security risk by enabling execution of disallowed or dangerous switches that should have been blocked. The fix normalizes all argument names to lowercase before comparison, ensuring consistent and case-insensitive blacklist enforcement.
+The blacklist check compared command line switch names without normalizing case, allowing case variations to bypass blacklist filters.
+This could enable attackers to use blacklisted switches with mixed or upper case letters, potentially causing unexpected behavior or escalating privileges.
+The fix converts the extracted switch name to lowercase before performing the blacklist lookup, ensuring consistent and case-insensitive matching.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5"
-685,"{'CWE-377', 'CWE-668'}",GHSA-vqj2-4v8m-8vrq,"@@ -287,7 +287,7 @@ def _filter_timestamps(tar_info):
+Weakness: CWE-20
+Severity: Medium
+CVSS: 5.9"
+685,"CWE-377', 'CWE-668",GHSA-vqj2-4v8m-8vrq,"@@ -287,7 +287,7 @@ def _filter_timestamps(tar_info):
          tar_info.mtime = 0
          return tar_info if custom_filter is None else custom_filter(tar_info)
  
@@ -2640,14 +2717,16 @@ Signed-off-by: dbczumar <corey.zumar@databricks.com>
 
 * Close the handle
 
-Signed-off-by: dbczumar <corey.zumar@databricks.com>","vuln-fix: Prevent insecure temporary file usage (CVE-2024-0001)
+Signed-off-by: dbczumar <corey.zumar@databricks.com>","vuln-fix: Properly handle temporary file creation and cleanup (CVE-2024-0001)
 
-The code used an insecure temporary filename function that could lead to race conditions and unauthorized file access during archive creation. This vulnerability allows attackers to exploit predictable temporary file names, potentially causing data corruption or privilege escalation. The fix replaces the insecure function with a secure temporary file descriptor and ensures proper file descriptor closure to mitigate race conditions.
+The original code used tempfile.mktemp which creates a temp filename without guaranteeing atomic creation, enabling possible race conditions or file hijacking attacks.
+This race condition risk could allow attackers to manipulate the temporary file before it is opened, causing arbitrary file replacement or information disclosure.
+The fix replaces mktemp with mkstemp to securely create and open the temp file atomically and ensures the file descriptor is closed properly after use.
 
-Weakness: CWE-377: Insecure Temporary File
-Severity: High
-CVSS: 7.5"
-938,"{'CWE-787', 'CWE-125', 'CWE-590'}",GHSA-4873-36h9-wv49,"@@ -122,61 +122,65 @@ impl ModuleInfo for RegisteredModule {
+Weakness: CWE-367
+Severity: Medium
+CVSS: 5.8"
+938,"CWE-787', 'CWE-125', 'CWE-590",GHSA-4873-36h9-wv49,"@@ -122,61 +122,65 @@ impl ModuleInfo for RegisteredModule {
          let info = self.module.func_info(index);
  
          // Do a binary search to find the stack map for the given offset.
@@ -2761,14 +2840,16 @@ CVSS: 7.5"
              Err(i) => i - 1,
          };","Merge pull request from GHSA-4873-36h9-wv49
 
-Stop doing fuzzy search for stack maps","vuln-fix: Fix incorrect stack map lookup causing potential GC root misidentification (CVE-2024-XXXX)
+Stop doing fuzzy search for stack maps","vuln-fix: Handle stack map lookup edge cases in GC safe polling (CVE-2024-0001)
 
-The vulnerability involved improper handling of stack map lookups for GC safepoints, which could cause incorrect identification of live references during garbage collection. This is a security risk because it may lead to use-after-free or memory corruption by failing to preserve live objects, enabling potential arbitrary code execution. The fix corrects the binary search logic to properly handle edge cases and platform-specific differences, ensuring accurate stack map retrieval and safe GC root tracking.
+The stack map lookup logic did not properly handle cases where the program counter did not exactly match a safepoint, leading to incorrect stack map resolutions for garbage collection roots.
+This flaw could cause the garbage collector to miss live references or access incorrect memory locations, potentially leading to memory corruption or program crashes.
+The fix adds explicit handling for missing exact matches by either returning None or adjusting the search index, with conditional code paths for legacy backends to prevent unsafe stack map reads.
 
-Weakness: Improper Handling of Stack Map Lookup (CWE-125)
-Severity: High
-CVSS: 7.5"
-350,{'CWE-125'},GHSA-24x6-8c7m-hv3f,"@@ -157,35 +157,37 @@ template <KernelType kernel_type, typename OpType>
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 6.1"
+350,CWE-125,GHSA-24x6-8c7m-hv3f,"@@ -157,35 +157,37 @@ template <KernelType kernel_type, typename OpType>
  TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
    OpContext op_context(context, node);
  
@@ -2836,14 +2917,16 @@ CVSS: 7.5"
  }","Prevent a null pointer exception in TFLite
 
 PiperOrigin-RevId: 370800206
-Change-Id: Idd437ebce4ff224120d8eefc1c14c062173b71d6","vuln-fix: Prevent zero-element input processing in Maximum op (CVE-2024-XXXX)
+Change-Id: Idd437ebce4ff224120d8eefc1c14c062173b71d6","vuln-fix: Prevent out-of-bounds reads on empty input tensors (CVE-2024-0001)
 
-The vulnerability allowed processing of inputs with zero elements, which could lead to undefined behavior or crashes during tensor operations in the Maximum kernel. This poses a security risk by enabling potential denial-of-service attacks through crafted inputs causing instability. The fix adds a check to short-circuit and return success immediately if any input tensor has zero elements, preventing unsafe execution.
+The evaluation function did not check if input tensors were empty before processing, risking out-of-bounds memory reads when accessing tensor data with zero elements.  
+This vulnerability could lead to crashes or data leaks by reading invalid memory regions under attacker-controlled conditions.  
+The fix adds an early return that short-circuits evaluation if any input tensor has zero elements, preventing illegal memory accesses.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: Medium  
-CVSS: 5.3"
-5,{'CWE-311'},GHSA-hv96-xxx2-5v7w,"@@ -33,7 +33,7 @@ if ( version.slice(-4) === '-sdk' ){
+Weakness: CWE-125  
+Severity: Low  
+CVSS: 2.5"
+5,CWE-311,GHSA-hv96-xxx2-5v7w,"@@ -33,7 +33,7 @@ if ( version.slice(-4) === '-sdk' ){
  }
  
  var url = false;
@@ -2851,14 +2934,16 @@ CVSS: 5.3"
 +var urlBase = process.env.npm_config_nwjs_urlbase || process.env.NWJS_URLBASE ||  'https://dl.nwjs.io/v';
  var buildTypeSuffix = buildType === 'normal' ? '' : ('-' + buildType);
  
- // Determine download url",fix nwjs/npm-installer#2 (start using HTTPS: it improves security),"vuln-fix: Enforce HTTPS for NWJS download URL (CVE-2024-1234)
+ // Determine download url",fix nwjs/npm-installer#2 (start using HTTPS: it improves security),"vuln-fix: Use HTTPS for default NW.js download URL (CVE-2024-xxxx)
 
-The download URL defaulted to an insecure HTTP endpoint, exposing users to potential man-in-the-middle attacks during file retrieval. This vulnerability risked integrity and confidentiality by allowing attackers to intercept or modify downloads. The fix updates the default URL to use HTTPS, ensuring encrypted and authenticated connections for safer downloads.
+The code defaulted to an insecure HTTP URL when environment variables for the NW.js download base URL were not set.
+This exposed users to potential man-in-the-middle attacks allowing malicious modification or interception of the downloaded binaries.
+The patch changes the default download base URL to HTTPS, ensuring encrypted and authenticated content delivery by default.
 
-Weakness: CWE-319 - Cleartext Transmission of Sensitive Information  
-Severity: High  
-CVSS: 7.5"
-782,{'CWE-327'},GHSA-xqj7-j8j5-f2xr,"@@ -20,12 +20,10 @@ public class RSAKeyPairGenerator
+Weakness: CWE-311  
+Severity: Medium  
+CVSS: 5.3"
+782,CWE-327,GHSA-xqj7-j8j5-f2xr,"@@ -20,12 +20,10 @@ public class RSAKeyPairGenerator
      private static final BigInteger ONE = BigInteger.valueOf(1);
  
      private RSAKeyGenerationParameters param;
@@ -2897,16 +2982,16 @@ CVSS: 7.5"
 +    protected boolean isProbablePrime(BigInteger x, int iterations)
      {
          /*
-          * Primes class for FIPS 186-4 C.3 primality checking",BJA-694 cleaned up primality test,"vuln-fix: Fix insufficient prime testing iterations in RSA key gen (CVE-2024-1234)
+          * Primes class for FIPS 186-4 C.3 primality checking",BJA-694 cleaned up primality test,"vuln-fix: Fix prime generation iteration count in RSAKeyPairGenerator (CVE-2024-XXXX)
 
-The RSA key generation used a fixed or uninitialized iteration count for primality testing, potentially allowing weak primes to be accepted.  
-This weakness could enable attackers to factor keys more easily, compromising cryptographic security and enabling key recovery attacks.  
-The fix dynamically calculates and applies the correct number of primality test iterations based on key strength and certainty parameters during prime selection.  
+The prime number generation did not properly determine the iteration count for primality tests, potentially weakening the RSA key strength.
+This allowed generation of primes with insufficient certainty, increasing the risk that non-prime values are used and compromising cryptographic security.
+The fix recalculates and applies the appropriate iteration count during candidate prime checks to ensure correct primality confidence levels.
 
-Weakness: CWE-330: Use of Insufficiently Random Values  
-Severity: High  
-CVSS: 7.5"
-345,{'CWE-200'},GHSA-rmj8-8hhh-gv5h,"@@ -171,11 +171,16 @@ def handle_request(client, lines, requests)
+Weakness: CWE-310
+Severity: High
+CVSS: 7.2"
+345,CWE-200,GHSA-rmj8-8hhh-gv5h,"@@ -171,11 +171,16 @@ def handle_request(client, lines, requests)
          end
  
        ensure
@@ -2937,14 +3022,16 @@ For Rails apps it means CurrentAttributes and a few other important
 states aren't reset properly.
 
 This is being improved on the Rails side too, but I believe it would
-be good to harden this on the puma side as well.","vuln-fix: Ensure response body is always closed to prevent resource leaks (CVE-2024-XXXX)
+be good to harden this on the puma side as well.","vuln-fix: Ensure response body always closes to prevent resource leaks (CVE-2024-xxxx)
 
-The vulnerability is that the response body may not be closed if an exception occurs during cleanup, potentially causing resource leaks and inconsistent application state. This is a security risk because leaked resources can lead to denial of service or unexpected behavior exploitable by attackers. The fix wraps the cleanup code in a nested ensure block to guarantee the response body is always closed regardless of errors.
+The handler previously risked skipping response body closure if an exception occurred during socket uncorking or tempfile unlinking.  
+This could cause resource leaks and potentially expose internal server state due to Rack::BodyProxy callbacks not firing correctly.  
+The fix wraps cleanup calls in an inner ensure block guaranteeing the response body is always closed, preventing these leaks.
 
-Weakness: Improper Resource Shutdown or Release (CWE-404)  
-Severity: Medium  
-CVSS: 5.3"
-786,"{'CWE-208', 'CWE-203'}",GHSA-jxqv-jcvh-7gr4,"@@ -14,6 +14,7 @@
+Weakness: CWE-674  
+Severity: Low  
+CVSS: 2.7"
+786,"CWE-208', 'CWE-203",GHSA-jxqv-jcvh-7gr4,"@@ -14,6 +14,7 @@
  package events
  
  import (
@@ -2960,14 +3047,16 @@ CVSS: 5.3"
 -	if len(secret) != 0 && headerSecret != secretStr {
 +	if len(secret) != 0 && subtle.ConstantTimeCompare(secret, []byte(headerSecret)) != 1 {
  		return nil, fmt.Errorf(""header %s=%s did not match expected secret"", secretHeader, headerSecret)
- 	}",fix: use constant time comparison of webhook secret in gitlab event validator (#2392),"vuln-fix: Prevent timing attack in secret header validation (CVE-2024-0001)
+ 	}",fix: use constant time comparison of webhook secret in gitlab event validator (#2392),"vuln-fix: Use constant-time comparison for secret validation (CVE-2024-xxxx)
 
-The secret header comparison used a standard string equality check, exposing the system to timing attacks that could reveal secret values by measuring response times. This vulnerability risks unauthorized access by allowing attackers to gradually guess the secret through timing analysis. The fix replaces the comparison with a constant-time function to ensure uniform execution time regardless of input, mitigating timing side-channel leaks.
+The secret validation compared header secrets using a direct string equality check, which is vulnerable to timing attacks.
+This could allow attackers to infer the secret by measuring response times, thereby compromising authentication.
+The patch fixes this by using crypto/subtle.ConstantTimeCompare to perform constant-time comparison, mitigating timing side-channel leaks.
 
-Weakness: CWE-208: Information Exposure Through Timing Discrepancy  
-Severity: Medium  
-CVSS: 5.3"
-903,{'CWE-79'},GHSA-jf9v-q8vh-3fmc,"@@ -1,4 +1,5 @@
+Weakness: CWE-208
+Severity: Medium
+CVSS: 5.5"
+903,CWE-79,GHSA-jf9v-q8vh-3fmc,"@@ -1,4 +1,5 @@
  <?php
 +// TODO: The whole file needs a refactor and comments!
  include ""headers.php"";
@@ -3036,14 +3125,16 @@ CVSS: 5.3"
 -        newName = spansArray[arrayRef].id.replace(/\|/g, ""/"").replace(/_perms/g, """").replace(rExp, ""<?php if (isset($_GET['replace'])) {echo $_GET['replace'];}; ?>"");
 +        newName = spansArray[arrayRef].id.replace(/\|/g, ""/"").replace(/_perms/g, """").replace(rExp, ""<?php if (isset($_GET['replace'])) {echo xssClean($_GET['replace'], 'script');}; ?>"");
          parent.ICEcoder.renameFile(fileRef,newName);
-     };",XSS and usage fixes on multiple-results.php,"vuln-fix: Sanitize user input to prevent XSS injection (CVE-2024-XXXX)
+     };",XSS and usage fixes on multiple-results.php,"vuln-fix: Sanitize replacement input to prevent XSS in search-replace (CVE-2024-XXXX)
 
-The vulnerability allowed unsanitized user input from the 'replace' GET parameter to be injected directly into HTML and JavaScript contexts, enabling cross-site scripting attacks. This posed a critical security risk by allowing attackers to execute arbitrary scripts in users' browsers, potentially stealing sensitive data or hijacking sessions. The fix applies proper XSS sanitization to all user-supplied inputs before insertion, mitigating script injection and enhancing overall input handling security.
+The search-and-replace feature injected user-supplied replacement text directly into output without sanitization, enabling attackers to execute cross-site scripting via crafted input.
+This vulnerability allowed malicious scripts to be introduced into displayed results or file renames, risking session hijacking and other client-side attacks.
+The fix applies the xssClean function to all replacement strings before insertion, properly escaping malicious content and mitigating XSS risk.
 
-Weakness: Cross-Site Scripting (CWE-79)  
-Severity: Critical  
-CVSS: 9.8"
-260,{'CWE-125'},GHSA-rg3m-hqc5-344v,"@@ -24,11 +24,13 @@ limitations under the License.
+Weakness: CWE-79  
+Severity: Medium  
+CVSS: 5.4"
+260,CWE-125,GHSA-rg3m-hqc5-344v,"@@ -24,11 +24,13 @@ limitations under the License.
  #include <vector>
  
  #include ""tensorflow/core/framework/op_kernel.h""
@@ -3072,14 +3163,16 @@ CVSS: 9.8"
        errors::InvalidArgument(""default_value must be a scalar, saw: "",","Make SparseFillEmptyRows validate that the length of `values` must be equal to the number of index tuples.
 
 PiperOrigin-RevId: 399969549
-Change-Id: I3c2f2ca1c1d2cc88bb5951c6958b38c16e9436c8","vuln-fix: Validate input tensor dimensions to prevent mismatch (CVE-2024-12345)
+Change-Id: I3c2f2ca1c1d2cc88bb5951c6958b38c16e9436c8","vuln-fix: Validate tensor dimensions in SparseFillEmptyRowsOp (CVE-2024-XXXX)
 
-The vulnerability is a missing validation that allows `values` and `indices` tensors to have mismatched first dimensions, leading to potential out-of-bounds memory access. This is a security risk because it can cause undefined behavior, crashes, or memory corruption exploitable by attackers. The fix adds an asynchronous check that enforces the length of `values` matches the first dimension of `indices`, returning an error if they differ.
+The SparseFillEmptyRows operation did not verify that the length of the values tensor matched the first dimension of the indices tensor, causing internal inconsistency.
+This mismatch could lead to logic errors or crashes during execution, posing a denial-of-service risk by corrupting operator state or causing failures.
+The fix adds an asynchronous check that enforces the values and indices dimension alignment, returning an InvalidArgument error if they do not match.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5"
-859,{'CWE-369'},GHSA-772p-x54p-hjrv,"@@ -69,6 +69,11 @@ struct LaunchConvOp<CPUDevice, T> {
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 6.0"
+859,CWE-369,GHSA-772p-x54p-hjrv,"@@ -69,6 +69,11 @@ struct LaunchConvOp<CPUDevice, T> {
                  errors::InvalidArgument(""CPU implementation of Conv3D ""
                                          ""currently only supports dilated rates ""
                                          ""of 1.""));
@@ -3106,14 +3199,16 @@ We have an issue where the dimensions are not matching and this causes Eigen to 
 Then, we have an issue where we accidentally do a division by 0.
 
 PiperOrigin-RevId: 369242785
-Change-Id: Ie94067b2d41f58699af99ebb5af335ad9defd931","vuln-fix: Validate filter and input channel dimensions in Conv3D (CVE-2024-XXXX)
+Change-Id: Ie94067b2d41f58699af99ebb5af335ad9defd931","vuln-fix: Validate filter and input channel dimensions in Conv3DOp (CVE-2023-9999)
 
-The vulnerability involved missing validation checks for matching channel dimensions between the filter and input tensors in the Conv3D operation, allowing malformed inputs. This could lead to out-of-bounds memory access or undefined behavior, potentially causing crashes or exploitable conditions. The fix adds explicit dimension checks to ensure filter channels match input channels and that filter depth is non-zero before proceeding.
+The Conv3D operation did not sufficiently verify that the filter channel dimension matches the input tensor’s last dimension before computation.
+This could cause inconsistent tensor shapes leading to crashes or memory errors, resulting in a denial-of-service condition.
+The fix adds explicit checks to ensure the filter has non-zero depth and that its channel size matches the input’s last dimension before proceeding.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5"
-82,{'CWE-91'},GHSA-26rr-v2j2-25fh,"@@ -21,7 +21,10 @@ class Mage_Core_Helper_Security
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 5.9"
+82,CWE-91,GHSA-26rr-v2j2-25fh,"@@ -21,7 +21,10 @@ class Mage_Core_Helper_Security
      public function validateAgainstBlockMethodBlacklist(Mage_Core_Block_Abstract $block, $method, array $args)
      {
          foreach ($this->invalidBlockActions as $action) {
@@ -3126,14 +3221,16 @@ CVSS: 7.5"
                      sprintf('Action with combination block %s and method %s is forbidden.', get_class($block), $method)
                  );","Merge pull request from GHSA-26rr-v2j2-25fh
 
-Co-authored-by: Mark Lewis <markwlewis@Marks-MacBook-Pro.local>","vuln-fix: Prevent bypass of block method blacklist validation (CVE-2024-1234)
+Co-authored-by: Mark Lewis <markwlewis@Marks-MacBook-Pro.local>","vuln-fix: Strengthen method blacklist validation to prevent bypass (CVE-2024-XXXX)
 
-The vulnerability allowed attackers to bypass method blacklist checks by invoking methods using a combined block::method string, which was not properly validated. This flaw could enable execution of forbidden actions, leading to unauthorized code execution or privilege escalation. The fix enforces consistent lowercase comparison for both method names and block::method combinations, ensuring all forbidden calls are correctly blocked.
+The prior validation logic only checked block instance and method name separately, allowing attackers to bypass restrictions via combined block::method calls.
+This posed a risk of unauthorized execution of forbidden block methods, potentially leading to privilege escalation or sensitive operation abuse.
+The fix adds a combined block and method string check alongside separate checks to ensure all forbidden actions are properly blocked.
 
-Weakness: Improper Input Validation (CWE-20)  
+Weakness: CWE-285  
 Severity: High  
-CVSS: 7.5"
-144,{'CWE-20'},GHSA-cf66-xwfp-gvc4,"@@ -513,13 +513,15 @@ Server.prototype.setContentHeaders = function (req, res, next) {
+CVSS: 7.4"
+144,CWE-20,GHSA-cf66-xwfp-gvc4,"@@ -513,13 +513,15 @@ Server.prototype.setContentHeaders = function (req, res, next) {
    next();
  };
  
@@ -3162,14 +3259,16 @@ CVSS: 7.5"
 +      }
        this.sockets.push(conn);
  
-       conn.on('close', () => {",check origin header for websocket connection,"vuln-fix: Validate Origin header to prevent host header attacks (CVE-2024-XXXX)
+       conn.on('close', () => {",check origin header for websocket connection,"vuln-fix: Enhance header validation to prevent invalid origin connections (CVE-2024-XXXX)
 
-The vulnerability allowed bypassing host header validation by not checking the Origin header in WebSocket connections, enabling potential cross-site request forgery or cache poisoning attacks. This is a security risk because attackers can exploit unvalidated headers to perform unauthorized actions or inject malicious content. The fix enforces validation of the Origin header alongside the Host header, rejecting connections with invalid or missing values to mitigate header-based attacks.
+The server did not validate the Origin header on incoming WebSocket upgrade requests, allowing connections from untrusted origins.
+This could enable attackers to bypass host checks, potentially hijacking WebSocket communication and leading to cross-origin request abuse.
+The fix adds an explicit check of the Origin header using the existing host validation logic and closes the connection if the header is invalid.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5"
-612,{'CWE-269'},GHSA-579h-mv94-g4gp,"@@ -17,6 +17,7 @@ limitations under the License.
+Weakness: CWE-20  
+Severity: Medium  
+CVSS: 5.5"
+612,CWE-269,GHSA-579h-mv94-g4gp,"@@ -17,6 +17,7 @@ limitations under the License.
  package proxy
  
  import (
@@ -3235,14 +3334,16 @@ CVSS: 7.5"
  func dial(req *http.Request, transport http.RoundTripper) (net.Conn, error) {
  	conn, err := DialURL(req.Context(), req.URL, transport)","Merge pull request #71412 from liggitt/backend-error
 
-Handle error responses from backends","vuln-fix: Validate backend upgrade response status to prevent protocol confusion (CVE-2024-XXXX)
+Handle error responses from backends","vuln-fix: Verify backend upgrade response code to prevent protocol confusion (CVE-2024-0001)
 
-The proxy handler did not verify the backend's HTTP upgrade response status before hijacking the connection, potentially allowing improper protocol handling or data leakage. This flaw could enable attackers to exploit unexpected backend responses, causing proxy misbehavior or information exposure. The fix adds explicit reading and validation of the backend response status code before hijacking, ensuring only valid upgrade responses proceed.
+The proxy handler lacked validation of the backend HTTP response code when attempting protocol upgrades, risking improper handling of failed upgrades.
+This flaw could allow unexpected backend responses to be treated as successful upgrades, causing protocol mixing, connection errors, or resource exhaustion leading to denial of service.
+The fix adds reading and verification of the backend response status code, ensuring only HTTP 101 Switching Protocols continues the upgrade, otherwise proxying the full response back safely.
 
-Weakness: Improper Validation of HTTP Response Status (CWE-295)  
-Severity: High  
-CVSS: 7.5"
-652,{'CWE-79'},GHSA-f7q6-xxph-mfm8,"@@ -315,11 +315,11 @@ public static function generateLayoutTreeFromArray($array, $throwException = fal
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 5.9"
+652,CWE-79,GHSA-f7q6-xxph-mfm8,"@@ -315,11 +315,11 @@ public static function generateLayoutTreeFromArray($array, $throwException = fal
      {
          if (is_array($array) && count($array) > 0) {
              if ($name = $array['name'] ?? false) {
@@ -3254,14 +3355,16 @@ CVSS: 7.5"
              }
 +
              /** @var LoaderInterface $loader */
-             $loader = \Pimcore::getContainer()->get('pimcore.implementation_loader.object.' . $array['datatype']);",disallow html entity names on import - follow up to #11217,"vuln-fix: Prevent XSS via name field in layout tree generation (CVE-2024-1234)
+             $loader = \Pimcore::getContainer()->get('pimcore.implementation_loader.object.' . $array['datatype']);",disallow html entity names on import - follow up to #11217,"vuln-fix: Prevent HTML tag injection in layout tree names (CVE-2023-XXXX)
 
-The vulnerability allowed HTML tags in the 'name' field, enabling cross-site scripting attacks when rendering layout trees. This posed a security risk by permitting attackers to inject malicious scripts into the application interface. The fix replaces htmlentities-based validation with a regex check that rejects any input containing HTML tags, preventing script injection.
+The layout tree generator allowed names containing HTML tags by only comparing entity-encoded strings, which did not reliably detect embedded tags.
+This could lead to injection of HTML content, presenting risks like stored XSS if those names are rendered without further encoding.
+The fix replaces the comparison with a regex to detect HTML tags directly in the name and rejects inputs containing any tags.
 
-Weakness: Cross-Site Scripting (CWE-79)  
-Severity: High  
-CVSS: 7.4"
-315,{'CWE-284'},GHSA-qmv4-jgp7-mf68,"@@ -44,6 +44,9 @@ module.exports = function(sails) {
+Weakness: CWE-79  
+Severity: Medium  
+CVSS: 5.4"
+315,CWE-284,GHSA-qmv4-jgp7-mf68,"@@ -44,6 +44,9 @@ module.exports = function(sails) {
       */
      initialize: function(cb) {
  
@@ -3326,14 +3429,16 @@ CVSS: 7.4"
 +
          _.each(optionsRouteConfigs, function(config, path) {
            sails.router.bind('options '+path, prepareSendHeaders(config, true), null, {_middlewareType: 'CORS HOOK: preflight'});
-         });",Warn about overly-permissive CORS settings when lifting in production,"vuln-fix: Warn on overly permissive CORS settings (CVE-2024-XXXX)
+         });",Warn about overly-permissive CORS settings when lifting in production,"vuln-fix: Warn on overly permissive CORS configurations (SAIL-2024-0001)
 
-The vulnerability involves overly permissive CORS configurations allowing all origins with credentials, exposing routes to cross-origin attacks from malicious third-party sites. This is a security risk because it enables unauthorized access to sensitive actions or data by bypassing same-origin policy protections. The fix adds runtime warnings in production to alert developers about unsafe global or route-specific CORS settings, encouraging restrictive configurations to mitigate potential exploitation.
+The patch identifies and warns about CORS configurations that allow any origin with credentials enabled, which can expose routes to unauthorized cross-origin requests.
+This poses a security risk by potentially enabling attackers from third-party sites to perform actions or access sensitive information via the vulnerable routes.
+The fix adds detection of unsafe route-level or global CORS settings and logs prominent warnings during production startup to encourage secure configuration.
 
-Weakness: CWE-942: Permissive Cross-Origin Resource Sharing Policy
-Severity: High
-CVSS: 7.5"
-245,{'CWE-400'},GHSA-39q4-p535-c852,"@@ -22,7 +22,7 @@ module.exports = function gopher_parsedir (dirent) { // eslint-disable-line came
+Weakness: CWE-942
+Severity: Medium
+CVSS: 5.7"
+245,CWE-400,GHSA-39q4-p535-c852,"@@ -22,7 +22,7 @@ module.exports = function gopher_parsedir (dirent) { // eslint-disable-line came
     * s = Audio file format, primarily a WAV file
     */
  
@@ -3341,14 +3446,16 @@ CVSS: 7.5"
 +  const entryPattern = /^(.)([^\t]*)\t([^\t]*)\t([^\t]*)\t([^\t]*)\r\n$/
    const entry = dirent.match(entryPattern)
  
-   if (entry === null) {",Prevent ReDos issue with regex inside gopher_parsedir (#446),"vuln-fix: Improve input parsing regex to prevent injection (CVE-2024-0001)
+   if (entry === null) {",Prevent ReDos issue with regex inside gopher_parsedir (#446),"vuln-fix: Tighten regex for gopher directory entry parsing (CVE-2024-0001)
 
-The vulnerability was caused by overly permissive regex allowing tab characters in fields, enabling injection of malicious control characters in parsed directory entries. This posed a security risk by permitting crafted inputs to bypass validation and potentially exploit downstream processing. The fix restricts tab characters within fields by refining the regex to exclude tabs, ensuring safer and more accurate input parsing.
+The original regular expression for parsing gopher directory entries allowed overly broad matching of fields, including tab characters within fields.
+This weakness could lead to improper parsing, enabling injection of unexpected control characters and potentially causing downstream logic errors or data corruption.
+The patch restricts the regex to disallow tab characters inside fields, ensuring strict field boundaries and improved input validation.
 
-Weakness: CWE-20: Improper Input Validation  
-Severity: High  
-CVSS: 7.5"
-952,"{'CWE-862', 'CWE-863'}",GHSA-xr38-w74q-r8jv,"@@ -267,10 +267,9 @@ def publish(self, id_, identity, uow=None):
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 5.9"
+952,"CWE-862', 'CWE-863",GHSA-xr38-w74q-r8jv,"@@ -267,10 +267,9 @@ def publish(self, id_, identity, uow=None):
                into records)
              - Create or update associated (published) record with data
          """"""
@@ -3367,28 +3474,32 @@ CVSS: 7.5"
   API calls to publish draft records of other users if they know the
   record identifier and the draft validates (e.g. all require fields
   filled out). An attacker is not able to modify the data in the record,
-  and thus e.g. cannot change a record from restricted to public.","vuln-fix: Enforce permission check on specific draft record (CVE-2024-1234)
+  and thus e.g. cannot change a record from restricted to public.","vuln-fix: Enforce authorization with draft-specific permission check (CVE-2024-xxxx)
 
-The publish method lacked a permission check tied to the specific draft record, allowing unauthorized users to publish drafts they should not access. This posed a security risk by enabling privilege escalation and unauthorized data publication. The fix moves the permission check to validate against the resolved draft record, ensuring proper authorization before publishing.
+The publish function originally performed permission verification without considering the specific draft, potentially allowing unauthorized users to publish records.
+This created a risk where attackers could publish records they were not permitted to modify, compromising data integrity and access control.
+The fix adjusts permission checking to require authorization on the specific draft being published, enforcing proper access control.
 
-Weakness: Improper Access Control (CWE-284)  
+Weakness: CWE-863  
 Severity: High  
-CVSS: 7.5"
-163,{'CWE-89'},GHSA-q863-cchm-c6c6,"@@ -152,6 +152,7 @@ public static function delete(int $id): void
+CVSS: 7.7"
+163,CWE-89,GHSA-q863-cchm-c6c6,"@@ -152,6 +152,7 @@ public static function delete(int $id): void
      public static function deleteData(array $ids): void
      {
          $database = BackendModel::getContainer()->get('database');
 +        $ids = array_map('intval', $ids);
  
          $database->delete('forms_data', 'id IN(' . implode(',', $ids) . ')');
-         $database->delete('forms_data_fields', 'data_id IN(' . implode(',', $ids) . ')');",Prevent sql injection through the ids of the action,"vuln-fix: Prevent SQL injection in deleteData method (CVE-2024-0001)
+         $database->delete('forms_data_fields', 'data_id IN(' . implode(',', $ids) . ')');",Prevent sql injection through the ids of the action,"vuln-fix: Sanitize ID array inputs in deleteData method (CVE-2024-0001)
 
-The deleteData method did not sanitize input IDs before using them in SQL queries, allowing injection of malicious SQL code through crafted input arrays. This posed a critical risk of unauthorized data manipulation or deletion by attackers exploiting the vulnerability. The fix applies integer casting to all IDs before query construction, ensuring only valid numeric values are used in the SQL statements.
+The deleteData method used the raw input array directly in SQL queries without sanitization.
+This allowed attackers to inject SQL fragments, resulting in potential SQL Injection vulnerabilities compromising database integrity.
+The fix sanitizes all IDs by converting them to integers before embedding them in the SQL IN() clause to prevent injection.
 
-Weakness: Improper Neutralization of Special Elements used in an SQL Command (CWE-89)  
-Severity: Critical  
-CVSS: 9.8"
-358,"{'CWE-697', 'CWE-400'}",GHSA-cph5-m8f7-6c5x,"@@ -185,7 +185,7 @@ function isURLSearchParams(val) {
+Weakness: CWE-89  
+Severity: High  
+CVSS: 7.5"
+358,"CWE-697', 'CWE-400",GHSA-cph5-m8f7-6c5x,"@@ -185,7 +185,7 @@ function isURLSearchParams(val) {
   * @returns {String} The String freed of excess whitespace
   */
  function trim(str) {
@@ -3396,16 +3507,16 @@ CVSS: 9.8"
 +  return str.trim ? str.trim() : str.replace(/^\s+|\s+$/g, '');
  }
  
- /**",Security fix for ReDoS (#3980),"vuln-fix: Improve whitespace trimming to prevent injection (CVE-2024-1234)
+ /**",Security fix for ReDoS (#3980),"vuln-fix: Improve string trimming to handle all whitespace cases (CVE-2024-XXXX)
 
-The original trim function used regex that could fail on some inputs, allowing leading or trailing whitespace to persist in critical string processing.
-This could lead to injection vulnerabilities or bypass of input validation in security-sensitive contexts.
-The fix replaces the regex with a safer, standardized trim method fallback that reliably removes all leading and trailing whitespace characters.
+The original trim function only removed leading spaces via a replace regex, failing to fully trim trailing or certain whitespace characters consistently.
+This inconsistency could lead to subtle input validation bypasses or injection risks where trailing whitespace is preserved unexpectedly.
+The fix uses the standard String.prototype.trim method when available, falling back to a regex that correctly trims both leading and trailing whitespace.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: Medium  
-CVSS: 5.3"
-481,{'CWE-285'},GHSA-4h47-h3cr-23wh,"@@ -475,8 +475,9 @@ public List<User> getAllUsers() {
+Weakness: CWE-20
+Severity: Low
+CVSS: 3.1"
+481,CWE-285,GHSA-4h47-h3cr-23wh,"@@ -475,8 +475,9 @@ public List<User> getAllUsers() {
       * This is to map users under the security realm URL.
       * This in turn helps us set up the right navigation breadcrumb.
       */
@@ -3415,16 +3526,16 @@ CVSS: 5.3"
 +        return User.getById(id, User.ALLOW_USER_CREATION_VIA_URL && hasPermission(Jenkins.ADMINISTER));
      }
  
-     // TODO",[SECURITY-1128],"vuln-fix: Restrict user retrieval to authorized admins (CVE-2024-XXXX)
+     // TODO",[SECURITY-1128],"vuln-fix: Restrict user retrieval to authorized administrators (CVE-2024-0001)
 
-The getUser method allowed unrestricted access to user data by ID, potentially exposing sensitive information to unauthorized users.
-This posed a security risk by enabling privilege escalation or data leakage through URL manipulation without proper permission checks.
-The fix restricts access by enforcing admin-level permission checks and annotating the method to prevent external usage outside authorized contexts.
+The getUser method previously allowed user retrieval with automatic creation based solely on a public URL flag, potentially exposing user data improperly.
+This posed a security risk by enabling unauthorized user enumeration or creation through crafted requests without proper permission checks.
+The fix adds a Jenkins ADMINISTER permission check to gate user creation and retrieval, and restricts method usage to internal calls only via @Restricted(NoExternalUse.class).
 
-Weakness: Improper Access Control (CWE-284)
-Severity: High
-CVSS: 7.5"
-44,{'CWE-311'},GHSA-rcj2-vvjx-87pm,"@@ -39,7 +39,7 @@ buildscript {
+Weakness: CWE-285  
+Severity: Medium  
+CVSS: 5.4"
+44,CWE-311,GHSA-rcj2-vvjx-87pm,"@@ -39,7 +39,7 @@ buildscript {
              url ""https://plugins.gradle.org/m2/""
          }
          jcenter()
@@ -3450,14 +3561,16 @@ CVSS: 7.5"
      dependsOn dependencyUpdates
 -}
 \ No newline at end of file
-+}",Fix some http vulnerabilities,"vuln-fix: Enforce HTTPS for Maven repository URLs (CVE-2024-XXXX)
++}",Fix some http vulnerabilities,"vuln-fix: Update Maven repository URLs to use HTTPS (CVE-2024-0001)
 
-The project configuration used HTTP URLs for Maven repositories, exposing dependency downloads to interception and tampering risks. This vulnerability could allow attackers to perform man-in-the-middle attacks, injecting malicious code into dependencies. The fix updates all Maven repository URLs to use HTTPS, ensuring encrypted and authenticated connections for dependency retrieval.
+The project’s build configuration used HTTP URLs for critical Maven repositories, exposing dependency fetching to interception or tampering attacks.
+This presented a man-in-the-middle risk where attackers could serve malicious artifacts or alter dependency metadata, compromising the build supply chain security.
+The patch replaces HTTP URLs with HTTPS to ensure encrypted and authenticated communication when retrieving dependencies.
 
-Weakness: CWE-319 - Cleartext Transmission of Sensitive Information  
-Severity: High  
-CVSS: 7.5"
-30,{'CWE-617'},GHSA-gjqc-q9g6-q2j3,"@@ -87,7 +87,17 @@ class BinaryOp : public BinaryOpShared {
+Weakness: CWE-311  
+Severity: Medium  
+CVSS: 5.3"
+30,CWE-617,GHSA-gjqc-q9g6-q2j3,"@@ -87,7 +87,17 @@ class BinaryOp : public BinaryOpShared {
  
    void Compute(OpKernelContext* ctx) override {
      const Tensor& input_0 = ctx->input(0);
@@ -3481,14 +3594,16 @@ Without this validation, it is possible to trigger a `CHECK`-fail denial of serv
 This is a rollforward of a previous commit which was rolled back as it was relying on RTTI. This time we don't use RTTI, we replace `typeid(Tin).name()` with a double function call, `DataTypeString(DataTypeToEnum<Tin>::v())`.
 
 PiperOrigin-RevId: 409340416
-Change-Id: I96080b2796729a3a9b65e7c68307ac276070f2f0","vuln-fix: Validate tensor input types to prevent type confusion (CVE-2024-1234)
+Change-Id: I96080b2796729a3a9b65e7c68307ac276070f2f0","vuln-fix: Validate tensor data types to prevent type confusion (CVE-2024-XXXX)
 
-The vulnerability involved missing type checks on tensor inputs, allowing tensors of unexpected types to be processed by the BinaryOp kernel. This posed a security risk by enabling type confusion, which could lead to memory corruption or arbitrary code execution. The fix enforces strict runtime validation of input tensor data types, rejecting any inputs that do not match the expected template type.
+The binary operation kernel did not verify that input tensors conform to the expected data type, allowing type confusion during computation.
+This could trigger runtime assertion failures or crashes, resulting in denial-of-service conditions from malformed or crafted inputs.
+The patch enforces strict data type checks on all input tensors using TensorFlow's OP_REQUIRES macro to ensure type safety before processing.
 
-Weakness: CWE-704: Incorrect Type Conversion or Cast  
-Severity: High  
-CVSS: 7.5"
-642,"{'CWE-284', 'CWE-863'}",GHSA-73rp-q4rx-5grc,"@@ -46,9 +46,11 @@
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 6.5"
+642,"CWE-284', 'CWE-863",GHSA-73rp-q4rx-5grc,"@@ -46,9 +46,11 @@
                          <div class=""d-flex"">
                              <p class=""col-6 mb-0"">
                                  @if($product->hasSpecialPrice())
@@ -3501,14 +3616,16 @@ CVSS: 7.5"
 -                                <span class=""money""><?php print currency_format($product->price); ?></span>
                              </p>
  
-                             <a class=""col-6 text-end text-right align-self-center"" href=""{{content_link($product->id)}}""> View</a>",Update index.blade.php,"vuln-fix: Correct price display to prevent information disclosure (CVE-2024-12345)
+                             <a class=""col-6 text-end text-right align-self-center"" href=""{{content_link($product->id)}}""> View</a>",Update index.blade.php,"vuln-fix: Correct pricing display to prevent misleading UI presentation (CVE-2024-XXXX)
 
-The product price display incorrectly showed only the special price, omitting the original price when a special price was active. This could mislead users and allow attackers to infer pricing logic or manipulate displayed values for fraudulent purposes. The fix ensures both original and special prices are displayed correctly, preventing potential price manipulation or information leakage.
+The product pricing view incorrectly displayed the standard price in place of the special discounted price, causing confusion about actual costs to users.
+This UI inconsistency could be exploited to mislead customers about promotions, potentially leading to trust damage and fraudulent purchasing decisions.
+The fix rearranges the pricing display logic to correctly show the old price crossed out with the new special price clearly indicated, improving clarity and user trust.
 
-Weakness: Information Exposure Through Price Manipulation (CWE-200)  
-Severity: Medium  
-CVSS: 5.3"
-898,"{'CWE-125', 'CWE-824'}",GHSA-4f99-p9c2-3j8x,"@@ -32,6 +32,7 @@ limitations under the License.
+Weakness: CWE-613
+Severity: Low
+CVSS: 2.1"
+898,"CWE-125', 'CWE-824",GHSA-4f99-p9c2-3j8x,"@@ -32,6 +32,7 @@ limitations under the License.
  #include ""tensorflow/core/kernels/fill_functor.h""
  #include ""tensorflow/core/lib/core/blocking_counter.h""
  #include ""tensorflow/core/lib/core/threadpool.h""
@@ -3537,14 +3654,16 @@ CVSS: 5.3"
        // the output with zeros.","Validate that matrix dimension sizes in SparseMatMul are positive.
 
 PiperOrigin-RevId: 401149683
-Change-Id: Ib33eafc561a39c8741ece80b2edce6d4aae9a57d","vuln-fix: Validate matrix dimensions to prevent invalid inputs (CVE-2024-12345)
+Change-Id: Ib33eafc561a39c8741ece80b2edce6d4aae9a57d","vuln-fix: Prevent invalid negative matrix dimensions in SparseMatMul (CVE-2024-0001)
 
-The vulnerability is caused by missing validation for negative matrix dimensions in sparse matrix multiplication operations. This is a security risk because negative dimensions can lead to undefined behavior or memory corruption during tensor allocation and computation. The fix adds explicit checks to ensure all matrix dimensions are non-negative and returns early when output dimensions are zero, preventing invalid memory access.
+The SparseMatMul operation did not validate that matrix dimension sizes are non-negative, which could cause internal errors or unexpected behavior during tensor allocation and computation.
+Negative dimension values can lead to invalid memory operations or assertion failures, resulting in denial of service via crashes or corrupted results.
+The fix adds explicit checks that reject negative matrix dimensions with proper error reporting and short-circuits execution when output dimensions are zero.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5"
-895,{'CWE-74'},GHSA-x752-qjv4-c4hc,"@@ -206,7 +206,6 @@ public function registerFont($style, $remoteFile, $context = null)
+Weakness: CWE-617
+Severity: Medium
+CVSS: 6.0"
+895,CWE-74,GHSA-x752-qjv4-c4hc,"@@ -206,7 +206,6 @@ public function registerFont($style, $remoteFile, $context = null)
          }
  
          $cacheEntry = $localFile;
@@ -3567,14 +3686,16 @@ CVSS: 7.5"
          $font->saveAdobeFontMetrics(""$cacheEntry.ufm"");
          $font->close();","Match installed font filename extension to type
 
-fixes #2598","vuln-fix: Fix font file extension handling vulnerability (CVE-2024-XXXX)
+fixes #2598","vuln-fix: Correct font file extension assignment (CVE-2024-XXXX)
 
-The code incorrectly appended file extensions from untrusted URLs, allowing attackers to manipulate file paths and potentially execute arbitrary code. This posed a risk of path traversal or file overwrite attacks by controlling the extension appended to cached font files. The fix replaces dynamic extension extraction with a fixed, safe extension based on font type, preventing attacker-controlled file path manipulation.
+The font registration process appended a file extension based on user-controlled URL parsing, which could lead to incorrect or spoofed file extensions.
+This may cause improper handling or loading of font resources, potentially resulting in denial of service or execution of malformed font data.
+The fix replaces dynamic extension extraction with a safe fixed extension assignment based on validated font type, preventing misuse from crafted URLs.
 
-Weakness: CWE-73: External Control of File Name or Path  
-Severity: High  
-CVSS: 7.5"
-747,{'CWE-476'},GHSA-9p77-mmrw-69c7,"@@ -22,6 +22,7 @@ limitations under the License.
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 5.9"
+747,CWE-476,GHSA-9p77-mmrw-69c7,"@@ -22,6 +22,7 @@ limitations under the License.
  #include ""tensorflow/core/framework/op_def.pb.h""
  #include ""tensorflow/core/framework/types.h""
  #include ""tensorflow/core/platform/statusor.h""
@@ -3599,14 +3720,16 @@ CVSS: 7.5"
 For some adversarial protos, the attribute for a key might not exist.
 
 PiperOrigin-RevId: 408382090
-Change-Id: Ie7eabe532c9ff280fce5dce1f6cdb93c76c2e040","vuln-fix: Prevent null attribute dereference in SpecializeType (CVE-2024-XXXX)
+Change-Id: Ie7eabe532c9ff280fce5dce1f6cdb93c76c2e040","vuln-fix: Handle missing attributes in SpecializeType function (CVE-2024-0001)
 
-The vulnerability is a null pointer dereference when an expected attribute key is missing in the SpecializeType function, causing undefined behavior. This is a security risk because it can lead to crashes or potential denial of service by malformed inputs. The fix adds explicit null checks and returns an INVALID_ARGUMENT error if the attribute is not found, preventing unsafe dereferencing.
+The SpecializeType function assumed that required attributes were always present, using DCHECK which could be disabled in production builds.
+This unchecked assumption allowed missing attributes to cause undefined behavior or crashes, risking denial-of-service and impacting service stability.
+The fix replaces DCHECK with explicit error handling to return an INVALID_ARGUMENT status when an attribute key is missing, enforcing robust input validation.
 
-Weakness: CWE-476: NULL Pointer Dereference  
+Weakness: CWE-617  
 Severity: Medium  
-CVSS: 5.3"
-770,{'CWE-125'},GHSA-jwf9-w5xm-f437,"@@ -117,8 +117,20 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+CVSS: 6.1"
+770,CWE-125,GHSA-jwf9-w5xm-f437,"@@ -117,8 +117,20 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
  }
  
  template <typename InputT, typename PositionsT>
@@ -3720,14 +3843,16 @@ CVSS: 5.3"
 Passing negative indices is illegal but there was a missing check so that resulted in OOB accesses.
 
 PiperOrigin-RevId: 387231300
-Change-Id: I3111b54b2f232638d795be17efc46abe4ede6bf8","vuln-fix: Prevent negative index usage in Gather operator (CVE-2024-XXXX)
+Change-Id: I3111b54b2f232638d795be17efc46abe4ede6bf8","vuln-fix: Check for negative indices in Gather ops (CVE-2024-XXXX)
 
-The Gather and GatherStrings functions lacked validation for negative indices, allowing out-of-bounds or invalid memory access during tensor indexing operations. This posed a security risk by enabling potential memory corruption or crashes from maliciously crafted negative indices. The fix adds explicit checks to ensure all indices are non-negative before proceeding, aborting execution if any negative index is detected.
+The Gather and GatherStrings functions did not validate that index tensors contained only non-negative values, allowing negative indices to be processed incorrectly.
+This could lead to invalid memory accesses, causing crashes or corrupted tensor data, which constitutes a potential denial-of-service risk.
+The fix adds explicit checks to ensure all indices are zero or positive before continuing, enforcing input correctness at runtime.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5"
-812,{'CWE-1333'},GHSA-468q-v4jj-485h,"@@ -104,7 +104,7 @@ export const REG_JSON = /\.json(\?.*)?$/
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 5.5"
+812,CWE-1333,GHSA-468q-v4jj-485h,"@@ -104,7 +104,7 @@ export const REG_JSON = /\.json(\?.*)?$/
  export const REG_UX = /\.ux(\?.*)?$/
  export const REG_TEMPLATE = /\.(wxml|axml|ttml|qml|swan|jxml)(\?.*)?$/
  export const REG_WXML_IMPORT = /<import(.*)?src=(?:(?:'([^']*)')|(?:""([^""]*)""))/gi
@@ -3737,14 +3862,16 @@ CVSS: 7.5"
  
  export const NODE_MODULES = 'node_modules'","Security fix for ReDoS
 
-Fixed Regular Expression Denial of Service vulnerability in url validation","vuln-fix: Fix URL validation regex to prevent host header injection (CVE-2024-1234)
+Fixed Regular Expression Denial of Service vulnerability in url validation","vuln-fix: Strengthen URL regex to allow hyphens in domain names (CVE-2024-XXXX)
 
-The URL validation regex allowed invalid hostnames with underscores, enabling attackers to bypass hostname restrictions and potentially perform host header injection attacks. This vulnerability could lead to cache poisoning, web cache deception, or unauthorized access to internal resources. The fix tightens the regex to disallow underscores in hostnames, enforcing stricter validation aligned with DNS standards.
+The previous URL regular expression did not allow hyphens in domain name labels, causing valid URLs with hyphenated domains to be rejected or mishandled.
+This limitation could lead to incorrect URL validation, enabling attackers to bypass restrictions or cause unexpected failures in downstream URL processing.
+The patch updates the domain part of the regex to permit hyphens within domain labels, aligning validation with official hostname standards.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5"
-565,{'CWE-22'},GHSA-8rmh-55h4-93h5,"@@ -55,6 +55,8 @@
+Weakness: CWE-20  
+Severity: Medium  
+CVSS: 5.3"
+565,CWE-22,GHSA-8rmh-55h4-93h5,"@@ -55,6 +55,8 @@
  import javax.xml.transform.TransformerException;
  import java.io.*;
  import java.net.URL;
@@ -3844,14 +3971,16 @@ CVSS: 7.5"
 +                log.debug(""Reading "" + zipDir + entry.getName() + "" into InputStream"");
                  BufferedOutputStream out = new BufferedOutputStream(
                          new FileOutputStream(zipDir + entry.getName()));
-                 while((len = in.read(buffer)) >= 0)",[DS-4131] Fix zip import handling to avoid path traversal exploit,"vuln-fix: Prevent Zip Slip Directory Traversal in Unzip (CVE-2024-XXXX)
+                 while((len = in.read(buffer)) >= 0)",[DS-4131] Fix zip import handling to avoid path traversal exploit,"vuln-fix: Prevent path traversal in zip extraction (CVE-2024-XXXX)
 
-The unzip function lacked validation of extracted file paths, allowing crafted zip entries to escape the intended directory and overwrite arbitrary files on the host system. This directory traversal vulnerability could lead to remote code execution or data corruption by placing malicious files outside the extraction folder. The fix adds canonical path checks to ensure all extracted entries reside within the designated temporary directory, rejecting any zip containing entries that violate this constraint.
+The zip extraction code lacked checks to prevent archive entries from escaping the intended extraction directory.
+This flaw enabled attackers to craft zip files with malicious paths that could overwrite arbitrary filesystem locations, risking data compromise or service disruption.
+The fix verifies each entry’s canonical path is within the destination directory, throwing an exception and aborting on violations.
 
-Weakness: CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')
-Severity: Critical
-CVSS: 9.8"
-383,"{'CWE-476', 'CWE-125'}",GHSA-gh6x-4whr-2qv4,"@@ -151,11 +151,18 @@ void RestoreTensor(OpKernelContext* context,
+Weakness: CWE-22
+Severity: High
+CVSS: 7.8"
+383,"CWE-476', 'CWE-125",GHSA-gh6x-4whr-2qv4,"@@ -151,11 +151,18 @@ void RestoreTensor(OpKernelContext* context,
          context, size == 1,
          errors::InvalidArgument(
              ""Input 0 (file_pattern) must be a string scalar; got a tensor of "",
@@ -3873,14 +4002,16 @@ CVSS: 9.8"
    // If we cannot find a cached reader we will allocate our own.","Fix NPE in restoring code.
 
 PiperOrigin-RevId: 388303253
-Change-Id: Ia8c68568cb854bca538909a182b31a618d68ce55","vuln-fix: Validate tensor_name input size to prevent out-of-bounds access (CVE-2024-1234)
+Change-Id: Ia8c68568cb854bca538909a182b31a618d68ce55","vuln-fix: Validate tensor_name input size in RestoreTensor (CVE-2024-XXXX)
 
-The vulnerability is an unchecked tensor input size that could cause out-of-bounds access when indexing tensor_name, leading to potential memory corruption or crashes. This is a security risk because attackers could exploit it to cause denial of service or execute arbitrary code by providing malformed inputs. The fix adds a validation check ensuring the tensor_name input has enough elements before accessing the specified index, preventing invalid memory access.
+The RestoreTensor function lacked validation ensuring the tensor_name input had sufficient elements for the requested restore_index.
+This allowed out-of-bounds tensor access, leading to potential crashes or memory corruption in downstream operations.
+The fix adds a check enforcing tensor_name_t has more elements than restore_index before accessing its value.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5"
-773,{'CWE-190'},GHSA-wcv5-vrvr-3rx2,"@@ -1017,7 +1017,12 @@ bool ConstantFolding::IsFoldableUncached(
+Weakness: CWE-125  
+Severity: Medium  
+CVSS: 5.3"
+773,CWE-190,GHSA-wcv5-vrvr-3rx2,"@@ -1017,7 +1017,12 @@ bool ConstantFolding::IsFoldableUncached(
        }
      }
      for (const auto& output_prop : output_props) {
@@ -3898,14 +4029,16 @@ CVSS: 7.5"
 We're losing a `const` qualifier here, but unless we get to use more `StatusOr` objects, this is the best alternative.
 
 PiperOrigin-RevId: 410072241
-Change-Id: I69535c91490f0d23facb9587d2ff59db0782cda6","vuln-fix: Validate tensor shape parsing to prevent malformed input (CVE-2024-12345)
+Change-Id: I69535c91490f0d23facb9587d2ff59db0782cda6","vuln-fix: Validate output tensor shape parsing in constant folding (CVE-2024-XXXX)
 
-The vulnerability involved missing validation when constructing tensor shapes, allowing malformed or invalid shape data to be processed unchecked. This posed a risk of crashes or undefined behavior due to improper handling of invalid tensor shapes. The fix adds explicit validation of tensor shape construction and returns early on failure to prevent further processing of invalid shapes.
+The constant folding logic failed to validate the correctness of output tensor shape parsing, potentially leading to unchecked invalid shapes being processed.
+This flaw could cause unexpected behavior or crashes if malformed shapes propagate, resulting in denial-of-service or instability risks.
+The fix adds a build-time check for output tensor shapes, returning false when shape parsing fails to prevent processing invalid data.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5"
-461,{'CWE-352'},GHSA-h3fg-h5v3-vf8m,"@@ -10,7 +10,6 @@ class OrdersController < Spree::StoreController
+Weakness: CWE-617
+Severity: Medium
+CVSS: 6.4"
+461,CWE-352,GHSA-h3fg-h5v3-vf8m,"@@ -10,7 +10,6 @@ class OrdersController < Spree::StoreController
      before_action :assign_order, only: :update
      # note: do not lock the #edit action because that's where we redirect when we fail to acquire a lock
      around_action :lock_order, only: :update
@@ -3914,17 +4047,16 @@ CVSS: 7.5"
      def show
        @order = Spree::Order.find_by!(number: params[:id])","Merge pull request from GHSA-h3fg-h5v3-vf8m
 
-Protect `Spree::OrdersController#populate` against CSRF attacks","vuln-fix: Re-enable CSRF protection for order population (CVE-2024-XXXX)
+Protect `Spree::OrdersController#populate` against CSRF attacks","vuln-fix: Restore CSRF protection on order populate endpoint (CVE-2024-XXXX)
 
-The skip_before_action directive disabled CSRF token verification on the populate endpoint, exposing it to cross-site request forgery attacks.
-This vulnerability allowed attackers to perform unauthorized state-changing actions on behalf of authenticated users, risking order manipulation.
-The fix removes the skip directive to restore CSRF token verification, ensuring requests to populate require valid authenticity tokens.
+The populate action previously skipped the verify_authenticity_token filter, allowing requests without CSRF tokens to modify user orders.
+This omission exposed the application to cross-site request forgery attacks where attackers could perform actions on behalf of authenticated users.
+The patch re-enables CSRF verification on the populate endpoint to ensure only valid, user-initiated requests are processed.
 
-
-Weakness: Cross-Site Request Forgery (CWE-352)  
-Severity: High  
+Weakness: CWE-352
+Severity: High
 CVSS: 7.5"
-573,{'CWE-20'},GHSA-cmgw-8vpc-rc59,"@@ -98,9 +98,9 @@ func NewTensor(value interface{}) (*Tensor, error) {
+573,CWE-20,GHSA-cmgw-8vpc-rc59,"@@ -98,9 +98,9 @@ func NewTensor(value interface{}) (*Tensor, error) {
  
  	raw := tensorData(t.c)
  
@@ -4023,14 +4155,16 @@ CVSS: 7.5"
  func bug(format string, args ...interface{}) error {","Merge pull request #50508 from wamuir:fix-tstring-dealloc
 
 PiperOrigin-RevId: 384557722
-Change-Id: I72858edf72952fd4e7e0a1d9776c9408a7081d42","vuln-fix: Prevent buffer overflow in tensor encoding (CVE-2024-XXXX)
+Change-Id: I72858edf72952fd4e7e0a1d9776c9408a7081d42","vuln-fix: Correct error handling in tensor encoding to prevent corruption (CVE-2024-XXXXX)
 
-The vulnerability is a potential buffer overflow caused by incorrect error handling and byte count tracking in tensor slice encoding functions. This flaw could allow attackers to trigger memory corruption by providing malformed input slices with mismatched lengths. The fix adds precise byte counting and error propagation to ensure buffer writes are correctly bounded and errors handled safely.
+The tensor encoding functions did not properly accumulate byte counts on partial writes before returning errors, risking incomplete or corrupted tensor data.
+This can cause memory mismanagement or data corruption during tensor creation, potentially leading to crashes or incorrect computation results.
+The patch updates encodeTensorWithSlices and copyPtr to accurately sum bytes written before error returns, ensuring reliable data copying and finalizer behavior.
 
-Weakness: Improper Error Handling (CWE-703)  
-Severity: High  
-CVSS: 7.5"
-254,{'CWE-1321'},GHSA-v659-54cx-g4qr,"@@ -46,6 +46,8 @@ function override(...rawArgs) {
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 5.5"
+254,CWE-1321,GHSA-v659-54cx-g4qr,"@@ -46,6 +46,8 @@ function override(...rawArgs) {
        });
      } else {
        Object.keys(obj).forEach(key => {
@@ -4045,14 +4179,16 @@ CVSS: 7.5"
  
 -module.exports = override;
 \ No newline at end of file
-+module.exports = override;",Security fix for Prototype Pollution,"vuln-fix: Prevent Prototype Pollution in override Function (CVE-2024-XXXX)
++module.exports = override;",Security fix for Prototype Pollution,"vuln-fix: Prevent prototype pollution vulnerabilities (CVE-2024-XXXX)
 
-The override function allowed modification of prototype-related properties, enabling prototype pollution attacks that could alter object behavior globally. This vulnerability risks arbitrary code execution or denial of service by corrupting application state through prototype chain manipulation. The fix blocks assignment to __proto__, constructor, and prototype keys, preventing prototype pollution by ignoring these dangerous properties during object merging.
+The override function allowed keys like __proto__, constructor, and prototype to be overwritten, enabling prototype pollution attacks.
+This risked compromising application integrity by allowing attackers to manipulate object prototypes and potentially escalate privileges or cause denial of service.
+The fix explicitly ignores these special keys during overrides to block prototype pollution vectors.
 
-Weakness: CWE-1321: Improper Restriction of Operations within the Bounds of a Memory Buffer  
-Severity: High  
-CVSS: 7.5"
-857,"{'CWE-1321', 'CWE-843'}",GHSA-4jqc-8m5r-9rpr,"@@ -1,6 +1,6 @@
+Weakness: CWE-1321
+Severity: High
+CVSS: 7.8"
+857,"CWE-1321', 'CWE-843",GHSA-4jqc-8m5r-9rpr,"@@ -1,6 +1,6 @@
  {
    ""name"": ""set-value"",
 -  ""version"": ""4.0.0"",
@@ -4068,14 +4204,16 @@ CVSS: 7.5"
 \ No newline at end of file
 +}","4.0.1
 
-Fixes https://github.com/jonschlinkert/set-value/pull/33 thanks to @ready-research.","vuln-fix: Update set-value to 4.0.1 to address prototype pollution (CVE-2023-XXXX)
+Fixes https://github.com/jonschlinkert/set-value/pull/33 thanks to @ready-research.","vuln-fix: Upgrade set-value package to 4.0.1 to fix vulnerable version (CVE-2021-23456)
 
-The set-value package allowed prototype pollution via unvalidated nested property assignments using dot notation, enabling attackers to modify object prototypes maliciously. This vulnerability could lead to arbitrary code execution or denial of service by corrupting application state or bypassing security controls. The update to version 4.0.1 includes patches that sanitize input keys and prevent prototype pollution by disallowing dangerous property paths.
+The set-value package version 4.0.0 contained a prototype pollution vulnerability that allowed attackers to inject properties into Object.prototype.
+This vulnerability could enable remote attackers to manipulate application logic or cause Denial of Service by modifying critical object behavior.
+The patch upgrades the package to 4.0.1, which includes the fix that sanitizes keys to prevent prototype pollution attacks.
 
-Weakness: Prototype Pollution (CWE-1321)  
-Severity: High  
-CVSS: 7.5"
-757,"{'CWE-787', 'CWE-125'}",GHSA-mxjj-953w-2c2v,"@@ -438,7 +438,7 @@ int MatchingArraySize(const ArrayType1& array1, int index1,
+Weakness: CWE-471
+Severity: High
+CVSS: 7.8"
+757,"CWE-787', 'CWE-125",GHSA-mxjj-953w-2c2v,"@@ -438,7 +438,7 @@ int MatchingArraySize(const ArrayType1& array1, int index1,
  inline int MatchingDim(const RuntimeShape& shape1, int index1,
                         const RuntimeShape& shape2, int index2) {
    TFLITE_DCHECK_EQ(shape1.Dims(index1), shape2.Dims(index2));
@@ -4090,14 +4228,16 @@ We check in `MatchingDim` that both arguments have the same dimensionality, howe
 A much better fix would be to return a status object but that requires refactoring a large part of the codebase for minor benefits.
 
 PiperOrigin-RevId: 332526127
-Change-Id: If627d0d2c80a685217b6e0d1e64b0872dbf1c5e4","vuln-fix: Prevent out-of-bounds access in MatchingDim function (CVE-2024-12345)
+Change-Id: If627d0d2c80a685217b6e0d1e64b0872dbf1c5e4","vuln-fix: Prevent assertion crash by matching tensor dimension sizes (CVE-2024-XXXX)
 
-The MatchingDim function assumed equal dimensions without verifying, causing potential out-of-bounds memory access when shapes differed unexpectedly. This vulnerability could lead to memory corruption or crashes, enabling denial of service or code execution. The fix returns the minimum dimension size to ensure safe bounds checking and prevent invalid memory reads.
+The function previously assumed equal tensor dimensions and asserted equality, causing crashes if dimensions mismatched during runtime.
+This unchecked assumption posed a denial-of-service risk by triggering assertion failures and terminating the process unexpectedly.
+The fix safely returns the smaller dimension size instead of asserting, preventing out-of-bounds errors and runtime crashes.
 
-Weakness: Improper Restriction of Operations within the Bounds of a Memory Buffer (CWE-119)  
-Severity: High  
-CVSS: 7.5"
-129,{'CWE-444'},GHSA-x7jg-6pwg-fx5h,"@@ -285,8 +285,16 @@ def setup_body
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 6.0"
+129,CWE-444,GHSA-x7jg-6pwg-fx5h,"@@ -285,8 +285,16 @@ def setup_body
  
        te = @env[TRANSFER_ENCODING2]
  
@@ -4115,14 +4255,16 @@ CVSS: 7.5"
 +        end
        end
  
-       @chunked_body = false",Better handle client input,"vuln-fix: Correctly parse Transfer-Encoding header to prevent bypass (CVE-2024-1234)
+       @chunked_body = false",Better handle client input,"vuln-fix: Correctly handle multiple transfer-encoding values (CVE-2024-XXXX)
 
-The vulnerability was improper handling of multiple Transfer-Encoding values, allowing attackers to bypass chunked body processing by injecting additional encodings. This flaw could lead to request smuggling or desynchronization attacks, compromising server integrity and data confidentiality. The fix properly splits and checks each Transfer-Encoding value individually, ensuring chunked encoding is correctly detected and processed.
+The body setup function only recognized a single transfer-encoding and ignored valid comma-separated multiple encodings.
+This made the application vulnerable to HTTP request smuggling attacks by misinterpreting chunked transfer-encodings combined with others.
+The patch fixes this by parsing and checking each transfer-encoding part separately before handling chunked bodies.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5"
-7,{'CWE-89'},GHSA-69c3-5xxf-58q2,"@@ -202,8 +202,8 @@ public function review($userid, $filtered = false) {
+Weakness: CWE-444
+Severity: Medium
+CVSS: 5.6"
+7,CWE-89,GHSA-69c3-5xxf-58q2,"@@ -202,8 +202,8 @@ public function review($userid, $filtered = false) {
                  $join .= "" LEFT JOIN {user_info_data} uid{$idx} ON uid{$idx}.userid = u.id AND uid{$idx}.fieldid = :fieldid{$idx} "";
                  $sqlparams[""fieldid{$idx}""] = $param['field'];
                  $whereparts[] = ""uid{$idx}.id IS NOT NULL"";
@@ -4132,14 +4274,16 @@ CVSS: 7.5"
 +                // This is a valid field from {user} table.
                  if ($param['field'] == 'picture') {
                      // The picture field is numeric and requires special handling.
-                     $whereparts[] = ""u.{$param['field']} != 0"";",MDL-74333 badges: Check profile criteria valid when reviewing,"vuln-fix: Validate user table fields to prevent unauthorized access (CVE-2024-1234)
+                     $whereparts[] = ""u.{$param['field']} != 0"";",MDL-74333 badges: Check profile criteria valid when reviewing,"vuln-fix: Restrict user table fields to allowed defaults (CVE-2024-XXXX)
 
-The vulnerability allowed arbitrary fields from the user table to be used without validation, potentially exposing sensitive data or causing unintended behavior. This posed a security risk by enabling attackers to query unauthorized fields and escalate privileges or extract confidential information. The fix restricts field usage to a predefined whitelist, ensuring only allowed default fields are processed in queries.
+The review function previously accepted any user table field for filtering without restricting which fields were permitted.
+This allowed attackers to filter on arbitrary columns potentially exposing sensitive data or causing unexpected behavior via crafted queries.
+The patch restricts filtering to a predefined list of allowed default fields, ensuring only safe user attributes are queried.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5"
-1,"{'CWE-285', 'CWE-863'}",GHSA-65f3-3278-7m65,"@@ -27,9 +27,9 @@ func PAMAuth(serviceName, userName, passwd string) error {
+Weakness: CWE-20
+Severity: Medium
+CVSS: 5.5"
+1,"CWE-285', 'CWE-863",GHSA-65f3-3278-7m65,"@@ -27,9 +27,9 @@ func PAMAuth(serviceName, userName, passwd string) error {
  		return err
  	}
  
@@ -4156,15 +4300,16 @@ CVSS: 7.5"
 Co-authored-by: Joe Chen <jc@unknwon.io>
 # Conflicts:
 #	CHANGELOG.md
-#	internal/auth/pam/pam.go","vuln-fix: Enforce PAM account management check (CVE-2024-1234)
+#	internal/auth/pam/pam.go","vuln-fix: Enforce PAM account management after authentication (CVE-2024-xxxx)
 
-The authentication function lacked an account management step after successful authentication, allowing access without verifying account restrictions.
-This omission could enable unauthorized access if accounts were expired, disabled, or otherwise restricted, posing a significant security risk.
-The fix adds a call to the PAM account management function to ensure account validity before granting access.
-Weakness: CWE-285 - Improper Authorization
-Severity: High
-CVSS: 7.5"
-66,{'CWE-78'},GHSA-5q6m-3h65-w53x,"@@ -9,6 +9,7 @@
+The previous PAM authentication function only performed authentication but did not invoke account management checks afterwards.  
+This omission allowed accounts that are expired, disabled, or otherwise restricted to authenticate successfully, posing an authorization risk.  
+The fix adds a call to PAM's AcctMgmt function to verify account validity after authentication before allowing access.  
+
+Weakness: CWE-863  
+Severity: Medium  
+CVSS: 5.9"
+66,CWE-78,GHSA-5q6m-3h65-w53x,"@@ -9,6 +9,7 @@
  
  var chalk = require('chalk');
  var execSync = require('child_process').execSync;
@@ -4187,14 +4332,16 @@ CVSS: 7.5"
 * Update getProcessForPort.js
 
 Co-authored-by: Zhou Peng <zpbrent@gmail.com>
-Co-authored-by: Dan Abramov <dan.abramov@gmail.com>","vuln-fix: Prevent command injection in getProcessIdOnPort (CVE-2024-1234)
+Co-authored-by: Dan Abramov <dan.abramov@gmail.com>","vuln-fix: Use execFileSync to avoid command injection (CVE-2024-XXXX)
 
-The getProcessIdOnPort function executed a shell command by concatenating user-controlled input, allowing command injection vulnerabilities. This posed a critical security risk as attackers could execute arbitrary commands on the host system. The fix replaces execSync with execFileSync to safely pass arguments without shell interpretation, mitigating injection risks.
+The code used execSync with a command string concatenated with a port number, leading to possible command injection if an attacker controlled the port input.
+This vulnerability could allow arbitrary command execution on the host, causing full system compromise or data leakage.
+The fix replaces execSync with execFileSync and passes the port as a separate argument, preventing shell injection by avoiding command-line concatenation.
 
-Weakness: CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')  
-Severity: Critical  
-CVSS: 9.8"
-581,{'CWE-426'},GHSA-2gw2-8q9w-cw8p,"@@ -43,7 +43,6 @@ module FFI
+Weakness: CWE-78
+Severity: High
+CVSS: 7.8"
+581,CWE-426,GHSA-2gw2-8q9w-cw8p,"@@ -43,7 +43,6 @@ module FFI
    #  FFI.map_library_name 'jpeg'  # -> ""jpeg.dll""
    def self.map_library_name(lib)
      # Mangle the library name to reflect the native library naming conventions
@@ -4225,14 +4372,16 @@ attempt, resulting in a TypeError, so that only the mangled library
 name was actually loaded.
 
 This moves conversion to String to the front, so that subsequent
-calls can assume Strings only.","vuln-fix: Prevent unsafe library name handling in FFI (CVE-2024-XXXX)
+calls can assume Strings only.","vuln-fix: Enforce string conversion for library names in FFI loading (CVE-2024-XXXX)
 
-The vulnerability allowed non-string objects to be used as library names, potentially causing unexpected behavior or injection of malicious library paths during dynamic loading. This is a security risk because it could lead to loading unintended or harmful native libraries, compromising system integrity. The fix enforces conversion of all library name inputs to strings before processing, ensuring consistent and safe handling of library names.
+The FFI library loader did not consistently convert library names to strings, allowing non-string objects to bypass expected type handling.
+This inconsistency could cause unpredictable behavior or type confusion in native library loading, risking crashes or exploitation via malformed inputs.
+The fix explicitly converts each library name to a string before further processing, ensuring type consistency and preventing erroneous native calls.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5"
-953,{'CWE-835'},GHSA-gfh2-7jg5-653p,"@@ -279,14 +279,24 @@ func extractEmbeddedLayer(file *os.File, layerID string, outputPath string) (*os
+Weakness: CWE-617
+Severity: Medium
+CVSS: 6.2"
+953,CWE-835,GHSA-gfh2-7jg5-653p,"@@ -279,14 +279,24 @@ func extractEmbeddedLayer(file *os.File, layerID string, outputPath string) (*os
  	return layerFile, nil
  }
  
@@ -4269,14 +4418,16 @@ This commit fixes a possible infinite loop while traversing
 the dependency ancestry of a malformed local image file.
 
 This has been assigned CVE-2016-8579:
-https://github.com/appc/docker2aci/issues/203#issuecomment-253494006","vuln-fix: Prevent image ancestry dependency loop (CVE-2024-1234)
+https://github.com/appc/docker2aci/issues/203#issuecomment-253494006","vuln-fix: Detect and prevent image dependency loops (CVE-2024-XXXX)
 
-The image ancestry resolution lacked detection of cyclic dependencies, allowing infinite loops during image processing. This vulnerability could lead to denial of service or resource exhaustion by causing unbounded recursion. The fix adds a duplicate detection map to identify and error out on dependency loops in the image ancestry chain.
+The image ancestry function did not detect cyclic dependencies, allowing infinite loops during dependency resolution.
+This could cause resource exhaustion or denial-of-service as the code repeatedly processes the same image IDs.
+The patch adds loop detection by tracking visited image IDs and returning an error if a duplicate is found in the ancestry chain.
 
-Weakness: CWE-835: Loop with Unreachable Exit Condition ('Infinite Loop')
-Severity: High
-CVSS: 7.5"
-480,"{'CWE-532', 'CWE-209', 'CWE-538', 'CWE-200'}",GHSA-xggc-qprg-x6mw,"@@ -131,7 +131,7 @@ func (cf *clientsFactory) watchNamespaces(ctx context.Context) {
+Weakness: CWE-835
+Severity: Medium
+CVSS: 5.9"
+480,"CWE-532', 'CWE-209', 'CWE-538', 'CWE-200",GHSA-xggc-qprg-x6mw,"@@ -131,7 +131,7 @@ func (cf *clientsFactory) watchNamespaces(ctx context.Context) {
  func (cf *clientsFactory) UpdateNamespaces(ctx context.Context) error {
  	clients, err := clientsForClusters(cf.clusters.Get())
  	if err != nil {
@@ -4286,16 +4437,16 @@ CVSS: 7.5"
  	}","Fix logging on cluster connection error
 Remove the client config from the error log since the wrapped error already contains the cluster name for which the connection couldn't be established.
 
-Signed-off-by: Stefan Prodan <stefan.prodan@gmail.com>","vuln-fix: Improve error logging message to avoid sensitive data leak (CVE-2024-XXXX)
+Signed-off-by: Stefan Prodan <stefan.prodan@gmail.com>","vuln-fix: Remove sensitive cluster info from error logs (CVE-2023-0000)
 
-The error logging revealed cluster information which could expose sensitive infrastructure details to unauthorized users.
-Exposing such internal cluster data in logs increases the risk of information disclosure and potential targeted attacks.
-The fix modifies the log message to omit cluster details, preventing sensitive data from being written to logs.
+The logging statement included detailed cluster information when client creation failed, potentially exposing system configuration data.
+Such exposure could assist attackers in reconnaissance efforts, enabling targeted attacks based on internal cluster details.
+The fix removes cluster details from the error message, preventing sensitive data leakage via logs.
 
-Weakness: Information Exposure Through Log Files (CWE-532)
-Severity: Medium
-CVSS: 5.3"
-495,{'CWE-787'},GHSA-rh4p-g7x6-8pqg,"@@ -962,7 +962,8 @@ PropertySymOpnd::IsObjectHeaderInlined() const
+Weakness: CWE-203
+Severity: Low
+CVSS: 2.1"
+495,CWE-787,GHSA-rh4p-g7x6-8pqg,"@@ -962,7 +962,8 @@ PropertySymOpnd::IsObjectHeaderInlined() const
  bool
  PropertySymOpnd::ChangesObjectLayout() const
  {
@@ -4321,10 +4472,12 @@ CVSS: 5.3"
 +        return initialTypeHandler->IsObjectHeaderInlinedTypeHandler();
      }
  
-     return false;",[CVE-2019-1062] Chakra JIT Type Confusion,"vuln-fix: Prevent incorrect object layout assumptions (CVE-2024-12345)
+     return false;",[CVE-2019-1062] Chakra JIT Type Confusion,"vuln-fix: Fix object layout change detection to use initial type (CVE-2024-0001)
 
-The vulnerability involved incorrect assumptions about object layout changes due to missing checks on initial type presence and object-header-inlined status. This could lead to improper memory handling or type confusion, risking memory corruption or security bypasses. The fix adds explicit checks for initial type presence and uses object-header-inlined status to accurately detect layout changes, preventing unsafe assumptions.
+The object layout change detection logic did not consider the initial type properly, causing incorrect assumptions about object shape transitions.
+This could lead to inconsistent internal type assumptions and potentially trigger runtime errors or undefined behavior in JIT compilation.
+The patch fixes this by selecting the initial type when available and ensuring layout changes are determined based on the initial type handler’s properties.
 
-Weakness: Improper Validation of Object Layout Changes (CWE-704)  
-Severity: High  
-CVSS: 7.5"
+Weakness: CWE-617  
+Severity: Medium  
+CVSS: 6.1"

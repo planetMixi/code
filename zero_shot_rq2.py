@@ -18,17 +18,17 @@ if not api_key:
 client = OpenAI(api_key=api_key)
 
 
-input_file = "subsets/subset_1.json"
-output_file = "secom_zero_shot_rq2_subset1.csv"
+input_file = "subsets/subset_4.json"
+output_file = "secom_zero_shot_rq2_subset4.csv"
 results = []
 
 # Read the JSON file into a DataFrame
 df = pd.read_json(input_file, orient='table')
 
-count = 0
+#count = 0
 for i, row in tqdm(df.iterrows(), total=len(df), desc="Generating SECOM messages"):
-    if count >= 10:
-        break
+    # if count >= 10:
+    #     break
 
     try:
         vuln_id = row.get("vuln_id", "")
@@ -59,7 +59,7 @@ for i, row in tqdm(df.iterrows(), total=len(df), desc="Generating SECOM messages
             "generated_secom_message": generated
         })
 
-        count += 1  
+        #count += 1  
     except Exception as e:
         print(f"Error: {str(e)}")
 

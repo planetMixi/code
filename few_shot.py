@@ -14,16 +14,16 @@ if not api_key:
     raise ValueError("OPENAI_API_KEY not found in environment variables. Please check your .env file.")
 client = OpenAI(api_key=api_key)
 
-input_file = "subsets/subset_1.json"
-output_file = "secom_few_shot_1.csv"
+input_file = "subsets/subset_5.json"
+output_file = "secom_few_shot_subset5.csv"
 results = []
 
 df = pd.read_json(input_file, orient='table')
 
-count = 0
+#count = 0
 for i, row in tqdm(df.iterrows(), total=len(df), desc="Generating SECOM messages"):
-    if count >= 10:
-        break
+    # if count >= 10:
+    #     break
     try:
         vuln_id = str(row.get("vuln_id", "") or "")
         code_diff = str(row.get("code_diff", "") or "")
@@ -52,7 +52,7 @@ for i, row in tqdm(df.iterrows(), total=len(df), desc="Generating SECOM messages
             "original_message": original_message,
             "generated_secom_message": generated
         })
-        count += 1 
+        #count += 1 
 
     except Exception as e:
         print(f"Error processing row {i}: {e}")
@@ -64,7 +64,7 @@ for i, row in tqdm(df.iterrows(), total=len(df), desc="Generating SECOM messages
             "original_message": original_message,
             "generated_secom_message": f"Error: {str(e)}"
         })
-        count += 1  
+        #count += 1  
 
 # Save results
 df = pd.DataFrame(results)[['id', 'cwe_id', 'vuln_id', 'code_diff', 'original_message', 'generated_secom_message']]

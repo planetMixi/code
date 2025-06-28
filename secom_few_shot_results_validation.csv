@@ -1,0 +1,501 @@
+vuln_id,generated_vuln_id,vuln_id_match,original_weakness,generated_weakness,weakness_match,original_severity,generated_severity,severity_match,original_cvss,generated_cvss,cvss_match
+GHSA-h2wq-prv9-2f56,cve-2024-0001,False,cwe-20,cwe-617,False,medium,medium,True,5.5,6.0,False
+GHSA-2xw8-j43j-5vxp,,False,cwe-79,cwe-601,False,medium,medium,True,5.4,5.4,True
+GHSA-fx5c-h9f6-rv7c,,False,cwe-617,cwe-617,True,medium,medium,True,6.5,5.9,False
+GHSA-pjpc-87mp-4332,cve-2024-0001,False,cwe-79,cwe-79,True,critical,medium,False,9.6,5.4,False
+GHSA-763j-q7wv-vf3m,,False,cwe-601,cwe-601,True,high,medium,False,7.1,5.3,False
+GHSA-6mv9-hcx5-7mhh,cve-2024-0001,False,cwe-918,cwe-918,True,medium,medium,True,5.3,5.3,True
+GHSA-fq86-3f29-px2c,,False,cwe-617,cwe-617,True,medium,medium,True,6.5,5.9,False
+GHSA-h8hx-2c5r-32cf,,False,cwe-352,cwe-352,True,high,medium,False,8.1,5.4,False
+GHSA-4r4m-hjwj-43p8,cve-2024-0001,False,cwe-300,cwe-295,False,low,high,False,0.0,7.8,False
+GHSA-qh9q-34h6-hcv9,cve-2024-0001,False,"cwe-12', 'cwe-22",cwe-22,False,high,high,True,7.5,7.5,True
+GHSA-p4v2-r99v-wjc2,cve-2024-0001,False,cwe-116,cwe-617,False,high,medium,False,7.5,5.9,False
+GHSA-v89p-5hr2-4rh4,,False,cwe-787,cwe-125,False,high,high,True,7.5,7.3,False
+GHSA-mh83-jcw5-rjh8,,False,cwe-611,cwe-611,True,medium,medium,True,6.1,5.8,False
+GHSA-6hfq-h8hq-87mf,,False,cwe-444,cwe-20,False,medium,medium,True,4.8,5.7,False
+GHSA-896r-f27r-55mw,,False,"cwe-1321', 'cwe-915",cwe-471,False,critical,high,False,9.8,7.8,False
+GHSA-jxvf-m3x5-mxwq,cve-2024-0001,False,cwe-1321,cwe-617,False,critical,medium,False,9.8,5.5,False
+GHSA-5x33-h32w-6vr2,,False,cwe-79,cwe-79,True,medium,medium,True,6.1,5.4,False
+GHSA-whr9-vfh2-7hm6,cve-2024-0001,False,cwe-787,cwe-617,False,medium,medium,True,4.5,6.5,False
+GHSA-5f38-9jw2-6r6h,cve-2024-0001,False,"cwe-79', 'cwe-843",cwe-20,False,medium,medium,True,5.4,5.3,False
+GHSA-f4rr-5m7v-wxcw,cve-2024-0001,False,cwe-843,cwe-617,False,medium,medium,True,5.5,5.9,False
+GHSA-h6xx-pmxh-3wgp,,False,"cwe-285', 'cwe-287",cwe-285,False,high,medium,False,8.1,5.9,False
+GHSA-wm7h-9275-46v2,,False,cwe-248,cwe-617,False,high,medium,False,7.5,6.0,False
+GHSA-p493-635q-r6gr,cve-2024-0001,False,cwe-74,cwe-94,False,medium,high,False,6.8,7.5,False
+GHSA-qm58-cvvm-c5qr,,False,cwe-434,cwe-617,False,high,medium,False,8.1,5.9,False
+GHSA-hjp8-2cm3-cc45,,False,cwe-200,cwe-200,True,high,medium,False,7.5,5.8,False
+GHSA-85rr-4rh9-hhwh,,False,"cwe-119', 'cwe-20",cwe-617,False,high,high,True,7.5,7.8,False
+GHSA-qr82-2c78-4m8h,,False,cwe-824,cwe-20,False,high,medium,False,7.8,5.8,False
+GHSA-xhp9-4947-rq78,,False,cwe-755,cwe-617,False,critical,medium,False,9.8,5.9,False
+GHSA-rjmf-p882-645m,cve-2024-0001,False,cwe-295,cwe-311,False,medium,high,False,6.8,7.8,False
+GHSA-hf4q-52x6-4p57,,False,cwe-79,cwe-20,False,medium,medium,True,4.8,5.0,False
+GHSA-75c5-f4gw-38r9,,False,cwe-74,cwe-22,False,high,high,True,7.8,7.5,False
+GHSA-m7j4-fhg6-xf5v,cve-2024-0001,False,cwe-1321,cwe-471,False,high,high,True,7.3,7.5,False
+GHSA-wrwf-pmmj-w989,cve-2024-0001,False,cwe-203,cwe-617,False,medium,high,False,5.9,7.8,False
+GHSA-p9pc-299p-vxgp,,False,cwe-915,,False,medium,low,False,5.3,,False
+GHSA-84cm-v6jp-gjmr,cve-2024-0001,False,cwe-78,cwe-78,True,critical,critical,True,9.8,9.8,True
+GHSA-vmjw-c2vp-p33c,cve-2024-0000,False,cwe-681,cwe-617,False,medium,medium,True,5.5,6.1,False
+GHSA-9vwf-54m9-gc4f,cve-2023-0000,False,"cwe-862', 'cwe-284",cwe-285,False,medium,medium,True,4.3,5.5,False
+GHSA-hwj9-h5mp-3pm3,cve-2024-0000,False,cwe-400,cwe-20,False,medium,low,False,5.3,3.1,False
+GHSA-c7fh-chf7-jr5x,,False,cwe-770,cwe-617,False,high,medium,False,7.5,5.8,False
+GHSA-grw5-g9h2-wpg8,cve-2024-0001,False,cwe-79,cwe-79,True,medium,medium,True,6.8,5.8,False
+GHSA-484f-743f-6jx2,,False,cwe-94,cwe-617,False,medium,medium,True,4.4,5.9,False
+GHSA-pr38-qpxm-g88x,,False,cwe-400,cwe-789,False,high,medium,False,7.5,5.5,False
+GHSA-vq36-27g6-p492,cve-2024-0001,False,cwe-125,cwe-617,False,high,medium,False,8.1,6.4,False
+GHSA-452g-f7fp-9jf7,cve-0000-0000,False,cwe-476,cwe-617,False,low,medium,False,2.5,5.0,False
+GHSA-5rqg-jm4f-cqx7,,False,cwe-835,cwe-617,False,low,medium,False,0.0,5.5,False
+GHSA-7f62-4887-cfv5,,False,cwe-269,cwe-285,False,high,high,True,8.8,7.8,False
+GHSA-g4w7-3qr8-5623,,False,cwe-351,cwe-617,False,critical,medium,False,9.8,6.1,False
+GHSA-hhvc-g5hv-48c6,cve-2024-0001,False,cwe-471,cwe-617,False,medium,medium,True,4.4,5.5,False
+GHSA-r4pj-74mg-8868,,False,cwe-369,cwe-617,False,low,medium,False,2.5,5.9,False
+GHSA-25fx-mxc2-76g7,cve-2024-0001,False,cwe-200,cwe-287,False,high,high,True,7.5,7.8,False
+GHSA-cmc7-mfmr-xqrx,,False,"cwe-480', 'cwe-287",cwe-285,False,high,high,True,7.5,7.7,False
+GHSA-67j9-c52g-w2q9,cve-2024-0001,False,cwe-863,cwe-863,True,medium,high,False,4.9,7.8,False
+GHSA-gf88-j2mg-cc82,,False,cwe-681,cwe-617,False,medium,medium,True,5.5,5.9,False
+GHSA-x4qx-4fjv-hmw6,,False,cwe-190,cwe-617,False,medium,medium,True,6.5,6.0,False
+GHSA-4952-p58q-6crx,cve-2024-0001,False,"cwe-87', 'cwe-79', 'cwe-75",cwe-79,False,high,medium,False,7.4,5.4,False
+GHSA-fjqr-fx3f-g4rv,,False,cwe-78,cwe-20,False,high,medium,False,8.8,5.9,False
+GHSA-vqj2-4v8m-8vrq,cve-2024-0001,False,"cwe-377', 'cwe-668",cwe-367,False,high,medium,False,8.2,5.8,False
+GHSA-4873-36h9-wv49,cve-2024-0001,False,"cwe-787', 'cwe-125', 'cwe-590",cwe-617,False,medium,medium,True,6.3,6.1,False
+GHSA-24x6-8c7m-hv3f,cve-2024-0001,False,cwe-125,cwe-125,True,low,low,True,2.5,2.5,True
+GHSA-hv96-xxx2-5v7w,,False,cwe-311,cwe-311,True,high,medium,False,8.1,5.3,False
+GHSA-xqj7-j8j5-f2xr,,False,cwe-327,cwe-310,False,high,high,True,7.5,7.2,False
+GHSA-rmj8-8hhh-gv5h,,False,cwe-200,cwe-674,False,high,low,False,8.0,2.7,False
+GHSA-jxqv-jcvh-7gr4,,False,"cwe-208', 'cwe-203",cwe-208,False,high,medium,False,7.5,5.5,False
+GHSA-jf9v-q8vh-3fmc,,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.4,True
+GHSA-rg3m-hqc5-344v,,False,cwe-125,cwe-617,False,high,medium,False,7.1,6.0,False
+GHSA-772p-x54p-hjrv,cve-2023-9999,False,cwe-369,cwe-617,False,low,medium,False,2.5,5.9,False
+GHSA-26rr-v2j2-25fh,,False,cwe-91,cwe-285,False,low,high,False,0.0,7.4,False
+GHSA-cf66-xwfp-gvc4,,False,cwe-20,cwe-20,True,high,medium,False,7.5,5.5,False
+GHSA-579h-mv94-g4gp,cve-2024-0001,False,cwe-269,cwe-617,False,critical,medium,False,9.8,5.9,False
+GHSA-f7q6-xxph-mfm8,,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.4,True
+GHSA-qmv4-jgp7-mf68,,False,cwe-284,cwe-942,False,low,medium,False,0.0,5.7,False
+GHSA-39q4-p535-c852,cve-2024-0001,False,cwe-400,cwe-617,False,high,medium,False,7.5,5.9,False
+GHSA-xr38-w74q-r8jv,,False,"cwe-862', 'cwe-863",cwe-863,False,medium,high,False,6.4,7.7,False
+GHSA-q863-cchm-c6c6,cve-2024-0001,False,cwe-89,cwe-89,True,high,high,True,7.5,7.5,True
+GHSA-cph5-m8f7-6c5x,,False,"cwe-697', 'cwe-400",cwe-20,False,high,low,False,7.5,3.1,False
+GHSA-4h47-h3cr-23wh,cve-2024-0001,False,cwe-285,cwe-285,True,medium,medium,True,6.5,5.4,False
+GHSA-rcj2-vvjx-87pm,cve-2024-0001,False,cwe-311,cwe-311,True,medium,critical,False,5.9,5.3,False
+GHSA-gjqc-q9g6-q2j3,,False,cwe-617,cwe-617,True,medium,medium,True,6.5,6.5,True
+GHSA-73rp-q4rx-5grc,,False,"cwe-284', 'cwe-863",cwe-613,False,high,low,False,8.8,2.1,False
+GHSA-4f99-p9c2-3j8x,cve-2024-0001,False,"cwe-125', 'cwe-824",cwe-617,False,high,medium,False,7.8,6.0,False
+GHSA-x752-qjv4-c4hc,,False,cwe-74,cwe-617,False,critical,medium,False,9.8,5.9,False
+GHSA-9p77-mmrw-69c7,cve-2024-0001,False,cwe-476,cwe-617,False,medium,medium,True,6.5,6.1,False
+GHSA-jwf9-w5xm-f437,,False,cwe-125,cwe-617,False,medium,medium,True,5.5,5.5,True
+GHSA-468q-v4jj-485h,,False,cwe-1333,cwe-20,False,high,medium,False,7.5,5.3,False
+GHSA-8rmh-55h4-93h5,,False,cwe-22,cwe-22,True,high,high,True,7.2,7.8,False
+GHSA-gh6x-4whr-2qv4,,False,"cwe-476', 'cwe-125",cwe-125,False,high,medium,False,8.4,5.3,False
+GHSA-wcv5-vrvr-3rx2,,False,cwe-190,cwe-617,False,medium,medium,True,5.5,6.4,False
+GHSA-h3fg-h5v3-vf8m,,False,cwe-352,cwe-352,True,medium,high,False,5.3,7.5,False
+GHSA-cmgw-8vpc-rc59,,False,cwe-20,cwe-617,False,medium,medium,True,5.5,5.5,True
+GHSA-v659-54cx-g4qr,,False,cwe-1321,cwe-1321,True,critical,high,False,9.8,7.8,False
+GHSA-4jqc-8m5r-9rpr,cve-2021-23456,False,"cwe-1321', 'cwe-843",cwe-471,False,high,critical,False,7.3,7.8,False
+GHSA-mxjj-953w-2c2v,,False,"cwe-787', 'cwe-125",cwe-617,False,high,medium,False,7.4,6.0,False
+GHSA-x7jg-6pwg-fx5h,,False,cwe-444,cwe-444,True,high,medium,False,7.5,5.6,False
+GHSA-69c3-5xxf-58q2,,False,cwe-89,cwe-20,False,critical,medium,False,9.8,5.5,False
+GHSA-65f3-3278-7m65,,False,"cwe-285', 'cwe-863",cwe-863,False,high,medium,False,8.2,5.9,False
+GHSA-5q6m-3h65-w53x,,False,cwe-78,cwe-78,True,medium,high,False,5.6,7.8,False
+GHSA-2gw2-8q9w-cw8p,,False,cwe-426,cwe-617,False,high,medium,False,7.8,6.2,False
+GHSA-gfh2-7jg5-653p,,False,cwe-835,cwe-835,True,medium,medium,True,4.0,5.9,False
+GHSA-xggc-qprg-x6mw,cve-2023-0000,False,"cwe-532', 'cwe-209', 'cwe-538', 'cwe-200",cwe-203,False,critical,low,False,9.0,2.1,False
+GHSA-rh4p-g7x6-8pqg,cve-2024-0001,False,cwe-787,cwe-617,False,high,medium,False,7.5,6.1,False
+GHSA-h2fw-93qx-vrcq,,False,cwe-89,cwe-89,True,high,high,True,8.8,7.5,False
+GHSA-wcm2-9c89-wmfm,cve-2024-0001,False,cwe-79,cwe-79,True,low,medium,False,0.0,5.4,False
+GHSA-c94w-c95p-phf8,cve-2024-0001,False,cwe-190,cwe-190,True,medium,medium,True,6.5,5.9,False
+GHSA-vvg4-vgrv-xfr7,,False,cwe-665,cwe-617,False,medium,medium,True,6.3,6.0,False
+GHSA-9rpc-5v9q-5r7f,,False,"cwe-665', 'cwe-20",cwe-617,False,low,medium,False,3.6,6.0,False
+GHSA-8c6g-4xc5-w96c,,False,cwe-908,cwe-787,False,medium,high,False,6.5,7.4,False
+GHSA-4qwp-7c67-jmcc,cve-2024-0001,False,cwe-94,cwe-20,False,critical,medium,False,9.8,5.9,False
+GHSA-gv3v-92v6-m48j,,False,cwe-444,cwe-20,False,critical,medium,False,9.8,5.0,False
+GHSA-269q-hmxg-m83q,,False,"cwe-379', 'cwe-378', 'cwe-668",cwe-276,False,medium,medium,True,5.5,5.7,False
+GHSA-x4g7-fvjj-prg8,,False,cwe-369,cwe-617,False,low,medium,False,2.5,6.4,False
+GHSA-4r8q-gv9j-3xx6,cve-2024-0001,False,cwe-601,cwe-601,True,medium,medium,True,4.3,5.4,False
+GHSA-3wcq-x3mq-6r9p,,False,"cwe-908', 'cwe-200",cwe-787,False,high,medium,False,7.7,5.9,False
+GHSA-8phj-f9w2-cjcc,cve-2024-0001,False,cwe-22,cwe-22,True,high,high,True,8.6,7.5,False
+GHSA-pgcq-h79j-2f69,cve-2024-0001,False,cwe-354,cwe-617,False,high,medium,False,7.0,6.1,False
+GHSA-4wv4-mgfq-598v,cve-2024-0001,False,cwe-94,cwe-94,True,low,critical,False,0.0,9.0,False
+GHSA-cchx-mfrc-fwqr,,False,"cwe-200', 'cwe-287",cwe-617,False,high,medium,False,7.5,5.9,False
+GHSA-7mpx-vg3c-cmr4,,False,cwe-287,cwe-617,False,high,medium,False,8.2,5.5,False
+GHSA-xc7v-wxcw-j472,,False,cwe-200,cwe-682,False,low,medium,False,0.0,5.5,False
+GHSA-hxf9-7h4c-f5jv,,False,cwe-200,cwe-204,False,critical,medium,False,9.1,5.5,False
+GHSA-vfr4-x8j2-3rf9,,False,cwe-369,cwe-617,False,low,medium,False,2.5,5.5,False
+GHSA-j47f-4232-hvv8,,False,cwe-125,cwe-125,True,low,medium,False,2.5,5.9,False
+GHSA-3hxh-8cp2-g4hg,,False,cwe-416,cwe-617,False,medium,medium,True,6.6,6.0,False
+GHSA-434h-p4gx-jm89,,False,cwe-203,cwe-203,True,medium,medium,True,5.3,5.0,False
+GHSA-fq86-3f29-px2c,cve-2024-0001,False,cwe-617,cwe-617,True,medium,medium,True,6.5,6.4,True
+GHSA-rhcw-wjcm-9h6g,,False,cwe-400,cwe-285,False,high,medium,False,7.5,5.4,False
+GHSA-49j7-qghp-5wj8,,False,cwe-94,cwe-367,False,low,critical,False,0.0,5.9,False
+GHSA-3mw4-6rj6-74g5,cve-2024-0001,False,cwe-476,cwe-617,False,medium,medium,True,6.5,6.4,True
+GHSA-q85f-69q7-55h2,,False,cwe-908,cwe-617,False,high,medium,False,7.6,5.7,False
+GHSA-4gp3-p7ph-x2jr,,False,cwe-78,cwe-20,False,critical,medium,False,9.8,5.8,False
+GHSA-gv26-jpj9-c8gq,,False,cwe-754,cwe-617,False,medium,medium,True,5.3,5.9,False
+GHSA-jhq9-wm9m-cf89,,False,cwe-617,cwe-125,False,low,low,True,2.5,3.1,False
+GHSA-23cm-x6j7-6hq3,cve-2024-9999,False,cwe-200,cwe-829,False,medium,high,False,5.9,7.5,False
+GHSA-q26w-wjj2-22vv,,False,cwe-79,cwe-79,True,medium,medium,True,6.1,5.4,False
+GHSA-pwwm-pwx2-2hw7,cve-2024-0001,False,cwe-209,cwe-207,False,medium,medium,True,5.3,5.3,True
+GHSA-5c8j-xr24-2665,,False,cwe-77,cwe-78,False,critical,high,False,9.8,7.8,False
+GHSA-g4h2-gqm3-c9wq,,False,cwe-681,cwe-617,False,low,medium,False,2.5,6.1,False
+GHSA-pqrv-8r2f-7278,,False,cwe-754,cwe-617,False,medium,medium,True,5.9,6.0,True
+GHSA-4p8f-mmfj-r45g,cve-2024-0001,False,cwe-79,cwe-79,True,medium,medium,True,6.1,5.3,False
+GHSA-35m5-8cvj-8783,cve-2024-0001,False,"cwe-916', 'cwe-327', 'cwe-328",cwe-328,False,high,high,True,7.5,7.8,False
+GHSA-5xjx-4xcm-hpcm,cve-2024-0001,False,"cwe-1321', 'cwe-915",cwe-471,False,high,high,True,7.3,7.8,False
+GHSA-4vf2-4xcg-65cx,,False,cwe-369,cwe-20,False,low,medium,False,2.5,5.9,False
+GHSA-crch-j389-5f84,,False,cwe-787,cwe-125,False,low,medium,False,2.5,5.8,False
+GHSA-v6r6-84gr-92rm,cve-2024-0000,False,"cwe-787', 'cwe-119",cwe-617,False,low,medium,False,2.5,6.2,False
+GHSA-rr8m-29g8-8cgc,,False,cwe-89,cwe-89,True,high,high,True,8.8,7.5,False
+GHSA-gvmf-wcx6-p974,,False,cwe-89,cwe-89,True,high,high,True,8.1,7.5,False
+GHSA-cx2r-mf6x-55rx,,False,cwe-79,cwe-20,False,medium,medium,True,4.1,5.5,False
+GHSA-874w-m2v2-mj64,,False,cwe-415,cwe-415,True,critical,high,False,9.8,7.8,False
+GHSA-h9px-9vqg-222h,cve-2024-0001,False,cwe-125,cwe-617,False,low,medium,False,2.5,6.0,False
+GHSA-5qjq-69w6-fg57,cve-2024-0001,False,cwe-79,cwe-79,True,critical,medium,False,10.0,5.3,False
+GHSA-3374-7h99-xr85,,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.4,True
+GHSA-h8v5-p258-pqf4,cve-2024-0001,False,cwe-327,cwe-327,True,medium,high,False,5.4,7.8,False
+GHSA-qqxp-xp9v-vvx6,,False,cwe-79,cwe-79,True,low,medium,False,0.0,5.4,False
+GHSA-hjxc-462x-x77j,cve-2024-0001,False,cwe-367,cwe-352,False,medium,high,False,5.9,7.8,False
+GHSA-374m-jm66-3vj8,,False,cwe-125,cwe-125,True,high,medium,False,7.1,5.3,False
+GHSA-63m4-fhf2-cmf7,,False,cwe-78,cwe-617,False,critical,medium,False,9.8,5.9,False
+GHSA-hc6c-75p4-hmq4,,False,cwe-476,cwe-617,False,low,medium,False,2.5,6.1,False
+GHSA-p2vw-f87c-q597,,False,cwe-863,cwe-285,False,medium,medium,True,6.5,5.4,False
+GHSA-7wv8-g97r-432h,cve-2024-0001,False,cwe-200,cwe-285,False,high,medium,False,7.5,5.4,False
+GHSA-6445-fm66-fvq2,,False,cwe-190,cwe-617,False,medium,medium,True,6.5,5.9,False
+GHSA-mr6r-82x4-f4jj,,False,cwe-203,cwe-203,True,high,medium,False,7.4,5.7,False
+GHSA-2wc6-2rcj-8v76,cve-2024-0001,False,cwe-1240,cwe-617,False,medium,medium,True,6.5,5.9,False
+GHSA-hhrj-wp42-32v3,,False,cwe-209,cwe-20,False,high,low,False,7.5,3.1,False
+GHSA-pgcq-h79j-2f69,,False,cwe-354,cwe-125,False,high,low,False,7.0,2.5,False
+GHSA-c697-r227-pq6h,,False,cwe-434,cwe-79,False,high,medium,False,7.8,5.8,False
+GHSA-4h66-vghf-xg5x,,False,cwe-77,cwe-78,False,critical,high,False,9.8,7.8,False
+GHSA-mv78-g7wq-mhp4,,False,cwe-369,cwe-617,False,low,medium,False,2.5,6.1,False
+GHSA-763g-fqq7-48wg,,False,cwe-611,cwe-611,True,medium,high,False,5.3,7.5,False
+GHSA-3p92-886g-qxpq,cve-2024-0001,False,cwe-201,cwe-617,False,medium,medium,True,5.1,5.9,False
+GHSA-f7f4-hqp2-7prc,cve-2024-0001,False,cwe-20,cwe-617,False,high,low,False,7.5,3.1,False
+GHSA-27j5-4p9v-pp67,,False,cwe-617,cwe-617,True,medium,medium,True,5.5,6.1,False
+GHSA-vmjw-c2vp-p33c,,False,cwe-681,cwe-617,False,medium,medium,True,5.5,6.2,False
+GHSA-hjgp-8ffr-hwwr,,False,cwe-311,cwe-311,True,low,high,False,0.0,7.7,False
+GHSA-m3xv-x3ph-mq22,cve-2024-0001,False,cwe-94,cwe-601,False,critical,medium,False,9.8,5.4,False
+GHSA-57f3-gghm-9mhc,cve-2024-0001,False,cwe-400,cwe-20,False,high,low,False,7.5,3.1,False
+GHSA-hrg5-737c-2p56,,False,cwe-20,cwe-617,False,medium,medium,True,5.5,5.9,False
+GHSA-9697-98pf-4rw7,,False,cwe-125,cwe-617,False,medium,medium,True,5.5,6.4,False
+GHSA-q7q9-w24q-cpgh,cve-2024-0001,False,cwe-79,cwe-79,True,medium,medium,True,6.1,5.4,False
+GHSA-pc58-wgmc-hfjr,,False,cwe-1321,cwe-471,False,high,high,True,7.5,7.5,True
+GHSA-vcfc-9wcp-j623,cve-2024-0001,False,cwe-79,cwe-79,True,medium,medium,True,6.1,5.4,False
+GHSA-g6vq-wc8w-4g69,cve-2024-0001,False,cwe-352,cwe-352,True,medium,medium,True,4.3,5.9,False
+GHSA-whv6-rj84-2vh2,,False,cwe-79,cwe-79,True,low,medium,False,0.0,5.4,False
+GHSA-xw79-hhv6-578c,cve-2024-0001,False,cwe-79,cwe-79,True,low,medium,False,0.0,5.3,False
+GHSA-cwv3-863g-39vx,cve-2024-0001,False,"cwe-835', 'cwe-674",cwe-617,False,high,medium,False,7.3,6.0,False
+GHSA-5pg2-qg87-vmj7,cve-2024-0001,False,cwe-79,cwe-20,False,medium,medium,True,5.4,5.5,True
+GHSA-7ggw-h8pp-r95r,,False,cwe-613,cwe-384,False,low,medium,False,0.0,5.8,False
+GHSA-fq6p-6334-8gr4,,False,cwe-401,cwe-401,True,medium,medium,True,4.3,5.0,False
+GHSA-5vr6-hm68-5j9p,,False,cwe-79,cwe-79,True,medium,medium,True,6.1,5.3,False
+GHSA-grmf-4fq6-2r79,,False,cwe-119,cwe-787,False,critical,high,False,9.8,7.4,False
+GHSA-hwv5-w8gm-fq9f,cve-2024-0001,False,cwe-22,cwe-22,True,low,high,False,3.5,7.8,False
+GHSA-5q5w-mqp6-g2gh,,False,"cwe-434', 'cwe-79",cwe-20,False,medium,medium,True,5.4,5.5,True
+GHSA-2wwc-w2gw-4329,,False,cwe-787,cwe-617,False,high,medium,False,7.5,5.9,False
+GHSA-9p47-w5xp-f4xr,cve-2024-0001,False,cwe-311,cwe-311,True,low,medium,False,0.0,5.6,False
+GHSA-394c-5j6w-4xmx,,False,cwe-400,cwe-617,False,high,medium,False,7.5,5.9,False
+GHSA-f8m6-h2c7-8h9x,,False,cwe-400,cwe-400,True,high,medium,False,7.5,5.5,False
+GHSA-35g4-qx3c-vjhx,cve-2024-0001,False,cwe-306,cwe-617,False,medium,medium,True,6.5,5.9,False
+GHSA-wcv5-qrj6-9pfm,cve-2024-2745,False,"cwe-787', 'cwe-120",cwe-617,False,low,medium,False,2.5,6.4,False
+GHSA-56cx-wf47-hx7w,,False,cwe-307,cwe-307,True,medium,medium,True,5.3,5.9,False
+GHSA-v6vg-pxvv-g5cq,,False,cwe-269,cwe-285,False,medium,high,False,6.5,7.7,False
+GHSA-vpwq-6cp4-ffqc,,False,cwe-79,cwe-20,False,medium,medium,True,5.4,5.5,True
+GHSA-8rmh-55h4-93h5,cve-2024-0001,False,cwe-22,cwe-22,True,high,critical,False,7.2,9.1,False
+GHSA-j6p2-cx3w-6jcp,,False,cwe-79,cwe-79,True,low,medium,False,0.0,5.4,False
+GHSA-h5g4-ppwx-48q2,,False,cwe-20,cwe-617,False,medium,medium,True,5.5,5.9,False
+GHSA-jff2-qjw8-5476,,False,"cwe-77', 'cwe-78",cwe-78,False,high,critical,False,8.9,9.0,True
+GHSA-qw5h-7f53-xrp6,,False,cwe-674,cwe-787,False,low,medium,False,2.5,5.9,False
+GHSA-4hvf-hxvg-f67v,,False,"cwe-787', 'cwe-125",cwe-125,False,high,medium,False,8.8,5.5,False
+GHSA-wqwf-x5cj-rg56,cve-2024-0001,False,cwe-78,cwe-78,True,high,high,True,7.1,7.8,False
+GHSA-j8qc-5fqr-52fp,cve-2024-0001,False,cwe-369,cwe-617,False,low,medium,False,2.5,6.4,False
+GHSA-wf5x-cr3r-xr77,cve-2024-0001,False,cwe-674,cwe-617,False,high,medium,False,8.3,5.9,False
+GHSA-wf5p-c75w-w3wh,,False,cwe-476,cwe-617,False,high,low,False,7.8,2.7,False
+GHSA-m7fm-4jfh-jrg6,,False,cwe-416,cwe-416,True,high,high,True,7.8,7.8,True
+GHSA-55j9-849x-26h4,cve-2024-0001,False,cwe-74,cwe-134,False,high,high,True,8.2,7.5,False
+GHSA-xrr4-74mc-rpjc,,False,cwe-59,cwe-59,True,high,medium,False,7.5,5.5,False
+GHSA-q5wr-fvpq-p67g,cve-2024-0001,False,"cwe-787', 'cwe-190",cwe-787,False,high,high,True,8.8,7.2,False
+GHSA-j3mj-fhpq-qqjj,,False,cwe-617,cwe-617,True,medium,medium,True,6.5,6.5,True
+GHSA-69q2-p9xp-739v,cve-2024-0001,False,cwe-91,cwe-611,False,critical,high,False,9.8,7.8,False
+GHSA-5875-p652-2ppm,,False,cwe-668,cwe-20,False,medium,medium,True,4.3,5.0,False
+GHSA-h4mx-xv96-2jgm,,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.4,True
+GHSA-43m5-c88r-cjvv,,False,cwe-352,cwe-352,True,medium,medium,True,6.8,5.4,False
+GHSA-wx69-rvg3-x7fc,cve-2024-0001,False,cwe-79,cwe-20,False,critical,medium,False,9.0,5.5,False
+GHSA-gv26-jpj9-c8gq,cve-2023-9999,False,cwe-754,cwe-617,False,medium,medium,True,5.3,5.9,False
+GHSA-xf7w-r453-m56c,cve-2024-0001,False,cwe-59,cwe-617,False,high,medium,False,7.5,5.9,False
+GHSA-g25h-jr74-qp5j,,False,cwe-20,cwe-617,False,high,medium,False,7.8,5.9,False
+GHSA-p9m8-27x8-rg87,,False,cwe-94,cwe-203,False,critical,low,False,10.0,2.1,False
+GHSA-73qw-ww62-m54x,,False,cwe-77,cwe-78,False,critical,high,False,10.0,7.8,False
+GHSA-8p5c-f328-9fvv,,False,cwe-22,cwe-22,True,critical,critical,True,9.8,7.5,False
+GHSA-hf44-3mx6-vhhw,cve-2024-9999,False,cwe-400,cwe-617,False,medium,medium,True,6.5,6.0,False
+GHSA-hp68-xhvj-x6j6,,False,cwe-400,cwe-79,False,medium,medium,True,5.3,5.5,False
+GHSA-fh37-cx83-q542,,False,"cwe-306', 'cwe-269', 'cwe-287",cwe-285,False,medium,medium,True,5.3,5.4,False
+GHSA-7488-6x3r-23w5,cve-2024-1234,False,cwe-22,cwe-22,True,critical,high,False,9.3,7.5,False
+GHSA-f5fj-7265-jxhj,cve-2024-0001,False,cwe-200,cwe-93,False,medium,medium,True,5.3,5.5,False
+GHSA-29q4-gxjq-rx5c,,False,"cwe-59', 'cwe-690', 'cwe-917', 'cwe-74', 'cwe-62', 'cwe-77",cwe-74,False,low,medium,False,0.0,5.0,False
+GHSA-f6g6-54hm-fhxv,cve-2024-0001,False,"cwe-362', 'cwe-119",cwe-617,False,high,medium,False,8.1,5.3,False
+GHSA-hrf4-hcpc-3345,cve-2024-0001,False,cwe-190,cwe-20,False,high,medium,False,7.1,5.7,False
+GHSA-x2p8-rgfm-qw3v,cve-2024-0001,False,cwe-863,cwe-617,False,critical,medium,False,9.8,5.9,False
+GHSA-qc36-q22q-cjw3,cve-2024-0001,False,cwe-147,cwe-617,False,critical,low,False,9.8,3.2,False
+GHSA-j8cx-j9j2-f29w,,False,cwe-922,cwe-200,False,low,medium,False,0.0,5.0,False
+GHSA-95hx-62rh-gg96,,False,cwe-79,cwe-79,True,high,medium,False,8.0,5.4,False
+GHSA-mj63-64x7-57xf,,False,cwe-22,cwe-22,True,critical,high,False,9.8,7.5,False
+GHSA-4c4g-crqm-xrxw,cve-2024-0001,False,cwe-908,cwe-617,False,medium,medium,True,4.4,6.1,False
+GHSA-9xh4-23q4-v6wr,cve-2024-0001,False,"cwe-476', 'cwe-787', 'cwe-125",cwe-617,False,low,medium,False,2.5,6.4,False
+GHSA-66rh-8fw6-59q6,,False,"cwe-915', 'cwe-20",cwe-1321,False,high,high,True,7.5,7.8,False
+GHSA-82j4-vr25-x394,,False,cwe-79,cwe-20,False,medium,medium,True,5.4,5.8,False
+GHSA-wvjw-p9f5-vq28,,False,cwe-755,cwe-125,False,low,medium,False,2.5,5.9,False
+GHSA-m52x-29pq-w3vv,,False,cwe-79,cwe-79,True,medium,medium,True,4.8,5.8,False
+GHSA-g7xr-v82w-qggq,cve-2024-0001,False,cwe-94,cwe-20,False,critical,medium,False,9.8,5.3,False
+GHSA-xg72-6c83-ghh4,,False,cwe-79,cwe-20,False,medium,medium,True,4.8,5.8,False
+GHSA-gm9x-q798-hmr4,cve-2024-0001,False,cwe-78,cwe-78,True,high,high,True,7.2,7.8,False
+GHSA-hc72-vj3g-5g2g,,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.4,True
+GHSA-q97v-764g-r2rp,cve-2024-0000,False,cwe-284,cwe-78,False,high,critical,False,8.8,9.0,False
+GHSA-xqj7-j8j5-f2xr,,False,cwe-327,cwe-330,False,high,high,True,7.5,7.8,False
+GHSA-8xqr-4cpm-wx7g,cve-2024-0001,False,cwe-79,cwe-79,True,low,medium,False,0.0,5.5,False
+GHSA-c265-37vj-cwcc,cve-2020-2704,False,cwe-502,cwe-502,True,high,critical,False,8.1,9.8,False
+GHSA-9m95-8hx6-7p9v,cve-2024-0001,False,cwe-20,cwe-59,False,medium,high,False,5.5,7.4,False
+GHSA-w3v3-cxq5-9vr4,cve-2024-0001,False,"cwe-276', 'cwe-284",cwe-285,False,medium,high,False,6.3,7.5,False
+GHSA-qgmg-gppg-76g5,,False,cwe-1333,cwe-400,False,medium,high,False,5.3,5.3,True
+GHSA-pvrc-hg3f-58r6,cve-2024-0000,False,cwe-787,cwe-787,True,low,high,False,2.5,7.4,False
+GHSA-8278-88vv-x98r,cve-2024-0000,False,cwe-502,cwe-94,False,low,critical,False,0.0,9.8,False
+GHSA-5r2v-6gm6-vpvh,cve-2024-0001,False,cwe-200,cwe-285,False,critical,high,False,9.8,7.4,False
+GHSA-874w-m2v2-mj64,cve-2019-14690,False,cwe-415,cwe-787,False,critical,high,False,9.8,7.8,False
+GHSA-v768-w7m9-2vmm,,False,cwe-824,cwe-617,False,high,medium,False,7.8,5.9,False
+GHSA-465w-gg5p-85c9,,False,"cwe-613', 'cwe-384', 'cwe-295",cwe-20,False,high,critical,False,8.6,5.9,False
+GHSA-hwj3-m3p6-hj38,,False,cwe-611,cwe-918,False,critical,high,False,9.8,7.8,False
+GHSA-hrgx-p36p-89q4,,False,"cwe-89', 'cwe-95",cwe-311,False,critical,medium,False,9.8,5.0,False
+GHSA-44qp-9wwf-734r,cve-2024-0001,False,"cwe-787', 'cwe-120",cwe-617,False,high,medium,False,7.6,6.1,False
+GHSA-f55g-x8qq-2569,,False,cwe-1236,cwe-20,False,critical,medium,False,9.8,5.0,False
+GHSA-h3gg-7wx2-cq3h,,False,cwe-79,cwe-79,True,low,medium,False,0.0,5.4,False
+GHSA-v82p-hv3v-p6qp,cve-2024-0001,False,cwe-20,cwe-20,True,high,medium,False,7.8,5.7,False
+GHSA-gwrj-88fp-5m36,cve-2024-0001,False,cwe-94,cwe-203,False,high,low,False,8.5,2.8,False
+GHSA-h6wm-mr85-4h9g,,False,cwe-79,cwe-79,True,medium,medium,True,6.1,5.4,False
+GHSA-7gfg-6934-mqq2,cve-2024-0001,False,cwe-287,cwe-617,False,medium,medium,True,5.6,5.9,False
+GHSA-43f8-2h32-f4cj,cve-2024-0001,False,cwe-400,cwe-20,False,medium,medium,True,5.3,5.5,False
+GHSA-pxpf-v376-7xx5,,False,cwe-79,cwe-79,True,medium,medium,True,6.1,5.4,False
+GHSA-qhh5-9738-g9mx,,False,cwe-276,cwe-285,False,medium,high,False,6.5,7.5,False
+GHSA-8p36-q63g-68qh,cve-2024-0001,False,cwe-915,cwe-617,False,critical,medium,False,9.1,5.9,False
+GHSA-cgfm-62j4-v4rf,,False,cwe-125,cwe-787,False,high,high,True,7.3,7.1,False
+GHSA-2p9q-h29j-3f5v,,False,cwe-20,cwe-617,False,medium,medium,True,5.5,6.1,False
+GHSA-5f2r-qp73-37mr,,False,cwe-617,cwe-617,True,medium,medium,True,6.5,5.9,False
+GHSA-6fvx-r7hx-3vh6,cve-2024-0001,False,cwe-611,cwe-611,True,critical,high,False,9.8,7.4,False
+GHSA-6hjc-m38h-7jhh,,False,cwe-79,cwe-79,True,medium,medium,True,6.1,5.5,False
+GHSA-q3g3-h9r4-prrc,cve-2024-0001,False,cwe-125,cwe-617,False,high,medium,False,7.3,6.0,False
+GHSA-hm37-9xh2-q499,,False,cwe-209,cwe-617,False,high,medium,False,7.7,5.5,False
+GHSA-9g3v-j3cr-6fc6,,False,cwe-79,cwe-617,False,medium,low,False,6.8,2.1,False
+GHSA-fm67-cv37-96ff,cve-2024-0001,False,cwe-415,cwe-416,False,medium,high,False,5.9,7.8,False
+GHSA-fcxw-hhxq-48wx,,False,cwe-200,cwe-732,False,low,medium,False,3.3,5.9,False
+GHSA-56wv-2wr9-3h9r,,False,cwe-347,cwe-617,False,high,medium,False,7.5,5.5,False
+GHSA-5hj3-vjjf-f5m7,,False,cwe-125,cwe-617,False,medium,medium,True,5.5,5.9,False
+GHSA-6qcc-whgp-pjj2,cve-2024-0001,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.4,True
+GHSA-25xj-89g5-fm6h,,False,"cwe-532', 'cwe-200",cwe-203,False,high,medium,False,7.5,5.0,False
+GHSA-4fc4-4p5g-6w89,cve-2024-0001,False,cwe-79,cwe-20,False,medium,medium,True,5.4,5.0,False
+GHSA-j383-35pm-c5h4,,False,cwe-22,cwe-59,False,medium,high,False,5.5,7.5,False
+GHSA-w8rc-pgxq-x2cj,,False,cwe-20,cwe-617,False,medium,medium,True,6.5,5.5,False
+GHSA-fp76-f299-v3hj,,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.8,False
+GHSA-f6px-w8rh-7r89,cve-2024-0001,False,"cwe-362', 'cwe-732",cwe-276,False,medium,medium,True,4.7,5.5,False
+GHSA-v6wr-fch2-vm5w,cve-2024-0001,False,cwe-200,cwe-330,False,medium,high,False,5.9,7.8,False
+GHSA-mxvc-fwgx-j778,,False,cwe-79,cwe-79,True,medium,critical,False,5.4,9.0,False
+GHSA-c65v-p733-9796,cve-2024-0001,False,cwe-79,cwe-79,True,high,medium,False,8.0,5.4,False
+GHSA-3872-f48p-pxqj,,False,"cwe-88', 'cwe-77",cwe-77,False,high,high,True,8.8,7.5,False
+GHSA-m8rp-q82r-c5mf,cve-2024-0001,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.4,True
+GHSA-2cpx-427x-q2c6,,False,cwe-190,cwe-787,False,low,high,False,2.5,7.7,False
+GHSA-fq9f-9wv9-rfmg,,False,cwe-295,cwe-494,False,medium,high,False,5.9,7.8,False
+GHSA-8fvr-5rqf-3wwh,cve-2024-0001,False,cwe-285,cwe-617,False,high,medium,False,8.4,5.9,False
+GHSA-4449-hg37-77v8,cve-2024-0001,False,cwe-78,cwe-617,False,high,medium,False,8.6,5.5,False
+GHSA-247x-2f9f-5wp7,cve-2024-0001,False,cwe-400,cwe-617,False,high,medium,False,7.5,5.9,False
+GHSA-6jmh-9gqm-5xrx,cve-2024-0001,False,cwe-352,cwe-352,True,medium,medium,True,4.3,5.5,False
+GHSA-jjcx-999m-35hc,,False,cwe-20,cwe-20,True,low,medium,False,3.3,5.5,False
+GHSA-rrx2-r989-2c43,,False,cwe-190,cwe-617,False,medium,medium,True,6.5,6.0,False
+GHSA-6gv8-p3vj-pxvr,,False,cwe-476,cwe-617,False,high,medium,False,7.7,5.9,False
+GHSA-8687-vv9j-hgph,,False,cwe-20,cwe-617,False,critical,medium,False,9.1,5.5,False
+GHSA-2hxv-mx8x-mcj9,,False,cwe-352,cwe-352,True,high,high,True,8.8,7.4,False
+GHSA-4574-qv3w-fcmg,,False,cwe-502,cwe-502,True,critical,critical,True,9.8,9.0,False
+GHSA-2927-hv3p-f3vp,,False,cwe-601,cwe-20,False,low,medium,False,0.0,5.0,False
+GHSA-566m-qj78-rww5,cve-2024-0001,False,cwe-400,cwe-20,False,medium,medium,True,5.3,5.5,False
+GHSA-p23j-g745-8449,cve-2024-0001,False,cwe-787,cwe-617,False,high,medium,False,7.5,5.9,False
+GHSA-3j58-p785-f27x,,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.4,True
+GHSA-97gv-3p2c-xw7j,cve-2024-0001,False,"cwe-74', 'cwe-400",cwe-285,False,high,medium,False,8.2,5.4,False
+GHSA-xrp2-fhq4-4q3w,cve-2024-1234,False,cwe-20,cwe-617,False,medium,medium,True,5.5,5.9,False
+GHSA-4vhw-4rw7-jfpv,,False,cwe-22,cwe-617,False,critical,medium,False,9.1,5.5,False
+GHSA-2h63-qp69-fwvw,cve-2024-0001,False,"cwe-918', 'cwe-20",cwe-611,False,high,high,True,8.2,7.5,False
+GHSA-m87f-9fvv-2mgg,,False,cwe-502,cwe-94,False,high,critical,False,8.4,9.0,False
+GHSA-976r-qfjj-c24w,cve-2024-0001,False,cwe-78,cwe-79,False,critical,medium,False,9.8,5.4,False
+GHSA-xhp9-4947-rq78,,False,cwe-755,,False,critical,,False,9.8,,False
+GHSA-7c82-mp33-r854,cve-2024-0001,False,cwe-79,cwe-79,True,medium,high,False,6.1,7.4,False
+GHSA-9cx9-x2gp-9qvh,,False,"cwe-74', 'cwe-93",cwe-93,False,medium,medium,True,4.2,5.5,False
+GHSA-6jv7-28mv-qp9c,cve-2024-0001,False,cwe-862,cwe-285,False,medium,medium,True,4.3,5.4,False
+GHSA-8hfj-j24r-96c4,,False,"cwe-27', 'cwe-22",cwe-20,False,high,medium,False,7.5,5.5,False
+GHSA-x7r7-wmj8-vv5g,,False,cwe-79,cwe-601,False,high,medium,False,7.5,5.4,False
+GHSA-5xwc-mrhx-5g3m,,False,cwe-824,cwe-125,False,high,medium,False,7.1,5.3,False
+GHSA-q9qc-pp5x-mc8c,,False,"cwe-94', 'cwe-1336",cwe-79,False,high,medium,False,8.8,5.4,False
+GHSA-x67x-vg9m-65c3,,False,cwe-119,cwe-617,False,critical,medium,False,9.8,5.5,False
+GHSA-7hmh-8gwv-mfvq,,False,cwe-89,cwe-89,True,medium,high,False,6.5,7.5,False
+GHSA-qfxv-qqvg-24pg,,False,cwe-78,cwe-77,False,critical,high,False,9.8,7.8,False
+GHSA-2cqg-q7jm-j35c,,False,cwe-79,cwe-79,True,low,medium,False,3.9,5.3,False
+GHSA-jc83-cpf9-q7c6,,False,cwe-697,cwe-617,False,high,medium,False,8.6,5.9,False
+GHSA-h4j5-c7cj-74xg,,False,cwe-94,cwe-94,True,critical,critical,True,9.8,9.0,False
+GHSA-vvg4-vgrv-xfr7,,False,cwe-665,cwe-617,False,medium,medium,True,6.3,5.5,False
+GHSA-cqp5-m4pq-gfgp,,False,cwe-471,cwe-471,True,low,high,False,0.0,7.4,False
+GHSA-hwch-749c-rv63,cve-2024-0001,False,cwe-74,cwe-78,False,critical,critical,True,9.8,9.1,False
+GHSA-cf6r-3wgc-h863,cve-2022-2462,False,cwe-502,cwe-502,True,high,high,True,7.5,7.8,False
+GHSA-pjxv-w3qj-j8m3,,False,cwe-22,cwe-22,True,high,high,True,7.5,7.5,True
+GHSA-w8f3-pvx4-4c3h,,False,cwe-1321,cwe-471,False,low,high,False,0.0,7.5,False
+GHSA-qm6v-cg9v-53j3,,False,cwe-287,cwe-863,False,medium,medium,True,5.4,5.9,False
+GHSA-c968-pq7h-7fxv,,False,cwe-369,cwe-617,False,low,medium,False,2.5,6.0,False
+GHSA-p92x-r36w-9395,,False,cwe-843,cwe-617,False,medium,medium,True,5.6,6.1,False
+GHSA-h8pj-cxx2-jfg2,,False,cwe-20,cwe-20,True,critical,medium,False,9.1,5.9,False
+GHSA-vm37-j55j-8655,cve-2024-0001,False,cwe-78,cwe-20,False,high,low,False,7.8,3.1,False
+GHSA-q9p4-qfc8-fvpp,cve-2024-0000,False,cwe-89,cwe-89,True,critical,high,False,9.8,7.5,False
+GHSA-77gp-3h4r-6428,,False,"cwe-787', 'cwe-125",cwe-617,False,high,medium,False,8.8,5.9,False
+GHSA-2x7h-96h5-rq84,,False,cwe-22,cwe-22,True,medium,high,False,4.0,7.8,False
+GHSA-37pf-w9ff-gqvm,cve-2024-0001,False,cwe-787,cwe-617,False,high,medium,False,7.5,6.0,False
+GHSA-rcjj-h6gh-jf3r,,False,cwe-379,cwe-367,False,medium,medium,True,5.5,5.0,False
+GHSA-8jxq-75rw-fhj9,cve-2024-0001,False,cwe-94,cwe-617,False,critical,medium,False,9.8,6.5,False
+GHSA-mg5h-9rhq-4cqx,,False,cwe-79,cwe-20,False,medium,medium,True,5.4,5.3,False
+GHSA-v923-w3x8-wh69,cve-2024-0001,False,cwe-384,cwe-384,True,medium,medium,True,4.8,5.9,False
+GHSA-x92h-wmg2-6hp7,cve-2024-0001,False,"cwe-89', 'cwe-79",cwe-20,False,critical,medium,False,9.8,5.5,False
+GHSA-437j-5qc3-c589,,False,cwe-601,cwe-601,True,medium,medium,True,6.1,5.0,False
+GHSA-7r87-cj48-wj45,,False,"cwe-253', 'cwe-394', 'cwe-754",cwe-20,False,medium,medium,True,5.3,5.0,False
+GHSA-ghww-cv4v-hmxx,cve-2024-0001,False,cwe-352,cwe-285,False,medium,medium,True,4.3,5.9,False
+GHSA-f7r3-p866-q9qr,,False,cwe-400,cwe-667,False,low,medium,False,3.7,5.0,False
+GHSA-54qq-9chj-rxhv,,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.4,True
+GHSA-j47c-j42c-mwqq,cve-2024-0001,False,cwe-670,cwe-20,False,medium,medium,True,5.3,5.5,False
+GHSA-qpv2-jxc7-3638,,False,cwe-200,cwe-203,False,medium,low,False,4.3,2.1,False
+GHSA-vc3x-gx6c-g99f,cve-2024-0001,False,cwe-190,cwe-125,False,high,medium,False,7.5,5.3,False
+GHSA-mrvj-7q4f-5p42,cve-2023-0000,False,cwe-79,cwe-20,False,low,medium,False,0.0,5.0,False
+GHSA-xm9f-vxmx-4m58,,False,cwe-20,cwe-617,False,low,medium,False,0.0,5.9,False
+GHSA-jq4v-f5q6-mjqq,,False,cwe-79,cwe-20,False,medium,low,False,6.1,3.1,False
+GHSA-hv9c-qwqg-qj3v,,False,cwe-1188,cwe-617,False,high,medium,False,8.1,5.9,False
+GHSA-r6cm-wg48-rh2r,cve-2024-0000,False,"cwe-359', 'cwe-863",cwe-20,False,critical,low,False,9.1,2.1,False
+GHSA-8x44-pwr2-rgc6,,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.4,True
+GHSA-r89v-cgv7-3jhx,cve-2024-0001,False,cwe-862,cwe-285,False,medium,medium,True,5.2,5.5,False
+GHSA-44r7-7p62-q3fr,,False,"cwe-330', 'cwe-338",cwe-330,False,medium,high,False,5.9,7.4,False
+GHSA-8h4j-vm3r-vcq3,cve-2024-0001,False,cwe-416,cwe-617,False,critical,medium,False,9.8,6.5,False
+GHSA-3ff2-r28g-w7h9,cve-2024-0001,False,"cwe-787', 'cwe-120",cwe-617,False,medium,medium,True,5.5,5.9,False
+GHSA-v8v8-6859-qxm4,cve-2024-0001,False,cwe-94,cwe-78,False,low,critical,False,0.0,9.0,False
+GHSA-26cm-qrc6-mfgj,,False,"cwe-74', 'cwe-90",cwe-90,False,high,high,True,8.1,7.8,False
+GHSA-6f89-8j54-29xf,cve-2023-0000,False,"cwe-787', 'cwe-119",cwe-125,False,low,medium,False,2.5,5.9,False
+GHSA-93q8-gq69-wqmw,cve-2024-0001,False,"cwe-697', 'cwe-1333",cwe-20,False,high,medium,False,7.5,5.7,False
+GHSA-68wm-pfjf-wqp6,cve-0000-0000,False,cwe-287,cwe-203,False,critical,low,False,10.0,2.1,False
+GHSA-6vqp-h455-42mr,cve-2024-0001,False,cwe-789,cwe-617,False,medium,medium,True,5.5,5.5,True
+GHSA-3j9m-hcv9-rpj8,cve-2024-0001,False,cwe-79,cwe-79,True,medium,medium,True,6.9,5.5,False
+GHSA-9px9-73fg-3fqp,cve-2024-0001,False,cwe-476,cwe-617,False,medium,medium,True,6.5,6.0,False
+GHSA-m3f9-w3p3-p669,,False,"cwe-787', 'cwe-131",cwe-617,False,low,medium,False,2.5,6.2,False
+GHSA-hgch-jjmr-gp7w,cve-2024-0001,False,cwe-94,cwe-94,True,critical,critical,True,9.9,9.8,True
+GHSA-3wwj-wh2w-g4xp,cve-2024-0001,False,cwe-93,cwe-601,False,high,medium,False,7.6,5.5,False
+GHSA-4p55-xj37-fx7g,,False,cwe-276,cwe-285,False,low,critical,False,0.0,7.5,False
+GHSA-w4xf-2pqw-5mq7,,False,cwe-824,cwe-617,False,high,medium,False,7.8,6.0,False
+GHSA-7q4h-pj78-j7vg,,False,"cwe-400', 'cwe-918",cwe-20,False,high,medium,False,7.5,5.5,False
+GHSA-4h44-w6fm-548g,,False,"cwe-325', 'cwe-200', 'cwe-502', 'cwe-20",cwe-20,False,critical,medium,False,9.8,5.8,False
+GHSA-9gwx-9cwp-5c2m,,False,cwe-776,cwe-426,False,high,medium,False,8.1,5.0,False
+GHSA-rj44-gpjc-29r7,cve-2024-0001,False,cwe-78,cwe-78,True,medium,high,False,6.4,7.5,False
+GHSA-24x4-6qmh-88qg,,False,cwe-416,cwe-416,True,high,high,True,7.6,7.5,True
+GHSA-83rh-hx5x-q9p5,,False,cwe-125,cwe-617,False,high,medium,False,7.5,5.9,False
+GHSA-3c33-3465-fhx2,,False,cwe-668,cwe-285,False,high,high,True,8.8,7.8,False
+GHSA-wg4r-q74r-p7c8,,False,cwe-79,cwe-20,False,medium,medium,True,5.4,5.5,True
+GHSA-cgjv-rghq-qhgp,,False,cwe-22,cwe-22,True,high,high,True,8.6,7.5,False
+GHSA-56wv-2wr9-3h9r,,False,cwe-347,cwe-444,False,high,low,False,7.5,3.0,False
+GHSA-4p92-fv6v-fhfj,,False,cwe-79,cwe-200,False,medium,low,False,5.4,2.1,False
+GHSA-8v5f-hp78-jgxq,cve-2024-1234,False,cwe-347,cwe-345,False,low,medium,False,0.0,5.9,False
+GHSA-832h-xg76-4gv6,,False,cwe-20,cwe-617,False,high,low,False,7.5,3.1,False
+GHSA-89px-ww3j-g2mm,,False,"cwe-304', 'cwe-290",cwe-290,False,high,critical,False,8.7,7.8,False
+GHSA-qr2j-wrhx-4829,cve-2024-0001,False,cwe-20,cwe-617,False,high,medium,False,7.5,5.5,False
+GHSA-6cf8-qhqj-vjqm,,False,cwe-400,cwe-471,False,low,high,False,0.0,7.8,False
+GHSA-vjxv-45g9-9296,,False,cwe-347,cwe-20,False,high,medium,False,7.1,5.9,False
+GHSA-wg6g-ppvx-927h,cve-2024-0001,False,cwe-1321,cwe-1176,False,high,low,False,7.3,2.1,False
+GHSA-3mpr-hq3p-49h9,cve-2024-0001,False,cwe-471,cwe-1321,False,low,high,False,0.0,7.8,False
+GHSA-x8h6-xgqx-jqgp,,False,cwe-908,cwe-617,False,low,medium,False,2.5,6.0,False
+GHSA-49x3-8228-3w3m,,False,cwe-1333,cwe-20,False,high,medium,False,7.5,5.0,False
+GHSA-jxwx-85vp-gvwm,cve-2024-0001,False,cwe-400,cwe-20,False,low,medium,False,0.0,5.0,False
+GHSA-vxhc-c4qm-647p,cve-2024-0001,False,"cwe-284', 'cwe-863",cwe-285,False,medium,medium,True,4.3,5.5,False
+GHSA-mq5c-prh3-3f3h,,False,cwe-665,cwe-617,False,low,medium,False,3.6,6.0,False
+GHSA-84mw-34w6-2q43,,False,cwe-476,cwe-617,False,low,medium,False,2.5,6.3,False
+GHSA-mq35-wqvf-r23c,,False,cwe-79,cwe-79,True,medium,medium,True,6.1,5.4,False
+GHSA-mmhj-4w6j-76h7,,False,cwe-913,cwe-617,False,high,medium,False,8.0,5.8,False
+GHSA-8v99-48m9-c8pm,,False,cwe-863,cwe-617,False,high,medium,False,7.5,5.9,False
+GHSA-p885-prv3-m4xv,,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.4,True
+GHSA-p8q8-jfcv-g2h2,,False,cwe-59,cwe-22,False,high,high,True,7.1,7.5,False
+GHSA-xw93-v57j-fcgh,cve-2024-0001,False,cwe-369,cwe-617,False,low,medium,False,2.5,6.0,False
+GHSA-fqq2-xp7m-xvm8,cve-2024-0001,False,"cwe-362', 'cwe-119",cwe-617,False,high,high,True,8.1,7.8,False
+GHSA-r4c4-5fpq-56wg,,False,cwe-125,cwe-125,True,high,medium,False,7.3,5.3,False
+GHSA-m34j-p8rj-wjxq,cve-2024-0001,False,cwe-369,cwe-617,False,low,medium,False,2.5,6.1,False
+GHSA-pc5p-h8pf-mvwp,cve-2024-0001,False,cwe-300,cwe-200,False,medium,medium,True,6.1,5.0,False
+GHSA-2hjr-fg6c-v2h6,cve-2024-0000,False,cwe-200,cwe-617,False,medium,medium,True,6.5,6.5,True
+GHSA-98p5-x8x4-c9m5,cve-2024-0001,False,cwe-190,cwe-787,False,high,high,True,8.8,7.4,False
+GHSA-686h-j8r8-wmfm,,False,"cwe-362', 'cwe-77",cwe-617,False,high,high,True,8.1,7.8,False
+GHSA-24m3-w8g9-jwpq,,False,"cwe-178', 'cwe-200",cwe-20,False,low,medium,False,3.0,5.3,False
+GHSA-23hm-7w47-xw72,,False,cwe-125,cwe-125,True,high,medium,False,8.1,5.5,False
+GHSA-9hx2-hgq2-2g4f,,False,cwe-400,cwe-20,False,medium,medium,True,6.5,5.0,False
+GHSA-86wf-436m-h424,,False,cwe-665,cwe-117,False,critical,low,False,9.8,2.1,False
+GHSA-5rwj-j5m3-3chj,,False,cwe-401,cwe-772,False,high,medium,False,7.5,5.5,False
+GHSA-72p8-v4hg-v45p,cve-2024-0001,False,"cwe-330', 'cwe-338",cwe-338,False,medium,high,False,6.5,7.8,False
+GHSA-c45w-2wxr-pp53,,False,cwe-125,cwe-617,False,low,medium,False,2.5,6.0,False
+GHSA-rrx2-r989-2c43,cve-2024-0001,False,cwe-190,cwe-617,False,medium,medium,True,6.5,6.1,False
+GHSA-7vvq-7r29-5vg3,,False,cwe-79,cwe-20,False,high,medium,False,7.1,5.5,False
+GHSA-cfpj-3q4c-jhvr,,False,cwe-369,cwe-617,False,medium,medium,True,5.5,6.1,False
+GHSA-vg44-fw64-cpjx,cve-2024-0001,False,cwe-287,cwe-617,False,high,medium,False,7.5,5.8,False
+GHSA-2rfj-2mwp-787v,,False,cwe-787,cwe-617,False,high,medium,False,7.5,5.9,False
+GHSA-r9vm-rhmf-7hxx,,False,cwe-78,cwe-78,True,critical,critical,True,9.8,9.0,False
+GHSA-f2rp-4rv7-fc95,,False,cwe-200,cwe-200,True,high,medium,False,7.8,5.3,False
+GHSA-mw6j-hh29-h379,cve-2024-12345,False,cwe-190,cwe-617,False,low,medium,False,0.0,6.4,False
+GHSA-8rm6-75mf-7r7r,,False,cwe-369,cwe-617,False,low,medium,False,2.5,5.5,False
+GHSA-vgmw-9cww-qq99,cve-2024-0001,False,"cwe-284', 'cwe-863",cwe-863,False,medium,medium,True,6.5,5.8,False
+GHSA-cfx7-2xpc-8w4h,,False,cwe-369,cwe-617,False,low,medium,False,2.5,5.5,False
+GHSA-72p5-2r6g-fm6v,,False,cwe-79,cwe-79,True,medium,medium,True,6.1,5.4,False
+GHSA-4xfp-4pfp-89wg,,False,cwe-824,cwe-617,False,high,medium,False,7.1,5.9,False
+GHSA-6c8f-qphg-qjgp,,False,cwe-668,cwe-617,False,high,medium,False,7.5,5.3,False
+GHSA-v82p-hv3v-p6qp,cve-2024-0001,False,cwe-20,cwe-617,False,high,medium,False,7.8,6.1,False
+GHSA-32wx-4gxx-h48f,cve-2024-0001,False,cwe-639,cwe-285,False,low,medium,False,0.0,5.5,False
+GHSA-9c8h-2mv3-49ww,,False,cwe-369,cwe-617,False,medium,medium,True,5.5,5.9,False
+GHSA-2gfx-95x2-5v3x,cve-2024-0001,False,cwe-787,cwe-125,False,low,medium,False,2.5,5.9,False
+GHSA-jmgf-p46x-982h,,False,cwe-352,cwe-79,False,low,medium,False,0.0,5.8,False
+GHSA-q67f-3jq4-mww2,,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.3,False
+GHSA-rc8h-3fv6-pxv8,cve-2016-5295,False,cwe-400,cwe-617,False,low,medium,False,0.0,5.9,False
+GHSA-jr37-66pj-36v7,,False,cwe-79,cwe-200,False,medium,low,False,5.4,2.1,False
+GHSA-9w7h-3wwh-6m5q,,False,cwe-79,cwe-79,True,medium,medium,True,6.3,5.3,False
+GHSA-gg6x-xx78-448c,,False,cwe-87,cwe-79,False,medium,medium,True,4.0,5.4,False
+GHSA-hj8g-cw8x-2c6m,cve-2024-0001,False,cwe-79,cwe-20,False,high,medium,False,7.6,5.0,False
+GHSA-pxcf-v868-m492,,False,"cwe-74', 'cwe-79",cwe-79,False,high,medium,False,7.6,5.4,False
+GHSA-rf66-hmqf-q3fc,cve-0000-0000,False,cwe-79,cwe-79,True,medium,medium,True,6.1,5.4,False
+GHSA-85r7-w5mv-c849,cve-2024-0001,False,cwe-22,cwe-22,True,low,high,False,0.0,7.5,False
+GHSA-c9qf-r67m-p7cg,,False,cwe-476,cwe-617,False,high,medium,False,7.7,6.4,False
+GHSA-f7r3-p866-q9qr,,False,cwe-400,cwe-617,False,low,medium,False,3.7,5.5,False
+GHSA-5rcr-q3rx-j7vr,,False,cwe-787,cwe-617,False,high,medium,False,7.5,6.0,False
+GHSA-hxmr-5gv9-6p8v,cve-2024-0000,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.4,True
+GHSA-jc8m-cxhj-668x,,False,cwe-307,cwe-285,False,high,medium,False,8.3,5.4,False
+GHSA-mxh3-2699-98g9,cve-2024-0001,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.4,True
+GHSA-338v-3958-8v8r,,False,cwe-362,cwe-617,False,low,medium,False,0.0,5.9,False
+GHSA-5jgj-h9wp-53fr,,False,cwe-79,cwe-94,False,medium,high,False,6.1,7.8,False
+GHSA-p55x-7x9v-q8m4,,False,cwe-400,cwe-674,False,high,medium,False,7.5,5.5,False
+GHSA-r24h-634p-m72x,,False,cwe-668,cwe-1321,False,critical,high,False,9.8,7.2,False
+GHSA-pm9p-9926-w68m,,False,cwe-20,cwe-400,False,high,medium,False,7.5,5.5,False
+GHSA-fq6p-x6j3-cmmq,cve-2024-0001,False,cwe-400,cwe-617,False,low,low,True,0.0,2.1,False
+GHSA-c5hf-mc85-2hx4,,False,cwe-863,cwe-20,False,medium,medium,True,4.3,5.5,False
+GHSA-7f53-fmmv-mfjv,cve-2024-0001,False,cwe-400,cwe-601,False,high,medium,False,7.5,5.5,False
+GHSA-29vr-79w7-p649,,False,cwe-863,cwe-78,False,critical,high,False,9.8,7.5,False
+GHSA-cg3h-rc9q-g8v9,cve-2024-0001,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.4,True
+GHSA-73q9-7pwj-gm46,cve-2024-0000,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.4,True
+GHSA-fc38-mxwr-pfhx,,False,cwe-79,cwe-79,True,high,medium,False,8.0,5.5,False
+GHSA-6cpj-3g83-q2j4,,False,cwe-611,cwe-617,False,low,low,True,0.0,2.1,False
+GHSA-2v5j-q74q-r53f,cve-2024-0001,False,cwe-79,cwe-400,False,high,medium,False,8.8,5.5,False
+GHSA-6m8p-4fxj-pgc2,,False,cwe-78,cwe-78,True,high,high,True,7.8,7.8,True
+GHSA-rfw2-x9f8-2f6m,,False,cwe-79,cwe-79,True,low,medium,False,0.0,5.4,False
+GHSA-8v7h-cpc2-r8jp,cve-2024-0001,False,cwe-362,cwe-20,False,high,medium,False,8.1,5.0,False
+GHSA-v7m9-9497-p9gr,cve-2024-0001,False,cwe-863,cwe-20,False,medium,medium,True,6.8,5.5,False
+GHSA-9w2p-5mgw-p94c,cve-2024-0001,False,cwe-681,cwe-617,False,medium,medium,True,5.5,6.0,False
+GHSA-772j-h9xw-ffp5,,False,cwe-843,cwe-617,False,low,medium,False,2.5,6.2,False
+GHSA-jff5-55xj-4jcq,cve-2024-0001,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.4,True
+GHSA-wvh5-78h5-gmgr,,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.4,True
+GHSA-98gj-wwxm-cj3h,cve-2024-0001,False,cwe-79,cwe-79,True,medium,medium,True,6.1,5.3,False
+GHSA-5ppx-rgw2-xg23,,False,cwe-79,cwe-79,True,medium,medium,True,4.8,5.4,False
+GHSA-x28w-hvwc-mp75,cve-2024-0001,False,"cwe-94', 'cwe-96",cwe-79,False,high,medium,False,7.7,5.3,False
+GHSA-8434-v7xw-8m9x,,False,"cwe-88', 'cwe-78",cwe-78,False,critical,high,False,9.3,7.8,False
+GHSA-cwpm-f78v-7m5c,,False,"cwe-400', 'cwe-20",cwe-617,False,medium,medium,True,5.5,5.9,False
+GHSA-h6rj-8r3c-9gpj,,False,cwe-400,cwe-20,False,critical,medium,False,9.8,5.5,False
+GHSA-94qw-r73x-j7hg,,False,cwe-285,cwe-285,True,medium,critical,False,4.8,7.8,False
+GHSA-hwj9-h5mp-3pm3,cve-2024-0001,False,cwe-400,cwe-20,False,medium,medium,True,5.3,5.3,True
+GHSA-gmh3-x5w7-jg5m,,False,cwe-79,cwe-79,True,medium,medium,True,6.3,5.4,False
+GHSA-f655-xhvm-cwp4,,False,cwe-79,cwe-79,True,medium,medium,True,5.4,5.4,True
+GHSA-85wq-pqhp-hmq6,,False,cwe-352,cwe-285,False,high,critical,False,8.8,9.0,False
+GHSA-f5cx-5wr3-5qrc,cve-2024-0001,False,cwe-824,cwe-617,False,high,medium,False,7.1,5.9,False
+GHSA-rcxc-3w2m-mp8h,,False,cwe-502,cwe-94,False,critical,critical,True,9.8,9.0,False
+GHSA-65mj-7c86-79jf,,False,"cwe-305', 'cwe-287",cwe-89,False,critical,high,False,9.1,7.5,False

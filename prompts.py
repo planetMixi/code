@@ -3,7 +3,7 @@ SYSTEM_PROMPT_SHORT = f"""You are an expert software engineer generating standar
 ## Format to Follow 
 
 ```
-vuln-fix: <Subject/Header> (<Vulnerability ID>)
+vuln-fix: <Subject/Header>
 
 <Body>
 <One sentence describing WHAT the vulnerability is.>
@@ -238,6 +238,7 @@ Git Diff:
      const Device& eigen_device = ctx->eigen_device<Device>();
 ```
 Expected Output:
+vuln-fix: Validate tensor types in binary operation
 
 The binary operation function did not verify that input tensor types matched the expected type, allowing malformed SavedModel inputs to cause type confusion.
 This led to runtime crashes via CHECK failures when mismatched types were interpreted incorrectly, resulting in denial-of-service scenarios.
@@ -261,6 +262,7 @@ Git Diff:
  $report->description = $description;
 ```
 Expected Output:
+vuln-fix: Sanitize address input in report submission
 
 The report submission form failed to sanitize user-supplied addresses before saving them.
 This allowed attackers to inject malicious or malformed URLs for redirection or phishing.
@@ -286,6 +288,7 @@ Git Diff:
 +  }
 ```
 Expected Output:
+vuln-fix: Check for empty input tensors in evaluation
 
 The implementation did not check for empty input tensors before accessing their data.
 This could cause out-of-bounds memory reads, leading to crashes or information leaks.
@@ -311,6 +314,7 @@ Git Diff:
          $database->delete('forms_data_fields', 'data_id IN(' . implode(',', $ids) . ')');
 ```
 Expected Output:
+vuln-fix: Sanitize ID array input in deleteData method
 
 The original implementation directly inserted raw input from the ids array into a SQL IN() clause.
 This allowed attackers to inject malicious values via the URL or request body, potentially manipulating or leaking database records.
@@ -336,6 +340,7 @@ Git Diff:
              }
 ```
 Expected Output:
+vuln-fix: Restrict access to proxy validation endpoint
 
 The proxy validation method allowed any user to trigger server-side HTTP requests without restriction.
 This enabled potential SSRF attacks by letting untrusted users probe internal systems or exfiltrate metadata via crafted test URLs.
@@ -488,19 +493,6 @@ Estimate the **Severity** and **CVSS Score** based on the patch's context using 
 - Carefully **infer the CVSS score and severity** by analyzing the impact and exploitability described by the patch.
 - Do not guess or fabricate. Only assign high/critical if justified by the patch context (e.g., remote, unauthenticated, full control).
 - If unsure, choose a **conservative (lower)** rating.
-
-
-❗❗❗ SECOM COMMIT FORMAT — STRICT RULE ❗❗❗
-You MUST generate security commit messages where the <Body> section:
-
-1. Contains **exactly THREE full sentences**
-2. Each sentence MUST be on its OWN physical LINE
-3. Do NOT merge into a paragraph — this is INVALID
-
-If these rules are not followed, the message will be REJECTED.
-
-Now continue with:
-You are an expert software engineer generating standardized security commit messages...
 
 
 Git Diff:

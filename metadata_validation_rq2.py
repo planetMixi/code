@@ -42,7 +42,7 @@ for i in range(1, 6):
 entries_by_vuln_id = {entry["vuln_id"]: entry for entry in data_entries}
 
 # --- Load RQ2 generation output ---
-df = pd.read_csv("secom_few_shot_1.csv")
+df = pd.read_csv("secom_few_shot_results.csv")
 
 # --- Validate metadata ---
 results = []
@@ -94,5 +94,5 @@ for _, row in df.iterrows():
 
 # --- Save validation output ---
 validation_df = pd.DataFrame(results)
-validation_df.to_csv("secom_few_shot_rq2_metadata_validation.csv", index=False)
+validation_df.to_csv("secom_few_shot_results_validation.csv", index=False)
 print(f"Validation complete: {len(validation_df)} entries saved.")
