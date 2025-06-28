@@ -5,7 +5,7 @@ from openai import OpenAI
 from tqdm import tqdm
 from dotenv import load_dotenv
 
-from prompts import system_prompt_short, zero_shot_prompt, SYSTEM_PROMPT
+from prompts import zero_shot_prompt, SYSTEM_PROMPT_SHORT
 
 
 # Load environment variables from .env file
@@ -18,17 +18,17 @@ if not api_key:
 client = OpenAI(api_key=api_key)
 
 
-input_file = "subsets/subset_5.json"
-output_file = "secom_zero_shot_subset5.csv"
+input_file = "subsets/subset_1.json"
+output_file = "secom_zero_shot_rq2_subset1.csv"
 results = []
 
 # Read the JSON file into a DataFrame
 df = pd.read_json(input_file, orient='table')
 
-#count = 0
+count = 0
 for i, row in tqdm(df.iterrows(), total=len(df), desc="Generating SECOM messages"):
-    #if count >= 2:
-        #break
+    if count >= 10:
+        break
 
     try:
         vuln_id = row.get("vuln_id", "")
@@ -39,7 +39,7 @@ for i, row in tqdm(df.iterrows(), total=len(df), desc="Generating SECOM messages
         response = client.chat.completions.create(
             model="gpt-4.1-mini",
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": SYSTEM_PROMPT_SHORT},
                 {"role": "user", "content": zero_shot_prompt.replace("<code_diff>", code_diff)}
             ],
             temperature=0.0,
@@ -59,7 +59,7 @@ for i, row in tqdm(df.iterrows(), total=len(df), desc="Generating SECOM messages
             "generated_secom_message": generated
         })
 
-        #count += 1  
+        count += 1  
     except Exception as e:
         print(f"Error: {str(e)}")
 

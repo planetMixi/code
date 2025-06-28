@@ -5,7 +5,7 @@ from openai import OpenAI
 from tqdm import tqdm
 from dotenv import load_dotenv
 
-from prompts import system_prompt_short, few_shot_prompt
+from prompts import SYSTEM_PROMPT_SHORT, few_shot_prompt
 
 load_dotenv()
 
@@ -20,9 +20,10 @@ results = []
 
 df = pd.read_json(input_file, orient='table')
 
-# Process entries 1–10 (skip index 0)
-for i, row in tqdm(df.head(10).iterrows(), total=10, desc="Generating SECOM messages (Few-Shot)"):
-
+count = 0
+for i, row in tqdm(df.iterrows(), total=len(df), desc="Generating SECOM messages"):
+    if count >= 10:
+        break
     try:
         vuln_id = str(row.get("vuln_id", "") or "")
         code_diff = str(row.get("code_diff", "") or "")
@@ -30,13 +31,12 @@ for i, row in tqdm(df.head(10).iterrows(), total=10, desc="Generating SECOM mess
         original_message = str(row.get("message", "") or "")
 
         few_shot_prompt_safe = few_shot_prompt.replace("{", "{{").replace("}", "}}").replace("{{code_diff}}", "{code_diff}")
-
         user_prompt_filled = few_shot_prompt_safe.replace("{code_diff}", code_diff)
 
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4.1-mini",
             messages=[
-                {"role": "system", "content": system_prompt_short},
+                {"role": "system", "content": SYSTEM_PROMPT_SHORT},
                 {"role": "user", "content": user_prompt_filled}
             ]
         )
@@ -52,6 +52,7 @@ for i, row in tqdm(df.head(10).iterrows(), total=10, desc="Generating SECOM mess
             "original_message": original_message,
             "generated_secom_message": generated
         })
+        count += 1 
 
     except Exception as e:
         print(f"Error processing row {i}: {e}")
@@ -63,6 +64,7 @@ for i, row in tqdm(df.head(10).iterrows(), total=10, desc="Generating SECOM mess
             "original_message": original_message,
             "generated_secom_message": f"Error: {str(e)}"
         })
+        count += 1  
 
 # Save results
 df = pd.DataFrame(results)[['id', 'cwe_id', 'vuln_id', 'code_diff', 'original_message', 'generated_secom_message']]
