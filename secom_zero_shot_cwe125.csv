@@ -1,4 +1,4 @@
-id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message,original_message_score,original_message_entities,generated_secom_message_score,generated_secom_message_entities
+id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message
 0,{'CWE-125'},GHSA-j47f-4232-hvv8,"@@ -21,6 +21,7 @@ limitations under the License.
  #include ""tensorflow/core/framework/register_types.h""
  #include ""tensorflow/core/framework/tensor.h""
@@ -57,11 +57,11 @@ id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message,original_me
 PiperOrigin-RevId: 369757702
 Change-Id: Ie6e5d2c21513a8d56bf41fcf35960caf76e890f9","vuln-fix: Prevent out-of-bounds access in RaggedCrossOp input processing
 
-The vulnerability was due to missing bounds checks when accessing ragged, sparse, and dense tensor lists based on input_order indices. This could lead to out-of-bounds memory access, causing crashes or potential data corruption exploitable by attackers. The fix adds explicit index validation with error returns before accessing these lists, ensuring safe and validated input handling.
+The vulnerability was due to missing bounds checks when accessing ragged, sparse, and dense tensor lists, allowing out-of-bounds reads. This is a security risk because it can lead to memory corruption, crashes, or potential exploitation via crafted inputs. The fix adds explicit index bounds validation with error returns before accessing these lists to ensure safe and validated input handling.
 
 Weakness: Improper Bounds Checking (CWE-125)  
 Severity: High  
-CVSS: 7.5",0.17647058823529413,"[('fix', 'ACTION', ''), ('out of bounds read', 'secword', ''), ('ragged_cross_op.cc', 'URL', ''), ('change', 'ACTION', ''), ('ie6e5d2c21513a8d56bf41fcf35960caf76e890f9', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('bounds checks', 'SECWORD', ''), ('out-of-bounds', 'secword', ''), ('exploitable', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'SECWORD', ''), ('bounds checking', 'SECWORD', ''), ('cwe-125', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 1,{'CWE-125'},GHSA-h9px-9vqg-222h,"@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
  limitations under the License.
  ==============================================================================*/
@@ -83,13 +83,13 @@ CVSS: 7.5",0.17647058823529413,"[('fix', 'ACTION', ''), ('out of bounds read', '
      OP_REQUIRES_OK(ctx, ctx->allocate_output(0, input.shape(), &output));","Fix `tf.raw_ops.QuantizeAndDequantizeV3` array index failure.
 
 PiperOrigin-RevId: 370577691
-Change-Id: Ifeae64212f6bcd139435824fa2748d1329213c4c","vuln-fix: Validate axis parameter against input dimensions in quantization op
+Change-Id: Ifeae64212f6bcd139435824fa2748d1329213c4c","vuln-fix: Validate axis parameter against input dimensions
 
-The vulnerability is an unchecked axis parameter that could exceed input tensor dimensions, leading to out-of-bounds memory access during computation. This is a security risk because it can cause crashes or undefined behavior exploitable by crafted inputs to disrupt service or execute arbitrary code. The fix adds explicit validation to ensure the axis is within valid bounds before proceeding with tensor operations.
+The vulnerability is that the axis parameter was not checked against the input tensor's dimensions, allowing out-of-bounds access during computation. This is a security risk because it can lead to undefined behavior, crashes, or potential memory corruption exploitable by attackers. The fix adds a validation check that ensures the axis is within the valid range before proceeding with the operation.
 
 Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('change', 'ACTION', ''), ('ifeae64212f6bcd139435824fa2748d1329213c4c', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('out-of-bounds', 'secword', ''), ('security', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+Severity: Medium  
+CVSS: 5.3"
 2,{'CWE-125'},GHSA-374m-jm66-3vj8,"@@ -405,6 +405,16 @@ class SparseBincountOp : public OpKernel {
        for (int64_t i = 0; i < indices_mat.dimension(0); ++i) {
          const int64_t batch = indices_mat(i, 0);
@@ -111,11 +111,11 @@ CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('change', 'ACTION', '')
 PiperOrigin-RevId: 399918616
 Change-Id: I11d154f4444d3fde1f09c5c40628b8671791a30d","vuln-fix: Prevent out-of-bounds access in SparseBincountOp kernel
 
-The vulnerability allowed out-of-bounds indices for batch and bin dimensions, potentially causing memory corruption or crashes during sparse bincount operations. This is a security risk because it can lead to undefined behavior, data leakage, or denial of service by triggering invalid memory accesses. The fix adds explicit bounds checks on batch and bin indices, rejecting invalid inputs with clear error messages to prevent unsafe memory access.
+The vulnerability allowed out-of-bounds indexing on batch and bin dimensions without validation, leading to potential memory corruption or crashes. This is a security risk because attackers could exploit it to cause denial of service or arbitrary code execution. The fix adds explicit boundary checks that reject invalid indices before accessing output tensor dimensions.
 
 Weakness: Improper Input Validation (CWE-20)  
 Severity: High  
-CVSS: 7.5",0.17647058823529413,"[('prevent', 'ACTION', ''), ('out-of-bound', 'SECWORD', ''), ('change', 'ACTION', ''), ('i11d154f4444d3fde1f09c5c40628b8671791a30d', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('out-of-bounds', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('security', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('invalid memory accesses', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('bounds checks', 'SECWORD', ''), ('error', 'FLAW', ''), ('prevent', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 3,{'CWE-125'},GHSA-9697-98pf-4rw7,"@@ -86,6 +86,10 @@ class UpperBoundOp : public OpKernel {
      const Tensor& sorted_inputs_t = ctx->input(0);
      const Tensor& values_t = ctx->input(1);
@@ -142,11 +142,11 @@ CVSS: 7.5",0.17647058823529413,"[('prevent', 'ACTION', ''), ('out-of-bound', 'SE
 PiperOrigin-RevId: 387738073
 Change-Id: Iee74de95ddad18440d052a75a5a1cb67544f490a","vuln-fix: Enforce minimum input dimensionality in bound operations
 
-The vulnerability was missing validation for input tensor dimensionality, allowing inputs with fewer than two dimensions to be processed. This could lead to unexpected behavior or crashes, potentially causing denial of service or data corruption. The fix adds explicit checks requiring input tensors to have at least two dimensions, rejecting invalid inputs early with clear error messages.
+The vulnerability allowed inputs with fewer than two dimensions to be processed, which could cause unexpected behavior or memory access errors during tensor operations. This is a security risk because it may lead to crashes or exploitable conditions in downstream code relying on valid input shapes. The fix adds explicit checks to ensure input tensors have at least two dimensions, rejecting invalid inputs early with clear error messages.
 
 Weakness: Improper Input Validation (CWE-20)  
 Severity: Medium  
-CVSS: 5.3",0.11764705882352941,"[('prevent', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('iee74de95ddad18440d052a75a5a1cb67544f490a', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('missing validation', 'secword', ''), ('denial of service', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+CVSS: 5.3"
 4,"{'CWE-787', 'CWE-125'}",GHSA-4hvf-hxvg-f67v,"@@ -282,10 +282,12 @@ void FormatConverter<T>::InitSparseToDenseConverter(
    block_size_.resize(block_map_.size());
    for (int i = 0; i < original_rank; i++) {
@@ -187,15 +187,11 @@ CVSS: 5.3",0.11764705882352941,"[('prevent', 'ACTION', ''), ('heap oob', 'SECWOR
 PiperOrigin-RevId: 416910386
 Change-Id: Ic0b4dc048dc4b5a6309c572b8c4c9f776e4db60a","vuln-fix: Prevent out-of-bounds access in sparse-to-dense conversion
 
-The code lacked sufficient boundary checks on vector indices, causing potential out-of-bounds memory access during sparse-to-dense format conversion operations. This vulnerability could lead to memory corruption, crashes, or exploitable conditions allowing attackers to manipulate program behavior. The fix adds explicit bounds checks before accessing vectors to ensure all indices are within valid ranges, preventing invalid memory reads or writes.
+The code lacked sufficient boundary checks on array indices during sparse-to-dense format conversion, risking out-of-bounds memory access. This vulnerability could lead to memory corruption or crashes, potentially exploitable for arbitrary code execution or denial of service. The fix adds explicit bounds checks before accessing arrays and indices to ensure all accesses remain within valid ranges.
 
-Weakness: CWE-125: Out-of-bounds Read  
+Weakness: Improper Restriction of Operations within the Bounds of a Memory Buffer (CWE-119)  
 Severity: High  
-CVSS: 7.5
-
-Weakness: CWE-119: Improper Restriction of Operations within the Bounds of a Memory Buffer  
-Severity: High  
-CVSS: 7.5",0.11764705882352941,"[('add', 'ACTION', ''), ('safety checks', 'SECWORD', ''), ('out of bound access', 'SECWORD', ''), ('change', 'ACTION', ''), ('ic0b4dc048dc4b5a6309c572b8c4c9f776e4db60a', 'SHA', '')]",0.5294117647058824,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('boundary checks', 'SECWORD', ''), ('out-of-bounds', 'SECWORD', ''), ('vulnerability', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('manipulate', 'ACTION', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('bounds checks', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('cwe-125', 'CWEID', ''), ('out-of-bounds read', 'SECWORD', ''), ('high', 'SEVERITY', ''), ('weakness', 'SECWORD', ''), ('cwe-119', 'CWEID', ''), ('improper restriction', 'secword', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 5,"{'CWE-476', 'CWE-787', 'CWE-125'}",GHSA-9xh4-23q4-v6wr,"@@ -1282,6 +1282,32 @@ class FusedBatchNormOpBase : public OpKernel {
                    errors::InvalidArgument(""Error during tensor copy.""));
      }
@@ -242,11 +238,13 @@ CVSS: 7.5",0.11764705882352941,"[('add', 'ACTION', ''), ('safety checks', 'SECWO
 PiperOrigin-RevId: 372460336
 Change-Id: Ic8c4e4de67c58a741bd87f2e182bed07247d1126","vuln-fix: Validate channel dimension consistency in batch norm inputs
 
-The vulnerability was missing validation of input tensor channel dimensions against scale, offset, mean, and variance tensors in batch normalization operations. This could lead to out-of-bounds memory access or corrupted computations, potentially causing crashes or exploitable undefined behavior. The fix adds explicit checks ensuring these tensors have matching channel counts, preventing invalid inputs from proceeding.
+The vulnerability was missing validation of input tensor dimensions against scale, offset, mean, and variance tensors in batch normalization operations.  
+This could lead to out-of-bounds memory access or corrupted computations, potentially causing crashes or exploitable undefined behavior.  
+The fix adds explicit checks ensuring these tensors have matching channel dimensions, preventing invalid inputs from proceeding.  
 
 Weakness: Improper Input Validation (CWE-20)  
 Severity: High  
-CVSS: 7.5",0.17647058823529413,"[('add', 'ACTION', ''), ('change', 'ACTION', ''), ('ic8c4e4de67c58a741bd87f2e182bed07247d1126', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('missing validation', 'secword', ''), ('out-of-bounds', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 6,{'CWE-125'},GHSA-cgfm-62j4-v4rf,"@@ -219,7 +219,20 @@ class SparseReduceOp : public OpKernel {
      sp.Reorder<T>(reduction.reorder_dims);
      for (const auto &g : sp.group(reduction.group_by_dims)) {
@@ -272,11 +270,11 @@ CVSS: 7.5",0.17647058823529413,"[('add', 'ACTION', ''), ('change', 'ACTION', '')
 PiperOrigin-RevId: 387934524
 Change-Id: I894aa30f1e454f09b471d565b4a325da49322c1a","vuln-fix: Prevent out-of-bounds writes in sparse reduction operation
 
-The vulnerability was an unchecked write index in sparse reduction that could cause out-of-bounds memory access during tensor updates. This is a security risk because it may lead to memory corruption, crashes, or arbitrary code execution by malicious inputs. The fix adds explicit bounds checks and size validations to ensure all write indices are within valid output tensor ranges.
+The vulnerability was an unchecked index calculation that could lead to out-of-bounds memory writes during sparse tensor reduction operations. This posed a security risk by potentially corrupting memory and enabling arbitrary code execution or crashes. The fix adds explicit bounds checks and validates group size against output strides to ensure all computed indices are within valid output tensor ranges.
 
-Weakness: CWE-125: Out-of-bounds Read/Write  
+Weakness: Improper Restriction of Operations within the Bounds of a Memory Buffer (CWE-119)  
 Severity: High  
-CVSS: 7.5",0.17647058823529413,"[('prevent', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('i894aa30f1e454f09b471d565b4a325da49322c1a', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('out-of-bounds writes', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('out-of-bounds', 'SECWORD', ''), ('updates', 'ACTION', ''), ('security', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('code execution', 'SECWORD', ''), ('malicious', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('bounds checks', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('cwe-125', 'CWEID', ''), ('out-of-bounds read', 'SECWORD', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 7,{'CWE-125'},GHSA-q3g3-h9r4-prrc,"@@ -265,6 +265,11 @@ class SimpleBinaryOp : public OpKernel {
    void Compute(OpKernelContext* ctx) override {
      const Tensor& in0 = ctx->input(0);
@@ -291,13 +289,13 @@ CVSS: 7.5",0.17647058823529413,"[('prevent', 'ACTION', ''), ('heap oob', 'SECWOR
      const Device& eigen_device = ctx->eigen_device<Device>();","Fix nullptr deref and heap OOB access in binary cwise ops.
 
 PiperOrigin-RevId: 387936777
-Change-Id: I608b8074cec36a982cca622b7144cb2c43e6e19f","vuln-fix: Enforce element count equality in binary operations
+Change-Id: I608b8074cec36a982cca622b7144cb2c43e6e19f","vuln-fix: Validate input tensor sizes in element-wise operations
 
-The vulnerability allowed element-wise operations on tensors with differing element counts, leading to out-of-bounds memory access during computation. This posed a security risk by enabling potential memory corruption and arbitrary code execution through crafted inputs. The fix adds a validation check that enforces both input tensors have the same number of elements before proceeding with the operation.
+The vulnerability allowed element-wise operations on tensors with differing sizes without validation, leading to potential out-of-bounds memory access. This posed a security risk by enabling memory corruption or crashes when processing malformed inputs. The fix enforces a size equality check and returns an error if the input tensors have mismatched element counts before proceeding. 
 
-Weakness: CWE-125: Out-of-bounds Read  
+Weakness: Improper Input Validation (CWE-20)  
 Severity: High  
-CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('nullptr', 'SECWORD', ''), ('heap oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('i608b8074cec36a982cca622b7144cb2c43e6e19f', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('out-of-bounds', 'secword', ''), ('security', 'SECWORD', ''), ('memory corruption', 'SECWORD', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('cwe-125', 'CWEID', ''), ('out-of-bounds read', 'SECWORD', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 8,{'CWE-125'},GHSA-5hj3-vjjf-f5m7,"@@ -380,6 +380,11 @@ Status Examples::Initialize(OpKernelContext* const context,
    const Tensor* example_labels_t;
    TF_RETURN_IF_ERROR(context->input(""example_labels"", &example_labels_t));
@@ -314,13 +312,11 @@ CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('nullptr', 'SECWORD', '
 PiperOrigin-RevId: 387738010
 Change-Id: I28eedcfd87a53aaf34deb075acea1f8c95470808","vuln-fix: Validate example labels size to prevent input mismatch
 
-The vulnerability occurs due to missing validation of example labels size against the expected number of examples, allowing inconsistent input data to proceed unchecked.  
-This can lead to out-of-bounds memory access or logic errors, potentially causing crashes or data corruption in downstream processing.  
-The fix adds a size check that returns an error if the example labels count does not match the expected number of examples, preventing invalid inputs from being processed.  
+The vulnerability is a lack of validation for the size of example labels compared to the expected number of examples, allowing inconsistent input data to proceed. This mismatch can lead to undefined behavior or memory corruption, posing a security risk through potential crashes or data leaks. The fix adds a size check that returns an error if the example labels count does not match the expected number, preventing further processing of invalid inputs.
 
 Weakness: Improper Input Validation (CWE-20)  
 Severity: High  
-CVSS: 7.5",0.17647058823529413,"[('add', 'ACTION', ''), ('sdca_internal.cc', 'URL', ''), ('change', 'ACTION', ''), ('i28eedcfd87a53aaf34deb075acea1f8c95470808', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('missing validation', 'SECWORD', ''), ('out-of-bounds', 'SECWORD', ''), ('logic errors', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('size check', 'secword', ''), ('error', 'FLAW', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 9,"{'CWE-787', 'CWE-125'}",GHSA-77gp-3h4r-6428,"@@ -100,7 +100,7 @@ StatusOr<FullTypeDef> SpecializeType(const AttrSlice& attrs,
      // verifications are needed, they should be done by separately, and in a
      // way that can be reused for type inference.
@@ -332,15 +328,15 @@ CVSS: 7.5",0.17647058823529413,"[('add', 'ACTION', ''), ('sdca_internal.cc', 'UR
          if (attr == nullptr) {","Fix heap OOB read/write due to incorrect indexing.
 
 PiperOrigin-RevId: 408578046
-Change-Id: Ifc9ffea49e5890f55fcb2c27568611052c3ddcfa","vuln-fix: Correct loop index to prevent out-of-bounds access in type specialization
+Change-Id: Ifc9ffea49e5890f55fcb2c27568611052c3ddcfa","vuln-fix: Correct index usage to prevent out-of-bounds access in type specialization
 
-The vulnerability was an incorrect loop index causing potential out-of-bounds access when modifying type arguments during specialization.
-This could lead to memory corruption or undefined behavior, posing a risk of crashes or exploitation by crafted inputs.
-The fix replaces the incorrect fixed index with the loop variable to ensure proper iteration and safe access to all type arguments.
+The vulnerability was an incorrect loop index causing out-of-bounds access when modifying type arguments, potentially leading to memory corruption or undefined behavior.
+This is a security risk because it can be exploited to cause crashes or arbitrary code execution by manipulating type argument data structures.
+The fix replaces the incorrect fixed index with the loop variable to ensure proper bounds checking and safe access to type arguments during specialization.
 
-Weakness: CWE-125: Out-of-bounds Read
+Weakness: Improper Indexing Leading to Out-of-Bounds Access (CWE-125)
 Severity: High
-CVSS: 7.5",0.17647058823529413,"[('fix', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('ifc9ffea49e5890f55fcb2c27568611052c3ddcfa', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('out-of-bounds', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('exploitation', 'SECWORD', ''), ('fix', 'ACTION', ''), ('fixed', 'ACTION', ''), ('ensure', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'SECWORD', ''), ('cwe-125', 'CWEID', ''), ('out-of-bounds read', 'SECWORD', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 10,{'CWE-125'},GHSA-83rh-hx5x-q9p5,"@@ -101,10 +101,14 @@ bool HdrDecoder::readData(Mat& _img)
  
  bool HdrDecoder::checkSignature( const String& signature ) const
@@ -360,11 +356,13 @@ CVSS: 7.5",0.17647058823529413,"[('fix', 'ACTION', ''), ('heap oob', 'SECWORD', 
      return false;
  }",imgproc(hdr): fix bounds check in HdrDecoder::checkSignature(),"vuln-fix: Correct signature check to prevent partial match bypass
 
-The vulnerability was due to a combined condition allowing partial signature matches to pass validation incorrectly. This posed a security risk by enabling attackers to bypass signature verification with crafted inputs. The fix separates the checks for each signature variant to ensure exact and complete matches are required for validation success.
+The vulnerability was caused by combining two memcmp calls with a logical OR in a single condition, which could lead to incorrect evaluation and partial signature matches.
+This flaw allowed attackers to bypass signature verification by exploiting short-circuit evaluation, potentially leading to processing of malicious or malformed data.
+The fix separates the two memcmp checks into distinct if statements, ensuring each signature is fully and independently verified before acceptance.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: Medium  
-CVSS: 5.3",0.058823529411764705,"[('fix', 'ACTION', ''), ('bounds check', 'SECWORD', ''), ('hdrdecoder::checksignature', 'SECWORD', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('signature', 'secword', ''), ('prevent', 'ACTION', ''), ('bypass', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('signature', 'secword', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('bypass', 'secword', ''), ('signature', 'secword', ''), ('fix', 'ACTION', ''), ('signature', 'secword', ''), ('ensure', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+Weakness: Improper Input Validation (CWE-20)
+Severity: Medium
+CVSS: 5.3"
 11,{'CWE-125'},GHSA-r4c4-5fpq-56wg,"@@ -1050,6 +1050,13 @@ class BoostedTreesSparseCalculateBestFeatureSplitOp : public OpKernel {
        const int32_t feature_dim = stats_summary_indices(idx, 1);
        const int32_t bucket_id = stats_summary_indices(idx, 2);
@@ -383,11 +381,11 @@ CVSS: 5.3",0.058823529411764705,"[('fix', 'ACTION', ''), ('bounds check', 'SECWO
 PiperOrigin-RevId: 387171191
 Change-Id: I83ca8a75b22aa78c037e8b98779da6cced16bfaa","vuln-fix: Validate stat_dim bounds in feature split calculation
 
-The vulnerability was an unchecked stat_dim value that could exceed the expected stats_dims boundary in stats_summary_indices, leading to out-of-bounds memory access. This posed a security risk by potentially causing crashes or enabling memory corruption exploits. The fix adds a validation check that enforces stat_dim to be less than stats_dims, aborting with an error if the condition is violated.
+The vulnerability was an unchecked stat_dim value that could exceed the allocated stats_dims array bounds during feature split computation. This posed a risk of out-of-bounds memory access, potentially leading to crashes or arbitrary code execution. The fix adds explicit validation to ensure stat_dim is less than stats_dims, preventing invalid memory access and improving robustness.
 
 Weakness: Improper Input Validation (CWE-20)  
 Severity: High  
-CVSS: 7.5",0.11764705882352941,"[('tf.raw_ops.boostedtreessparsecalculatebestfeaturesplit', 'URL', ''), ('change', 'ACTION', ''), ('i83ca8a75b22aa78c037e8b98779da6cced16bfaa', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('out-of-bounds', 'secword', ''), ('security', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('exploits', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 12,{'CWE-125'},GHSA-23hm-7w47-xw72,"@@ -94,6 +94,11 @@ class DequantizeOp : public OpKernel {
      const Tensor& input_min_tensor = ctx->input(1);
      const Tensor& input_max_tensor = ctx->input(2);
@@ -404,11 +402,11 @@ CVSS: 7.5",0.11764705882352941,"[('tf.raw_ops.boostedtreessparsecalculatebestfea
 PiperOrigin-RevId: 411214268
 Change-Id: I3249d2a69ddc82f182c589a3a5bbfb71543f4b29","vuln-fix: Validate axis parameter to prevent out-of-bounds access
 
-The vulnerability is an unchecked axis parameter that could exceed input tensor dimensions, leading to invalid memory access or crashes during dequantization operations. This poses a security risk by potentially causing denial of service or memory corruption exploitable by attackers. The fix adds a validation check that ensures the axis is less than the input tensor’s dimension count, rejecting invalid arguments early. 
+The vulnerability occurs due to missing validation of the axis parameter, which can lead to out-of-bounds tensor dimension access during dequantization operations. This poses a security risk by potentially causing memory corruption or crashes that attackers could exploit for denial of service or arbitrary code execution. The fix adds a check to ensure the axis is less than the input tensor’s dimension count, rejecting invalid arguments early in the execution flow.
 
 Weakness: Improper Input Validation (CWE-20)  
 Severity: High  
-CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('out of bound access', 'secword', ''), ('adding', 'ACTION', ''), ('change', 'ACTION', ''), ('i3249d2a69ddc82f182c589a3a5bbfb71543f4b29', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('invalid memory access', 'SECWORD', ''), ('security', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('memory corruption', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensures', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 13,{'CWE-125'},GHSA-c45w-2wxr-pp53,"@@ -98,6 +98,18 @@ class DequantizeOp : public OpKernel {
      if (axis_ > -1) {
        num_slices = input.dim_size(axis_);
@@ -434,11 +432,11 @@ Also fixes SEGV in same op
 PiperOrigin-RevId: 372437896
 Change-Id: I135e94d360c2a1ce374c10f7e0fed1af603dbc02","vuln-fix: Validate tensor element counts in dequantization axis
 
-The vulnerability is that input_min_tensor and input_max_tensor element counts were not validated against the dequantization axis size, allowing mismatched tensor inputs. This can lead to out-of-bounds memory access or incorrect computations, potentially causing crashes or data corruption. The fix adds explicit checks to ensure these tensors have element counts matching the input dimension along the dequantization axis, rejecting invalid inputs early.
+The vulnerability is that input_min_tensor and input_max_tensor element counts were not verified against the dequantization axis size, allowing mismatched tensor inputs. This can lead to out-of-bounds memory access or corrupted computations, posing risks of crashes or data leakage. The fix adds explicit checks to ensure these tensors have element counts matching the input dimension along the specified axis, preventing invalid inputs from proceeding.
 
 Weakness: Improper Input Validation (CWE-20)
 Severity: High
-CVSS: 7.5",0.23529411764705882,"[('fix', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('fixes', 'ACTION', ''), ('change', 'ACTION', ''), ('i135e94d360c2a1ce374c10f7e0fed1af603dbc02', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('out-of-bounds', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 14,"{'CWE-787', 'CWE-125'}",GHSA-cvpc-8phh-8f45,"@@ -601,7 +601,8 @@ TfLiteStatus SimpleStatefulOp::Prepare(TfLiteContext* context,
    OpData* data = reinterpret_cast<OpData*>(node->user_data);
  
@@ -499,13 +497,15 @@ As part of ongoing refactoring, `tflite::GetInput`, `tflite::GetOutput`, `tflite
 We also insert `nullptr` checks on usages of `tflite::GetVariableInput` and `tflite::GetOptionalInputTensor` but only in the cases where there is no obvious check that `nullptr` is acceptable (that is, we only insert the check for the output of these two functions if the tensor is accessed as if it is always not `nullptr`).
 
 PiperOrigin-RevId: 332518902
-Change-Id: I92eb164a6101ac3cca66090061a9b56a97288236","vuln-fix: Add safe input and output retrieval to prevent null pointer use
+Change-Id: I92eb164a6101ac3cca66090061a9b56a97288236","vuln-fix: Enforce safe tensor access to prevent null pointer dereference
 
-The vulnerability is caused by unsafe direct tensor pointer retrieval without error checking, which can lead to null pointer dereferences and undefined behavior during tensor access. This is a security risk because it may cause crashes or memory corruption, potentially exploitable by crafted inputs to disrupt or control program flow. The fix replaces direct tensor retrieval calls with safe variants that perform error checking and ensure valid pointers before use, preventing invalid memory access.
+The vulnerability was due to unchecked tensor retrieval calls that could return null pointers, leading to potential crashes or undefined behavior during tensor operations.
+This is a security risk because it can cause denial of service or memory corruption if invalid tensor pointers are dereferenced.
+The fix replaces direct tensor access with safe accessor functions that validate and ensure successful retrieval before use, preventing null pointer dereferences.
 
 Weakness: CWE-476: NULL Pointer Dereference  
 Severity: High  
-CVSS: 7.5",0.11764705882352941,"[('nullptr', 'SECWORD', ''), ('nullptr', 'SECWORD', ''), ('nullptr', 'SECWORD', ''), ('nullptr', 'SECWORD', ''), ('nullptr', 'SECWORD', ''), ('nullptr', 'SECWORD', ''), ('change', 'ACTION', ''), ('i92eb164a6101ac3cca66090061a9b56a97288236', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('add', 'ACTION', ''), ('safe', 'secword', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'secword', ''), ('unsafe', 'secword', ''), ('error', 'FLAW', ''), ('null pointer dereferences', 'SECWORD', ''), ('security', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('exploitable', 'SECWORD', ''), ('fix', 'ACTION', ''), ('safe', 'secword', ''), ('error', 'FLAW', ''), ('ensure', 'ACTION', ''), ('preventing', 'ACTION', ''), ('invalid memory access', 'secword', ''), ('weakness', 'SECWORD', ''), ('cwe-476', 'CWEID', ''), ('null pointer dereference', 'SECWORD', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 15,{'CWE-125'},GHSA-545v-42p7-98fq,"@@ -1014,6 +1014,9 @@ struct LaunchMaxPoolingGradWithArgmax<CPUDevice, T> {
          const int input_start = start * input_size_per_batch;
          const int input_end = limit * input_size_per_batch;
@@ -520,11 +520,11 @@ CVSS: 7.5",0.11764705882352941,"[('nullptr', 'SECWORD', ''), ('nullptr', 'SECWOR
 PiperOrigin-RevId: 372132844
 Change-Id: Idef9895efaf145f2b1c23d31983601ec980cd5e4","vuln-fix: Prevent out-of-bounds access in max pooling gradient kernel
 
-The vulnerability is an out-of-bounds read from the argmax tensor during gradient computation in max pooling operations. This is a security risk because it can lead to undefined behavior, memory corruption, or potential information disclosure. The fix adds a boundary check to ensure the index does not exceed the number of elements in the argmax tensor, preventing invalid memory access.
+The vulnerability was an out-of-bounds read from the argmax tensor when index exceeded its element count during gradient computation. This could lead to undefined behavior or memory corruption, posing a security risk in processing untrusted inputs. The fix adds a boundary check to break the loop if the index surpasses the number of elements in argmax, preventing invalid memory access.
 
 Weakness: Out-of-bounds Read (CWE-125)  
 Severity: High  
-CVSS: 7.5",0.17647058823529413,"[('fix', 'ACTION', ''), ('buffer overflow', 'secword', ''), ('change', 'ACTION', ''), ('idef9895efaf145f2b1c23d31983601ec980cd5e4', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('out-of-bounds read', 'SECWORD', ''), ('security', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('disclosure', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('boundary check', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('preventing', 'ACTION', ''), ('invalid memory access', 'secword', ''), ('weakness', 'SECWORD', ''), ('out-of-bounds read', 'secword', ''), ('cwe-125', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 16,{'CWE-125'},GHSA-4fg4-p75j-w5xj,"@@ -173,20 +173,50 @@ class QuantizedBatchNormOp : public OpKernel {
  
    void Compute(OpKernelContext* context) override {
@@ -624,11 +624,11 @@ CVSS: 7.5",0.17647058823529413,"[('fix', 'ACTION', ''), ('buffer overflow', 'sec
 PiperOrigin-RevId: 370123451
 Change-Id: Id234d6dab1ec21230bb8e503dba30f899af87f33","vuln-fix: Validate tensor element counts and shapes in QuantizedBatchNormOp
 
-The vulnerability was that input tensors for min/max values and parameters lacked validation for element counts and shape consistency, allowing malformed inputs to proceed unchecked. This posed a security risk by enabling potential out-of-bounds access or logic errors that could be exploited to cause crashes or data corruption. The fix adds explicit checks ensuring each min/max tensor has exactly one element and that parameter tensors have matching shapes consistent with the input tensor’s last dimension.
+The vulnerability was due to missing validation of tensor element counts and shape consistency for input parameters, allowing malformed tensors to be processed unsafely. This posed a security risk by enabling potential out-of-bounds memory access or logic errors during computation, which could be exploited for denial of service or data corruption. The fix adds explicit checks ensuring each tensor has exactly one element where expected and enforces shape consistency across related tensors before proceeding.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5",0.11764705882352941,"[('add', 'ACTION', ''), ('missing validation', 'SECWORD', ''), ('change', 'ACTION', ''), ('id234d6dab1ec21230bb8e503dba30f899af87f33', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('security', 'SECWORD', ''), ('out-of-bounds', 'SECWORD', ''), ('logic errors', 'SECWORD', ''), ('exploited', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+Weakness: Improper Input Validation (CWE-20)
+Severity: High
+CVSS: 7.5"
 17,"{'CWE-908', 'CWE-125'}",GHSA-q263-fvxm-m5mw,"@@ -44,6 +44,7 @@ limitations under the License.
  #include ""tensorflow/core/lib/gtl/inlined_vector.h""
  #include ""tensorflow/core/lib/strings/scanner.h""
@@ -661,11 +661,11 @@ The `MakeEdge` implementation assumes that there exists an output at `output_ind
 PiperOrigin-RevId: 346343288
 Change-Id: I2127da27c2023d27f26efd39afa6c853385cab6f","vuln-fix: Validate node edge indices to prevent out-of-bounds access
 
-The vulnerability was missing bounds checks on node output and input indices when creating graph edges, allowing invalid indices to be used. This posed a security risk by potentially causing undefined behavior or memory corruption through out-of-bounds access. The fix adds explicit validation of output and input indices, returning errors if indices exceed node limits to ensure safe edge creation.
+The vulnerability was missing validation for output and input indices when creating edges between nodes, allowing invalid indices to be used. This posed a security risk by potentially causing out-of-bounds memory access or undefined behavior in graph construction. The fix adds explicit checks that return errors if the specified output or input index exceeds the node’s available outputs or inputs.
 
 Weakness: Improper Input Validation (CWE-20)  
 Severity: High  
-CVSS: 7.5",0.17647058823529413,"[('prevent', 'ACTION', ''), ('out of bounds', 'SECWORD', ''), ('malicious', 'secword', ''), ('manipulate', 'ACTION', ''), ('information leakage', 'SECWORD', ''), ('exploits', 'SECWORD', ''), ('change', 'ACTION', ''), ('i2127da27c2023d27f26efd39afa6c853385cab6f', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('bounds checks', 'SECWORD', ''), ('security', 'secword', ''), ('memory corruption', 'secword', ''), ('out-of-bounds', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('errors', 'FLAW', ''), ('ensure', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 18,{'CWE-125'},GHSA-9c8h-vvrj-w2p8,"@@ -58,15 +58,21 @@ class RaggedGatherOpBase : public OpKernel {
  
    void Compute(OpKernelContext* context) override {
@@ -690,13 +690,13 @@ CVSS: 7.5",0.17647058823529413,"[('prevent', 'ACTION', ''), ('out of bounds', 'S
      OP_REQUIRES_OK(context, ValidateIndices(indices_in, num_params));","Fix heap OOB in `tf.raw_ops.RaggedGather`
 
 PiperOrigin-RevId: 388355464
-Change-Id: If14d96231d1cd7aad7c4d1c22c1bab1576b75717","vuln-fix: Validate input tensor list size and dimensions
+Change-Id: If14d96231d1cd7aad7c4d1c22c1bab1576b75717","vuln-fix: Validate input tensor list and dimensions in RaggedGatherOpBase
 
-The vulnerability was caused by missing runtime checks for empty input tensor lists and scalar split tensors, which could lead to invalid memory access or crashes. This is a security risk because it may allow attackers to trigger denial of service or exploit undefined behavior in the kernel. The fix adds explicit validation to ensure the input tensor list is non-empty and that split tensors have valid dimensions before proceeding.
+The vulnerability was missing validation for empty input tensor lists and scalar split tensors, which could cause undefined behavior or crashes during tensor operations. This is a security risk because it may lead to denial of service or memory corruption when processing malformed inputs. The fix adds explicit checks to ensure the input tensor list is non-empty and that split tensors have valid dimensions before proceeding.
 
 Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5",0.17647058823529413,"[('fix', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('tf.raw_ops.raggedgather', 'URL', ''), ('change', 'ACTION', ''), ('if14d96231d1cd7aad7c4d1c22c1bab1576b75717', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('invalid memory access', 'secword', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('denial of service', 'secword', ''), ('exploit', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+Severity: Medium  
+CVSS: 5.3"
 19,{'CWE-125'},GHSA-c545-c4f9-rf6v,"@@ -37,6 +37,7 @@ TfLiteStatus ExpandTensorDim(TfLiteContext* context, const TfLiteTensor& input,
      axis = input_dims.size + 1 + axis;
    }
@@ -709,13 +709,13 @@ CVSS: 7.5",0.17647058823529413,"[('fix', 'ACTION', ''), ('heap oob', 'SECWORD', 
 The for loop that follows this check assumes that `axis` is between `0` and `input_dims.size`. If user supplied `axis` is negative, the if code before this check is supposed to bring it back to positive (similar to how in Python one can do `l[-3]` to mean `l[-3 + len(l)]`).
 
 PiperOrigin-RevId: 387200206
-Change-Id: I162f4feba12d547c3a4340833ae682016a2ebfab","vuln-fix: Prevent negative axis values in tensor dimension expansion
+Change-Id: I162f4feba12d547c3a4340833ae682016a2ebfab","vuln-fix: Prevent negative axis index in tensor dimension expansion
 
-The vulnerability allowed negative axis values to bypass validation, potentially causing out-of-bounds memory access during tensor dimension expansion. This is a security risk because it can lead to undefined behavior, crashes, or memory corruption exploitable by attackers. The fix adds a lower bound check ensuring the axis value is non-negative before proceeding with dimension expansion.
+The vulnerability allowed negative axis values to bypass validation, potentially causing out-of-bounds memory access during tensor dimension expansion. This poses a security risk by enabling memory corruption or crashes that attackers could exploit for denial of service or code execution. The fix adds a lower bound check ensuring the axis index is non-negative before proceeding with dimension expansion.
 
 Weakness: Improper Input Validation (CWE-20)  
 Severity: High  
-CVSS: 7.5",0.23529411764705882,"[('prevent', 'ACTION', ''), ('oob', 'SECWORD', ''), ('expand_dims.cc', 'URL', ''), ('input_dims.size', 'URL', ''), ('change', 'ACTION', ''), ('i162f4feba12d547c3a4340833ae682016a2ebfab', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('bypass', 'secword', ''), ('out-of-bounds', 'SECWORD', ''), ('security', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('bound check', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 20,{'CWE-125'},GHSA-3h8m-483j-7xxm,"@@ -46,6 +46,10 @@ class RequantizationRangeOp : public OpKernel {
  
    void Compute(OpKernelContext* ctx) override {
@@ -731,11 +731,11 @@ CVSS: 7.5",0.23529411764705882,"[('prevent', 'ACTION', ''), ('oob', 'SECWORD', '
 PiperOrigin-RevId: 372129031
 Change-Id: Ie684ab98a3840c5186ead3eafffc0e0ed0e8030d","vuln-fix: Validate non-empty inputs for min and max tensors
 
-The vulnerability was caused by missing checks for empty input tensors representing minimum and maximum values, which could lead to out-of-bounds memory access during computation. This poses a security risk as it may cause crashes or undefined behavior exploitable by attackers to cause denial of service or memory corruption. The fix adds explicit validation to ensure these input tensors are not empty before accessing their elements, preventing invalid memory reads.
+The vulnerability is that the code did not verify whether the input min and max tensors were empty before accessing their elements. This is a security risk because accessing empty tensors can lead to undefined behavior or crashes, potentially exploitable for denial of service. The fix adds explicit checks to ensure these tensors contain elements before use, preventing invalid memory access.
 
 Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('out of bound read', 'secword', ''), ('requantization_range_op.cc', 'URL', ''), ('change', 'ACTION', ''), ('ie684ab98a3840c5186ead3eafffc0e0ed0e8030d', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'secword', ''), ('missing checks', 'SECWORD', ''), ('out-of-bounds', 'secword', ''), ('security', 'secword', ''), ('exploitable', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('denial of service', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+Severity: Medium  
+CVSS: 5.3"
 21,{'CWE-125'},GHSA-cvgx-3v3q-m36c,"@@ -2559,6 +2559,9 @@ Status QuantizeV2Shape(InferenceContext* c) {
    if (!s.ok() && s.code() != error::NOT_FOUND) {
      return s;
@@ -750,13 +750,11 @@ CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('out of bound read', 's
 PiperOrigin-RevId: 400309614
 Change-Id: I31412c71b05b4f21b677f7fa715a61499cbee39d","vuln-fix: Validate axis parameter to prevent invalid negative values
 
-The vulnerability allowed axis values less than -1, which could cause unexpected behavior or crashes during shape inference in tensor operations.
-This is a security risk because it may lead to denial of service or memory corruption when processing malformed inputs.
-The fix adds a validation check that rejects axis values below -1, returning an invalid argument error to prevent further processing.
+The vulnerability allowed axis values less than -1, which could cause unexpected behavior or crashes during shape inference in tensor operations. This is a security risk because it may lead to denial of service or memory corruption when processing malformed inputs. The fix adds a validation check that returns an error if the axis parameter is less than -1, preventing invalid values from propagating.
 
-Weakness: Improper Input Validation (CWE-20)
-Severity: Medium
-CVSS: 5.3",0.17647058823529413,"[('prevent', 'ACTION', ''), ('oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('i31412c71b05b4f21b677f7fa715a61499cbee39d', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('security', 'secword', ''), ('denial of service', 'SECWORD', ''), ('memory corruption', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('prevent', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3"
 22,{'CWE-125'},GHSA-7fvx-3jfc-2cpc,"@@ -955,11 +955,12 @@ class ResourceScatterUpdateOp : public OpKernel {
                          params->dim_size(0), "")""));
        } else {
@@ -777,13 +775,13 @@ CVSS: 5.3",0.17647058823529413,"[('prevent', 'ACTION', ''), ('oob', 'SECWORD', '
          functor::ScatterFunctor<Device, T, Index, op> functor;","Fix heap OOB due to dimension mismatch in `ResourceScatterUpdate`
 
 PiperOrigin-RevId: 388292801
-Change-Id: Id9bd7244d98d41b1517d4771850b32782c0cc949","vuln-fix: Enforce shape prefix validation for scatter update indices
+Change-Id: Id9bd7244d98d41b1517d4771850b32782c0cc949","vuln-fix: Validate updates shape prefix to prevent out-of-bounds access
 
-The vulnerability was due to insufficient validation of the relationship between indices and updates tensor shapes in scatter update operations. This flaw could lead to out-of-bounds memory access or data corruption by allowing incompatible tensor shapes to proceed unchecked. The fix enforces that the shape of indices must be a prefix of the updates shape, ensuring consistent and safe tensor operations.
+The vulnerability was caused by insufficient validation of the updates tensor shape against indices, allowing incompatible shapes to pass unchecked. This posed a security risk by enabling potential out-of-bounds memory access or data corruption during scatter update operations. The fix enforces that the updates shape must start with the indices shape, ensuring shape compatibility and preventing invalid memory operations.
 
 Weakness: Improper Input Validation (CWE-20)  
 Severity: High  
-CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('id9bd7244d98d41b1517d4771850b32782c0cc949', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('update', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('updates', 'ACTION', ''), ('update', 'ACTION', ''), ('flaw', 'FLAW', ''), ('out-of-bounds', 'SECWORD', ''), ('fix', 'ACTION', ''), ('updates', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 23,{'CWE-125'},GHSA-59q2-x2qc-4c97,"@@ -533,6 +533,17 @@ class UnicodeEncodeOp : public OpKernel {
      const Tensor& input_splits = context->input(1);
      const auto input_splits_flat = input_splits.flat<SPLITS_TYPE>();
@@ -821,11 +819,11 @@ CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('heap oob', 'SECWORD', 
 PiperOrigin-RevId: 371717714
 Change-Id: If33443b28f158e58078f1268f6b92f2728d219e0","vuln-fix: Validate input_splits boundaries and ordering in UnicodeEncodeOp
 
-The vulnerability is improper validation of input_splits array boundaries and ordering, which could lead to out-of-bounds memory access or corrupted data processing. This poses a security risk by enabling potential crashes or arbitrary code execution through malformed input data. The fix enforces that input_splits starts with zero, ends with the input length, and contains non-decreasing values within valid bounds.
+The vulnerability is improper validation of input_splits array boundaries and ordering, which could lead to out-of-bounds memory access or corrupted data processing. This poses a security risk by enabling potential memory corruption or denial of service through crafted inputs. The fix enforces that input_splits start at zero, end at the input length, and are non-decreasing and within valid range, preventing invalid memory access.
 
 Weakness: Improper Input Validation (CWE-20)  
 Severity: High  
-CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('buffer overflow', 'secword', ''), ('tf.raw_ops.unicodeencode', 'URL', ''), ('change', 'ACTION', ''), ('if33443b28f158e58078f1268f6b92f2728d219e0', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('unicodeencodeop', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('improper validation', 'secword', ''), ('out-of-bounds', 'secword', ''), ('security', 'secword', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 24,{'CWE-125'},GHSA-jwf9-w5xm-f437,"@@ -123,6 +123,17 @@ TfLiteStatus GatherNdString(const TfLiteTensor* params,
  template <typename IndicesT>
  TfLiteStatus EvalGatherNd(TfLiteContext* context, const TfLiteTensor* params,
@@ -850,11 +848,11 @@ Passing negative indices is illegal but there was a missing check so that result
 PiperOrigin-RevId: 387208551
 Change-Id: I6b7a8a62d3e7c13a16d81619e5bc23ae2cdbc7fd","vuln-fix: Prevent negative indices in GatherNd tensor operation
 
-The vulnerability allowed negative index values in the GatherNd operation, which could cause out-of-bounds memory access or undefined behavior during tensor evaluation. This poses a security risk by potentially enabling memory corruption or data leakage through invalid memory reads. The fix adds a validation step that ensures all indices are non-negative before proceeding with the tensor gathering operation.
+The vulnerability allowed negative index values in tensor gathering operations, which could lead to out-of-bounds memory access or undefined behavior during execution. This poses a security risk by potentially enabling memory corruption or data leakage through invalid indexing. The fix adds a validation step that ensures all indices are non-negative before proceeding with the gather operation, aborting if any negative index is detected.
 
 Weakness: Improper Input Validation (CWE-20)  
 Severity: High  
-CVSS: 7.5",0.23529411764705882,"[('prevent', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('gather_nd.cc', 'URL', ''), ('missing check', 'secword', ''), ('oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('i6b7a8a62d3e7c13a16d81619e5bc23ae2cdbc7fd', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('out-of-bounds', 'SECWORD', ''), ('security', 'secword', ''), ('memory corruption', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensures', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 25,"{'CWE-787', 'CWE-125'}",GHSA-cvpc-8phh-8f45,"@@ -75,12 +75,7 @@ TfLiteTensor* GetOutput(TfLiteContext* context, const TfLiteNode* node,
  
  const TfLiteTensor* GetOptionalInputTensor(const TfLiteContext* context,
@@ -873,13 +871,13 @@ CVSS: 7.5",0.23529411764705882,"[('prevent', 'ACTION', ''), ('heap oob', 'SECWOR
 With the previous change, there is no more need for two separate APIs. We would deprecate `GetOptionalInputTensor` in the future.
 
 PiperOrigin-RevId: 332513386
-Change-Id: Id7110271c25ebd6126ad8c82a493e37e0e0756b3","vuln-fix: Prevent use of optional tensor leading to invalid memory access
+Change-Id: Id7110271c25ebd6126ad8c82a493e37e0e0756b3","vuln-fix: Prevent use of optional tensor without validation
 
-The code incorrectly accessed optional input tensors without proper validation, causing potential out-of-bounds or null pointer dereferences. This is a security risk because it can lead to crashes or arbitrary code execution through memory corruption. The fix replaces conditional checks with a safer direct input retrieval that properly handles optional tensor cases to prevent invalid memory access.
+The function returned optional tensors without verifying their presence, allowing potential use of uninitialized or invalid memory references. This could lead to undefined behavior or memory corruption, posing a security risk in model execution. The fix enforces proper input retrieval by always calling GetInput, ensuring consistent validation and preventing access to optional tensors that may not exist.
 
-Weakness: Improper Input Validation (CWE-20)  
+Weakness: Use of Uninitialized Memory (CWE-457)  
 Severity: High  
-CVSS: 7.5",0.17647058823529413,"[('change', 'ACTION', ''), ('change', 'ACTION', ''), ('id7110271c25ebd6126ad8c82a493e37e0e0756b3', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('invalid memory access', 'SECWORD', ''), ('incorrectly accessed', 'SECWORD', ''), ('out-of-bounds', 'SECWORD', ''), ('null pointer dereferences', 'SECWORD', ''), ('security', 'secword', ''), ('code execution', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('invalid memory access', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 26,"{'CWE-787', 'CWE-125'}",GHSA-8gv3-57p6-g35r,"@@ -313,6 +313,12 @@ class RaggedTensorToTensorBaseOp : public OpKernel {
              output_index_multiplier, output_size, result);
          return tensorflow::Status::OK();
@@ -897,11 +895,11 @@ CVSS: 7.5",0.17647058823529413,"[('change', 'ACTION', ''), ('change', 'ACTION', 
 PiperOrigin-RevId: 371986929
 Change-Id: I79ab962a22c5867f36f7f45b780a1ac881b1dbdd","vuln-fix: Prevent out-of-bounds access in row partition handling
 
-The code lacked a boundary check for row partition size compared to output size, risking out-of-bounds memory access during tensor operations. This could lead to memory corruption or crashes, potentially exploitable for denial of service or arbitrary code execution. The fix adds a validation step that returns an error if the row partition size exceeds the output size, preventing invalid memory access.
+The code lacked a boundary check for row partition size exceeding output size, risking out-of-bounds memory access during tensor processing. This could lead to memory corruption or crashes, potentially exploitable for denial of service or arbitrary code execution. The fix adds a validation step that returns an error if the row partition size is greater than the output size, preventing invalid memory access.
 
-Weakness: Improper Bounds Checking (CWE-125)  
+Weakness: CWE-125: Out-of-bounds Read  
 Severity: High  
-CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('overflow', 'SECWORD', ''), ('issue', 'FLAW', ''), ('tf.raw_ops.raggedtensortotensor', 'URL', ''), ('change', 'ACTION', ''), ('i79ab962a22c5867f36f7f45b780a1ac881b1dbdd', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('boundary check', 'SECWORD', ''), ('out-of-bounds', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('denial of service', 'secword', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('preventing', 'ACTION', ''), ('invalid memory access', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('bounds checking', 'SECWORD', ''), ('cwe-125', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 27,{'CWE-125'},GHSA-2r8p-fg3c-wcj4,"@@ -660,6 +660,11 @@ class ResourceGatherOp : public OpKernel {
      OP_REQUIRES(
          c, TensorShapeUtils::IsVectorOrHigher(params.shape()),
@@ -916,13 +914,13 @@ CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('overflow', 'SECWORD', 
      const int64_t N = indices.NumElements();","Prevent heap oob access in `resource_variable_ops.cc`
 
 PiperOrigin-RevId: 387936433
-Change-Id: I9e71ddaa8dbd51ec6afbf163a6b3b591f193b4f6","vuln-fix: Enforce minimum batch dimensions in ResourceGatherOp parameters
+Change-Id: I9e71ddaa8dbd51ec6afbf163a6b3b591f193b4f6","vuln-fix: Enforce minimum batch_dims dimension in params tensor
 
-The vulnerability was a missing check ensuring that the params tensor has at least batch_dims_ dimensions, allowing malformed inputs to proceed unchecked. This could lead to out-of-bounds memory access or undefined behavior during tensor operations, posing a security risk. The fix adds a validation step that rejects params tensors with fewer dimensions than batch_dims_, preventing invalid memory access.
+The vulnerability allowed params tensors with fewer dimensions than batch_dims, potentially causing out-of-bounds memory access or logic errors during tensor operations. This is a security risk because it can lead to crashes or data corruption exploitable by crafted inputs. The fix adds a validation check ensuring params has at least batch_dims dimensions, rejecting invalid inputs early to prevent unsafe operations.
 
 Weakness: Improper Input Validation (CWE-20)  
 Severity: High  
-CVSS: 7.5",0.11764705882352941,"[('prevent', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('resource_variable_ops.cc', 'URL', ''), ('change', 'ACTION', ''), ('i9e71ddaa8dbd51ec6afbf163a6b3b591f193b4f6', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('missing check', 'secword', ''), ('ensuring', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('security', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('preventing', 'ACTION', ''), ('invalid memory access', 'secword', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 28,{'CWE-125'},GHSA-h4pc-gx2w-f2xv,"@@ -96,6 +96,8 @@ TfLiteStatus ResizeOutputTensors(TfLiteContext* context, TfLiteNode* node,
      }
    }
@@ -936,13 +934,11 @@ CVSS: 7.5",0.11764705882352941,"[('prevent', 'ACTION', ''), ('heap oob', 'SECWOR
 PiperOrigin-RevId: 371026165
 Change-Id: I26ac6372c87246e03c7eb8c94e84c84d86054b36","vuln-fix: Validate axis parameter bounds in tensor resizing
 
-The vulnerability was an unchecked axis parameter that could be negative or exceed tensor dimensions during output tensor resizing.
-This posed a risk of out-of-bounds memory access or undefined behavior leading to potential crashes or data corruption.
-The fix adds explicit validation to ensure the axis value is non-negative and less than the number of input tensor dimensions before proceeding.
+The vulnerability is that the axis parameter was not validated to be within valid dimension bounds, allowing out-of-range access during tensor resizing operations. This poses a security risk by enabling potential memory corruption or crashes due to invalid tensor dimension indexing. The fix adds explicit checks to ensure the axis value is non-negative and less than the number of input dimensions before proceeding.
 
-Weakness: Improper Input Validation (CWE-20)
-Severity: High
-CVSS: 7.5",0.17647058823529413,"[('prevent', 'ACTION', ''), ('oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('i26ac6372c87246e03c7eb8c94e84c84d86054b36', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('out-of-bounds', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5"
 29,{'CWE-125'},GHSA-vqw6-72r7-fgw7,"@@ -162,6 +162,9 @@ class BaseMatrixTriangularSolveOp : public OpKernel {
      const Tensor& in1 = ctx->input(1);
  
@@ -981,13 +977,13 @@ CVSS: 7.5",0.17647058823529413,"[('prevent', 'ACTION', ''), ('oob', 'SECWORD', '
  };","Validate (and ensure validation sticks) inputs for `MatrixTriangularSolve`.
 
 PiperOrigin-RevId: 370282444
-Change-Id: Iaed61a0b0727cc42c830658b72eb69f785f48dc5","vuln-fix: Validate input tensor dimensions and halt on error
+Change-Id: Iaed61a0b0727cc42c830658b72eb69f785f48dc5","vuln-fix: Prevent invalid tensor shapes in triangular solve op
 
-The vulnerability was missing validation for input tensor dimensions and continuing execution despite errors, which could cause undefined behavior or memory corruption. This is a security risk because malformed inputs might lead to crashes or exploitable states in the matrix solve operation. The fix adds dimension checks for inputs, ensures matrices are square where required, and stops execution immediately if validation fails.
+The vulnerability allowed processing of input tensors with invalid dimensions or non-square matrices, leading to potential undefined behavior or crashes. This is a security risk because malformed inputs could cause denial of service or memory corruption in downstream operations. The fix adds strict validation of input tensor dimensions and shape, and aborts processing early if validation fails.
 
 Weakness: Improper Input Validation (CWE-20)  
 Severity: High  
-CVSS: 7.5",0.11764705882352941,"[('validate', 'secword', ''), ('ensure', 'ACTION', ''), ('change', 'ACTION', ''), ('iaed61a0b0727cc42c830658b72eb69f785f48dc5', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('error', 'FLAW', ''), ('vulnerability', 'SECWORD', ''), ('missing validation', 'secword', ''), ('errors', 'FLAW', ''), ('memory corruption', 'SECWORD', ''), ('security', 'secword', ''), ('exploitable', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensures', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"
 30,"{'CWE-400', 'CWE-125'}",GHSA-8g7p-74h8-hg48,"@@ -204,7 +204,7 @@ HttpsProxyAgent.prototype.callback = function connect(req, opts, fn) {
    var headers = Object.assign({}, proxy.headers);
    if (proxy.auth) {
@@ -998,15 +994,15 @@ CVSS: 7.5",0.11764705882352941,"[('validate', 'secword', ''), ('ensure', 'ACTION
  
    // the Host header should only include the port","Use `Buffer.from()`
 
-`new Buffer()` is deprecated and unsafe.","vuln-fix: Replace deprecated Buffer constructor to prevent potential memory issues
+`new Buffer()` is deprecated and unsafe.","vuln-fix: Replace deprecated Buffer constructor to prevent security risks
 
-Using the deprecated Buffer constructor can lead to uninitialized memory exposure, causing potential information leaks or security vulnerabilities in the proxy authorization header handling.
-This is a security risk because attackers might exploit uninitialized memory to gain sensitive data or cause application instability.
-The fix replaces the deprecated Buffer constructor with the safer Buffer.from method to ensure proper memory initialization and prevent accidental data exposure.
+Using the deprecated Buffer constructor can lead to security vulnerabilities due to uninitialized memory exposure or unexpected behavior in encoding operations.
+This poses a risk of leaking sensitive data or enabling injection attacks when handling proxy authentication headers.
+The fix replaces the deprecated Buffer constructor with the safer Buffer.from method to ensure proper and secure buffer creation.
 
-Weakness: Use of Deprecated Buffer Constructor (CWE-676)
+Weakness: CWE-676: Use of Potentially Dangerous Function
 Severity: Medium
-CVSS: 5.3",0.23529411764705882,"[('buffer.from', 'URL', ''), ('unsafe', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('issues', 'FLAW', ''), ('uninitialized memory', 'SECWORD', ''), ('information leaks', 'SECWORD', ''), ('security', 'SECWORD', ''), ('vulnerabilities', 'SECWORD', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('exploit', 'SECWORD', ''), ('uninitialized memory', 'SECWORD', ''), ('sensitive data', 'SECWORD', ''), ('fix', 'ACTION', ''), ('safer buffer.from', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('initialization', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('data exposure', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-676', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+CVSS: 5.3"
 31,"{'CWE-787', 'CWE-125'}",GHSA-hpv4-7p9c-mvfr,"@@ -271,6 +271,18 @@ class FractionalAvgPoolGradOp : public OpKernel {
      const int64_t in_rows = orig_input_tensor_shape_flat(1);
      const int64_t in_cols = orig_input_tensor_shape_flat(2);
@@ -1028,15 +1024,13 @@ CVSS: 5.3",0.23529411764705882,"[('buffer.from', 'URL', ''), ('unsafe', 'SECWORD
      // Transform orig_input_tensor_shape into TensorShape","Validate dimensions of input tensor in `FractionalAvgPoolGrad`
 
 PiperOrigin-RevId: 388286227
-Change-Id: Ieb7566155e92acc8993a2212c76deacadc0edc8a","vuln-fix: Validate tensor dimensions to prevent zero-size inputs
+Change-Id: Ieb7566155e92acc8993a2212c76deacadc0edc8a","vuln-fix: Validate tensor input dimensions to prevent zero-size inputs
 
-The vulnerability allowed zero-sized tensor dimensions to be processed, which could lead to undefined behavior or crashes during computation.
-This is a security risk because it may cause denial of service or memory corruption when invalid tensor shapes are used.
-The fix adds explicit checks to ensure batch, rows, columns, and depth dimensions are non-zero before proceeding with operations.
+The vulnerability allowed zero-sized tensor dimensions to be processed, which could lead to undefined behavior or crashes during computation. This is a security risk because it may cause denial of service or memory corruption when invalid tensor shapes are used. The fix adds explicit checks to ensure all tensor dimensions are non-zero before proceeding with further operations.
 
-Weakness: Improper Input Validation (CWE-20)
-Severity: Medium
-CVSS: 5.3",0.11764705882352941,"[('validate', 'secword', ''), ('change', 'ACTION', ''), ('ieb7566155e92acc8993a2212c76deacadc0edc8a', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('security', 'secword', ''), ('denial of service', 'SECWORD', ''), ('memory corruption', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3"
 32,{'CWE-125'},GHSA-qpw2-xchm-655q,"@@ -28,7 +28,7 @@ StringStream.prototype.write = function(data) {
      return false
    }
@@ -1049,11 +1043,11 @@ CVSS: 5.3",0.11764705882352941,"[('validate', 'secword', ''), ('change', 'ACTION
 
 Ensure data is not a number in Buffer constructor","vuln-fix: Prevent improper number handling in StringStream write method
 
-The vulnerability allowed numeric inputs to be converted to strings without proper encoding, potentially causing unexpected behavior or data corruption during stream processing. This is a security risk because it can lead to malformed data handling, which attackers might exploit to disrupt application logic or cause denial of service. The fix adds a type check for numbers and converts them to strings before encoding, ensuring consistent and safe data processing.
+The write method did not properly handle numeric inputs, converting them unsafely to strings without validation. This could lead to unexpected behavior or memory corruption when processing numeric data as buffers. The fix adds a type check for numbers and converts them safely to strings before further processing.
 
 Weakness: Improper Input Validation (CWE-20)  
 Severity: Medium  
-CVSS: 5.3",0.17647058823529413,"[('#9', 'ISSUE', ''), ('fix', 'ACTION', ''), ('ensure', 'ACTION', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('encoding', 'SECWORD', ''), ('security', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('exploit', 'secword', ''), ('denial of service', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('encoding', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+CVSS: 5.3"
 33,{'CWE-125'},GHSA-6gmv-pjp9-p8w8,"@@ -1653,11 +1653,21 @@ REGISTER_OP(""ReverseSequence"")
          return errors::InvalidArgument(
              ""batch_dim must be < input rank: "", batch_dim, "" vs. "", input_rank);
@@ -1080,8 +1074,8 @@ CVSS: 5.3",0.17647058823529413,"[('#9', 'ISSUE', ''), ('fix', 'ACTION', ''), ('e
 PiperOrigin-RevId: 411896080
 Change-Id: I7e59a38e2f960886edf2b6c54ed5a84e86a9b193","vuln-fix: Enforce non-negative batch_dim in ReverseSequence op
 
-The vulnerability allowed negative batch_dim values, which could cause out-of-bounds memory access during dimension handling in the ReverseSequence operation. This is a security risk because it may lead to memory corruption or crashes exploitable by attackers. The fix adds a strict check to reject negative batch_dim values, ensuring safe and valid input dimensions.
+The vulnerability allowed negative batch_dim values, which could cause out-of-bounds memory access during dimension handling in the ReverseSequence operation. This is a security risk because it may lead to memory corruption or crashes exploitable by attackers to execute arbitrary code. The fix adds a strict check to reject negative batch_dim values, ensuring safe and valid input dimensions before proceeding.
 
-Weakness: Improper Input Validation (CWE-20)  
+Weakness: CWE-125: Out-of-bounds Read  
 Severity: High  
-CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('out of bound', 'SECWORD', ''), ('error', 'FLAW', ''), ('change', 'ACTION', ''), ('i7e59a38e2f960886edf2b6c54ed5a84e86a9b193', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('out-of-bounds', 'secword', ''), ('security', 'SECWORD', ''), ('memory corruption', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+CVSS: 7.5"

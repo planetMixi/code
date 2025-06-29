@@ -31,9 +31,9 @@ id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message
 -				.html( """" + ( value || ""&#160;"" ) );
 +			this._title( this.uiDialogTitlebar.find( "".ui-dialog-title"" ) );
  		}
- 	},","Dialog: Extract setting the title into a _title method, use .text() to prevent XSS. Fixes #6016 - Dialog: Title XSS Vulnerability.","vuln-fix: Prevent XSS by sanitizing dialog title content
+ 	},","Dialog: Extract setting the title into a _title method, use .text() to prevent XSS. Fixes #6016 - Dialog: Title XSS Vulnerability.","vuln-fix: Prevent XSS by escaping dialog title content
 
-The dialog widget previously inserted raw HTML from the title option directly into the DOM, allowing injection of malicious scripts via crafted titles. This posed a security risk by enabling cross-site scripting attacks that could compromise user data and application integrity. The fix replaces HTML insertion with safe text assignment, ensuring any title content is properly escaped and not interpreted as executable code.
+The dialog title was previously set using html() with unescaped input, allowing injection of arbitrary HTML or scripts into the dialog header. This posed a cross-site scripting risk by enabling attackers to execute malicious code in users’ browsers. The fix replaces html() with text() to safely escape the title content, preventing injection of executable code.
 
 Weakness: Cross-Site Scripting (CWE-79)  
 Severity: High  
@@ -58,15 +58,13 @@ CVSS: 7.4"
 +		// notes anyway.
 +		const disallowedTags = ['script', 'iframe', 'frameset', 'frame', 'object', 'base', 'embed', 'link', 'meta'];
  
- 		const parser = new htmlparser2.Parser({","All: Security: Remove ""link"" and ""meta"" tags from notes to prevent XSS","vuln-fix: Prevent injection via disallowed HTML tags in parser
+ 		const parser = new htmlparser2.Parser({","All: Security: Remove ""link"" and ""meta"" tags from notes to prevent XSS","vuln-fix: Prevent XSS via disallowed HTML tags in note content
 
-Certain HTML tags like ""link"" and ""meta"" were not previously blocked, allowing attackers to inject malicious JavaScript or manipulate document metadata.
-This poses a security risk by enabling cross-site scripting or other injection attacks through crafted note content.
-The fix extends the disallowed tags list to include ""link"" and ""meta"", preventing their use and mitigating injection vectors in the HTML parser.
+The vulnerability allowed injection of malicious JavaScript through ""link"" and ""meta"" tags in notes, enabling cross-site scripting attacks. This is a security risk because attackers could execute arbitrary scripts in the user's context, compromising data and application integrity. The fix adds ""link"" and ""meta"" tags to the disallowed list, preventing their use and blocking potential script injection vectors.
 
-Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation (Cross-site Scripting)
-Severity: High
-CVSS: 7.5"
+Weakness: Cross-Site Scripting (XSS) - CWE-79  
+Severity: High  
+CVSS: 7.4"
 2,{'CWE-79'},GHSA-4p8f-mmfj-r45g,"@@ -17,7 +17,7 @@ def tags_for_index(model)
        elsif !query.include?(hashtag)
          query += "" #{hashtag}""
@@ -76,10 +74,10 @@ CVSS: 7.5"
      end
    end",Context-sensitive XSS bugfix.,"vuln-fix: Prevent JavaScript injection in tag search links
 
-The vulnerability allowed unescaped user input to be embedded directly into JavaScript event handlers, enabling potential cross-site scripting attacks. This is a security risk because attackers could inject malicious scripts that execute in users' browsers, compromising data and session integrity. The fix applies proper JavaScript escaping to user input before embedding it in event handler code, mitigating injection risks.
+The vulnerability allowed unescaped user input to be embedded directly into JavaScript event handlers, enabling potential cross-site scripting (XSS) attacks. This posed a security risk by allowing attackers to execute arbitrary scripts in users' browsers, compromising user data and session integrity. The fix applies proper JavaScript escaping to the query parameter before embedding it in the event handler, mitigating injection risks.
 
-Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
-Severity: High
+Weakness: Cross-Site Scripting (CWE-79)  
+Severity: High  
 CVSS: 7.4"
 3,{'CWE-79'},GHSA-cx2r-mf6x-55rx,"@@ -29,6 +29,7 @@
  use PrestaShopBundle\Form\Admin\Type\TranslatorAwareType;
@@ -100,11 +98,11 @@ CVSS: 7.4"
 
 The custom url field must be a valid url","vuln-fix: Validate URL input to prevent malformed data submission
 
-The URL field lacked validation, allowing users to submit arbitrary or malformed URLs that could lead to injection or redirection attacks. This posed a security risk by enabling attackers to exploit unvalidated input for phishing or server-side vulnerabilities. The fix adds a URL constraint to enforce proper URL format validation at the form level, preventing invalid data from being processed.
+The URL field lacked proper validation, allowing malformed or potentially malicious URLs to be submitted through the form. This posed a security risk by enabling injection attacks or improper data handling downstream. The fix enforces URL format validation using Symfony's built-in URL constraint to ensure only valid URLs are accepted.
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5"
+Weakness: CWE-20: Improper Input Validation  
+Severity: Medium  
+CVSS: 5.3"
 4,{'CWE-79'},GHSA-5qjq-69w6-fg57,"similarity index 86%
 rename from js/src/common/Translator.ts
 rename to js/src/common/Translator.tsx
@@ -134,10 +132,10 @@ rename to js/src/common/Translator.tsx
  
    trans(id: string, parameters: TranslatorParameters = {}) {",Fix XSS vulnerability,"vuln-fix: Prevent XSS by escaping translation parameters
 
-The vulnerability involved unescaped user-controlled strings being directly inserted into translation parameters, risking cross-site scripting attacks. This is a security risk because malicious scripts could execute in users’ browsers, compromising data and session integrity. The fix escapes all string parameters before rendering, ensuring that injected scripts are neutralized and cannot execute. 
+The vulnerability involved unescaped user-controlled input being directly inserted into translation parameters, enabling potential cross-site scripting attacks. This is a security risk because malicious scripts could execute in users’ browsers, leading to data theft or session hijacking. The fix escapes all string parameters before rendering, ensuring that injected scripts are neutralized and cannot execute. 
 
-Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
-Severity: High
+Weakness: Cross-Site Scripting (XSS) CWE-79  
+Severity: High  
 CVSS: 7.4"
 5,{'CWE-79'},GHSA-3374-7h99-xr85,"@@ -128,6 +128,7 @@ private function loadDataGrid(): void
              'registered_on',
@@ -146,12 +144,12 @@ CVSS: 7.4"
 +        $this->dgProfiles->setColumnFunction('htmlspecialchars', ['[display_name]'], 'display_name');
  
          // add the mass action controls
-         $this->dgProfiles->setMassActionCheckboxes('check', '[id]');",Fix xss in profiles display name,"vuln-fix: Sanitize display names to prevent XSS in data grid
+         $this->dgProfiles->setMassActionCheckboxes('check', '[id]');",Fix xss in profiles display name,"vuln-fix: Sanitize display_name output to prevent XSS
 
-User display names were rendered without escaping, allowing injection of malicious HTML or JavaScript code into the data grid interface.
-This posed a security risk by enabling cross-site scripting attacks that could compromise user sessions or steal sensitive information.
-The fix applies htmlspecialchars to the display_name field, ensuring all output is properly escaped before rendering in the UI.
- 
+The display_name field was output directly without escaping, allowing injection of malicious HTML or JavaScript code into the rendered page.
+This posed a cross-site scripting (XSS) risk, enabling attackers to execute arbitrary scripts in users' browsers and compromise session integrity.
+The fix applies htmlspecialchars to the display_name column, ensuring all special characters are properly escaped before rendering.
+
 Weakness: Cross-Site Scripting (CWE-79)
 Severity: High
 CVSS: 7.4"
@@ -165,11 +163,13 @@ CVSS: 7.4"
  						select.val( """" );
  						setTimeout(function() {",Autocomplete demo: Combobox: Encode search term inside tooltips. Fixes #8859 - Autocomplete: XSS in combobox demo.,"vuln-fix: Prevent XSS in autocomplete invalid value tooltip
 
-The vulnerability allowed unescaped user input to be directly inserted into the tooltip attribute, enabling cross-site scripting attacks via crafted input values. This is a security risk because attackers could execute arbitrary scripts in the context of the affected web page, compromising user data and session integrity. The fix properly escapes the user input by converting it to text and then to HTML entities before insertion, preventing script injection in the tooltip content.
+The vulnerability was caused by directly inserting user input into HTML attributes without escaping, allowing injection of malicious scripts.
+This is a security risk because attackers could execute arbitrary JavaScript in the context of the affected page, leading to cross-site scripting attacks.
+The fix escapes the user input by converting it to text and then to HTML entities before insertion, preventing script execution in the tooltip attribute.
 
-Weakness: Cross-Site Scripting (XSS) CWE-79  
-Severity: High  
-CVSS: 7.4"
+Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation (Cross-site Scripting)
+Severity: Medium
+CVSS: 6.1"
 7,{'CWE-79'},GHSA-q7q9-w24q-cpgh,"@@ -149,8 +149,16 @@ App.BreadcrumbItem = Em.Object.extend({
    createLabel() {
      let label = this.get('label');
@@ -200,9 +200,9 @@ CVSS: 7.4"
        items.get('lastObject').setProperties({
          disabled: true,",AMBARI-25329. Ambari breadcrumbs xss vulnerability,"vuln-fix: Escape breadcrumb labels to prevent XSS attacks
 
-Breadcrumb labels were not properly escaped before rendering, allowing injection of malicious HTML or scripts in the UI.
-This posed a security risk by enabling cross-site scripting (XSS) attacks that could compromise user data or session integrity.
-The fix applies proper escaping to breadcrumb labels derived from dynamic sources before rendering them in the view.
+Breadcrumb labels were not properly escaped before rendering, allowing injection of malicious scripts via crafted label inputs.
+This posed a cross-site scripting risk, enabling attackers to execute arbitrary JavaScript in users’ browsers and compromise session integrity.
+The fix applies proper escaping to all breadcrumb labels derived from dynamic sources before rendering, mitigating script injection vulnerabilities.
 
 Weakness: Cross-Site Scripting (CWE-79)
 Severity: High
@@ -223,7 +223,7 @@ CVSS: 7.4"
  
                  url += url.Contains(""?"") ? ""&"" : ""?"";",HtmlEncode Raw URL in HtmlFormat snapshot,"vuln-fix: Prevent XSS by encoding JSON and URL output
 
-The vulnerability involved insufficient escaping of JSON and URL output, allowing potential cross-site scripting (XSS) attacks when rendering HTML content. This posed a security risk by enabling attackers to inject malicious scripts that could execute in users’ browsers and compromise data integrity. The fix applies comprehensive HTML encoding to both JSON strings and URLs, ensuring all special characters are safely escaped before rendering.
+The vulnerability involved insufficient escaping of JSON and URL output, which could allow injection of malicious scripts in HTML contexts. This posed a security risk by enabling cross-site scripting (XSS) attacks that could compromise user data and session integrity. The fix applies comprehensive HTML encoding to both JSON content and URLs before rendering, ensuring all special characters are safely escaped.
 
 Weakness: Cross-Site Scripting (CWE-79)  
 Severity: High  
@@ -243,10 +243,10 @@ Signed-off-by: Julius Härtl <jus@bitgrid.net>","vuln-fix: Disable default HTML 
 
 The tooltip directive previously allowed rendering HTML content by default, which could enable injection of malicious scripts through user-controlled input.
 This posed a cross-site scripting (XSS) risk by allowing attackers to execute arbitrary JavaScript in the context of the application.
-The fix disables default HTML rendering in the tooltip directive, forcing safer plain text rendering unless explicitly overridden.
-
-Weakness: Cross-Site Scripting (CWE-79)
-Severity: High
+The fix disables default HTML rendering in the tooltip directive, ensuring that content is treated as plain text and preventing script injection.
+  
+Weakness: Cross-Site Scripting (XSS) CWE-79  
+Severity: High  
 CVSS: 7.4"
 10,{'CWE-79'},GHSA-xw79-hhv6-578c,"@@ -4,7 +4,7 @@
      <meta charset=""utf-8"">
@@ -279,9 +279,11 @@ CVSS: 7.4"
            </li>
          {{~}}",Interpolate template variables correctly (#64),"vuln-fix: Prevent XSS by escaping template output in HTML
 
-The vulnerability was caused by unescaped user-controlled data being directly injected into HTML templates, allowing malicious scripts to execute in users' browsers. This is a critical security risk because it enables cross-site scripting (XSS) attacks that can steal user data or hijack sessions. The fix applies proper HTML escaping to all dynamic content in templates, preventing script injection and ensuring safe rendering.
+Unescaped template variables in HTML attributes and content allowed injection of malicious scripts via directory, path, and file data.
+This posed a critical cross-site scripting risk, enabling attackers to execute arbitrary JavaScript in users’ browsers and compromise security.
+The fix applies proper HTML escaping to all dynamic template outputs, ensuring special characters are safely encoded and scripts cannot be injected.
 
-Weakness: Cross-Site Scripting (CWE-79)  
+Weakness: Cross-Site Scripting (XSS) - CWE-79  
 Severity: Critical  
 CVSS: 9.8"
 11,{'CWE-79'},GHSA-5pg2-qg87-vmj7,"@@ -336,9 +336,12 @@
@@ -305,13 +307,13 @@ CVSS: 9.8"
 +        $ext = strtolower($ext);
          if (function_exists('finfo_open') and function_exists('finfo_file')) {
              $finfo = finfo_open(FILEINFO_MIME_TYPE); // return mime type ala mimetype extension
-             $mime = @finfo_file($finfo, $filePath);",update,"vuln-fix: Normalize file extensions to prevent case-sensitive conflicts
+             $mime = @finfo_file($finfo, $filePath);",update,"vuln-fix: Normalize file extensions to prevent case-sensitive bypasses
 
-File extension comparisons were case-sensitive, allowing attackers to bypass uniqueness checks and MIME type validations by using uppercase or mixed-case extensions.
-This could lead to overwriting existing files or improper MIME type handling, increasing the risk of unauthorized file replacement or execution.
-The fix converts file extensions to lowercase before comparisons, ensuring consistent and secure handling of file names and MIME types.
+File extension comparisons were case-sensitive, allowing attackers to bypass file type restrictions by using uppercase or mixed-case extensions.
+This could lead to unauthorized file uploads or execution of malicious files due to inconsistent validation.
+The fix converts file extensions to lowercase before checks, ensuring consistent and secure handling of file types.
 
-Weakness: Improper Case Handling of File Extensions (CWE-179)
+Weakness: Improper Neutralization of Case Variations (CWE-179)
 Severity: Medium
 CVSS: 5.3"
 12,{'CWE-79'},GHSA-5vr6-hm68-5j9p,"@@ -44,5 +44,5 @@
@@ -320,9 +322,9 @@ CVSS: 5.3"
  } else {
 -    exit(""ERROR: $error"");
 +    exit(""ERROR: "".htmlspecialchars($error));;
- }",fix XSS vulnerability in poller-groups.inc.php,"vuln-fix: Sanitize error output to prevent XSS in exit messages
+ }",fix XSS vulnerability in poller-groups.inc.php,"vuln-fix: Sanitize error output to prevent XSS in exit message
 
-The error message output was not properly escaped before being sent to the client, allowing injection of malicious HTML or JavaScript code. This posed a cross-site scripting (XSS) risk that could compromise user sessions or steal sensitive data. The fix applies htmlspecialchars to the error string, ensuring special characters are safely encoded before output. 
+The vulnerability was that error messages were output directly without escaping, allowing injection of malicious HTML or JavaScript code in the response. This posed a security risk by enabling cross-site scripting (XSS) attacks that could compromise user data or session integrity. The fix applies htmlspecialchars to the error message before output, ensuring special characters are escaped and preventing script execution.
 
 Weakness: Cross-Site Scripting (XSS) CWE-79  
 Severity: Medium  
@@ -337,14 +339,12 @@ CVSS: 6.1"
 +            'cover' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
          ];
      }
- }",Fix vulnerability report from hunter.dev,"vuln-fix: Validate image uploads to prevent unsafe file types
+ }",Fix vulnerability report from hunter.dev,"vuln-fix: Add image upload validation to prevent unsafe file types
 
-Image upload fields lacked strict validation, allowing potentially malicious files to be uploaded to the server.
-This posed a security risk by enabling attackers to upload executable or harmful files disguised as images.
-The fix enforces image type and size restrictions, accepting only specific image formats and limiting file size to 2MB.
+The vulnerability was the lack of validation on image and cover file uploads, allowing potentially malicious files to be uploaded to the server. This posed a security risk by enabling attackers to upload executable or harmful files that could compromise the system. The fix enforces strict image type and size validation, restricting uploads to safe image formats and limiting file size to 2MB. 
 
-Weakness: CWE-434 Unrestricted Upload of File with Dangerous Type
-Severity: High
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
 CVSS: 7.5"
 14,{'CWE-79'},GHSA-vpwq-6cp4-ffqc,"@@ -309,6 +309,8 @@ public function isDangerFilename($filename){
  			|| $isDangerStr($filename , "".aspx"")
@@ -356,9 +356,9 @@ CVSS: 7.5"
  			return true;
  		}",bug,"vuln-fix: Prevent dangerous file extensions in upload validation
 
-The vulnerability allowed uploading files with dangerous extensions like .cshtml and .axd, which were not previously blocked by the filename validation function. This posed a security risk by enabling attackers to upload executable or configuration files that could be executed on the server. The fix extends the validation to reject these additional dangerous file extensions, preventing potentially malicious uploads.
+The file upload validation missed blocking certain dangerous extensions like .cshtml and .axd, which can contain executable code or sensitive handlers. Allowing these files poses a risk of remote code execution or unauthorized access to server internals. The fix adds checks to reject filenames with .cshtml and .axd extensions, enhancing upload security by preventing potentially harmful files.
 
-Weakness: CWE-434 Unrestricted Upload of File with Dangerous Type  
+Weakness: CWE-434 - Unrestricted Upload of File with Dangerous Type  
 Severity: High  
 CVSS: 7.5"
 15,{'CWE-79'},GHSA-j6p2-cx3w-6jcp,"@@ -1079,7 +1079,7 @@
@@ -370,14 +370,12 @@ CVSS: 7.5"
    };
  
  }).call(this);","Fixed escapeHTML function
-to skip not only &***;, but also &#***; and &x***;","vuln-fix: Improve HTML escaping to handle numeric character references
+to skip not only &***;, but also &#***; and &x***;","vuln-fix: Improve HTML escaping to prevent XSS via numeric entities
 
-The HTML escaping function did not properly escape ampersands preceding numeric character references, allowing malformed input to bypass escaping and potentially enable XSS attacks.
-This is a security risk because attackers can inject malicious scripts using numeric entities that were not escaped, leading to cross-site scripting vulnerabilities.
-The fix updates the regular expression to also exclude numeric character references, ensuring all ampersands are correctly escaped and preventing XSS injection vectors.
+The HTML escaping function did not properly encode numeric character references, allowing crafted input with numeric entities to bypass escaping and inject malicious HTML or scripts. This posed a cross-site scripting risk by enabling attackers to insert executable code into rendered pages. The fix extends the escape pattern to recognize and encode numeric decimal and hexadecimal entities, ensuring all special characters are safely escaped.
 
-Weakness: Cross-Site Scripting (CWE-79)
-Severity: High
+Weakness: Cross-Site Scripting (CWE-79)  
+Severity: High  
 CVSS: 7.4"
 16,{'CWE-79'},GHSA-h4mx-xv96-2jgm,"@@ -9,7 +9,7 @@
          {f:translate(
@@ -403,11 +401,11 @@ Reviewed-on: https://review.typo3.org/c/Packages/TYPO3.CMS/+/74904
 Tested-by: Oliver Hader <oliver.hader@typo3.org>
 Reviewed-by: Oliver Hader <oliver.hader@typo3.org>","vuln-fix: Escape user input in password reset email template
 
-The vulnerability was that the receiverName variable was not escaped before being included in the HTML email template, allowing injection of malicious HTML or scripts. This posed a risk of cross-site scripting (XSS) attacks if an attacker controlled the receiverName value. The fix applies HTML escaping to receiverName using f:format.htmlspecialchars() to neutralize any embedded HTML or script content. 
+The vulnerability was caused by unescaped user input in the password reset email template, allowing injection of malicious HTML or scripts. This poses a security risk by enabling cross-site scripting (XSS) attacks that could compromise user accounts or session data. The fix applies HTML escaping to the receiverName variable to prevent injection of executable code in the email content.
 
 Weakness: Cross-Site Scripting (XSS) CWE-79  
-Severity: Medium  
-CVSS: 6.1"
+Severity: High  
+CVSS: 7.4"
 17,{'CWE-79'},GHSA-wx69-rvg3-x7fc,"@@ -15,11 +15,12 @@ uploads.upload = async function (socket, data) {
  		'user.updateCover': socketUser.updateCover,
  		'groups.cover.update': socketGroup.cover.update,
@@ -421,9 +419,9 @@ CVSS: 6.1"
 -	inProgress[socket.id] = inProgress[socket.id] || {};
 +	inProgress[socket.id] = inProgress[socket.id] || Object.create(null);
  	const socketUploads = inProgress[socket.id];
- 	const { method } = data.params;",fix: guard against prototype pollution,"vuln-fix: Prevent prototype pollution in upload method dispatch
+ 	const { method } = data.params;",fix: guard against prototype pollution,"vuln-fix: Prevent prototype pollution in upload method validation
 
-The vulnerability allowed attackers to invoke unintended methods by exploiting prototype properties in the method dispatch logic. This posed a security risk by enabling unauthorized code execution or data manipulation through crafted input. The fix replaces direct property checks with hasOwnProperty to ensure only own properties are accepted, preventing prototype pollution attacks.
+The vulnerability allowed attackers to bypass method validation by exploiting inherited properties on the methodToFunc object, leading to potential unauthorized function execution. This posed a security risk by enabling attackers to invoke unintended methods through prototype pollution. The fix enforces a safer property check using hasOwnProperty and initializes inProgress with a null-prototype object to prevent prototype chain attacks.
 
 Weakness: Prototype Pollution (CWE-1321)  
 Severity: High  
@@ -486,11 +484,11 @@ CVSS: 7.5"
                      '{product_name}' => '',
                  ];","Merge pull request from GHSA-95hx-62rh-gg96
 
-Do not unescape form message data","vuln-fix: Prevent XSS by encoding user message in contact form
+Do not unescape form message data","vuln-fix: Sanitize contact form message to prevent XSS attacks
 
-The vulnerability was that user-submitted messages were not properly encoded before rendering, allowing injection of malicious HTML or scripts in the contact form output. This posed a security risk by enabling cross-site scripting (XSS) attacks that could compromise user data or site integrity. The fix applies UTF-8 HTML entity encoding to the message content before display, ensuring any HTML tags are neutralized and cannot execute as code.
+The contact form message input was not properly sanitized, allowing raw HTML entities to be decoded and potentially executed in the output context. This posed a security risk by enabling cross-site scripting (XSS) attacks through malicious user input. The fix applies UTF-8 HTML entity encoding to the message content before rendering, ensuring that any HTML tags are safely escaped and not executed.
 
-Weakness: Cross-Site Scripting (XSS) CWE-79  
+Weakness: Cross-Site Scripting (XSS) - CWE-79  
 Severity: High  
 CVSS: 7.4"
 19,{'CWE-79'},GHSA-82j4-vr25-x394,"@@ -304,6 +304,7 @@ public function isDangerFilename($filename){
@@ -504,9 +502,12 @@ CVSS: 7.4"
 
 Update AttachmentModel.class.php","vuln-fix: Prevent dangerous .aspx files from being accepted as safe filenames
 
-The vulnerability allowed .aspx files to bypass filename danger checks, potentially enabling execution of malicious server-side scripts. This poses a security risk by permitting attackers to upload and execute harmful ASP.NET code on the server. The fix adds "".aspx"" to the list of dangerous filename extensions, blocking such files from being accepted. 
+The vulnerability allowed .aspx files to bypass filename danger checks, enabling potentially unsafe file uploads.
+This poses a security risk as .aspx files can contain executable server-side code, leading to remote code execution.
+The fix adds .aspx to the list of dangerous filename extensions, blocking such files from being accepted.
 
-Weakness: CWE-434 Unrestricted Upload of File with Dangerous Type  
+
+Weakness: CWE-434: Unrestricted Upload of File with Dangerous Type  
 Severity: High  
 CVSS: 7.5"
 20,{'CWE-79'},GHSA-m52x-29pq-w3vv,"@@ -1726,7 +1726,7 @@ function createHotSpot(hs) {
@@ -568,11 +569,11 @@ CVSS: 7.5"
 
 Fix potential XSS vulnerability","vuln-fix: Prevent unsafe URLs in links to mitigate script injection
 
-The vulnerability allowed unsafe URL schemes like javascript:, vbscript:, and data: URIs in anchor href attributes, enabling potential cross-site scripting attacks. This is a security risk because malicious URLs can execute arbitrary scripts in users’ browsers, compromising user data and site integrity. The fix enforces stricter URL sanitization by blocking these schemes specifically for link hrefs, replacing them with safe placeholders to prevent script execution.
+The vulnerability allowed unsafe URLs with javascript:, vbscript:, or data: schemes in link href attributes, enabling potential cross-site scripting attacks. This is a security risk because malicious URLs can execute arbitrary scripts in users' browsers, compromising user data and application integrity. The fix enforces stricter URL sanitization by blocking these schemes specifically for link hrefs, replacing them with safe placeholders to prevent script execution.
 
-Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
+Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation (Cross-site Scripting)
 Severity: High
-CVSS: 7.4"
+CVSS: 7.5"
 21,{'CWE-79'},GHSA-xg72-6c83-ghh4,"@@ -563,17 +563,25 @@
                  }
  
@@ -604,12 +605,10 @@ CVSS: 7.4"
              } else {
                  $valid = false;",update,"vuln-fix: Prevent unhandled exceptions during SVG sanitization
 
-SVG files were sanitized without handling potential exceptions, which could cause the process to fail silently or leave unsafe SVG content unfiltered.
-This poses a security risk by allowing malicious SVGs to bypass sanitization, potentially leading to XSS or other injection attacks.
-The fix adds exception handling around the sanitizer call and only writes sanitized content if no errors occur, ensuring robust SVG validation.
+The vulnerability occurs because exceptions thrown during SVG sanitization were not caught, potentially causing application crashes or bypassing file validation. This is a security risk as it may allow malicious SVG files to be processed without proper sanitization or disrupt normal application flow. The fix adds exception handling around the sanitization process and only writes sanitized content if no errors occur, ensuring robust validation and stability.
 
-Weakness: Improper Exception Handling (CWE-248)
-Severity: Medium
+Weakness: Improper Exception Handling (CWE-754)  
+Severity: Medium  
 CVSS: 5.3"
 22,{'CWE-79'},GHSA-hc72-vj3g-5g2g,"@@ -11,13 +11,16 @@
  using ZKEACMS.Common.Models;
@@ -680,10 +679,10 @@ CVSS: 5.3"
 
 #457","vuln-fix: Sanitize HTML input in NavigationService to prevent XSS
 
-User-supplied HTML content in navigation entities was not sanitized before storage, allowing injection of malicious scripts. This posed a critical risk of cross-site scripting attacks, potentially compromising user data and session integrity. The fix integrates an HTML sanitizer to clean all HTML inputs on add and update operations, ensuring only safe content is stored.
+The vulnerability was that HTML content in navigation entities was not sanitized, allowing malicious scripts to be stored and executed in the application context. This posed a critical security risk by enabling cross-site scripting (XSS) attacks that could compromise user data and application integrity. The fix applies HTML sanitization to all input fields before adding or updating navigation entities, ensuring unsafe content is removed.
 
-Weakness: Cross-Site Scripting (CWE-79)  
-Severity: Critical  
+Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation (Cross-site Scripting)
+Severity: Critical
 CVSS: 9.8"
 23,{'CWE-79'},GHSA-8xqr-4cpm-wx7g,"@@ -10,7 +10,7 @@ export default class ReactSVG extends React.Component {
    static defaultProps = {
@@ -695,7 +694,7 @@ CVSS: 9.8"
      wrapperClassName: null
    }",Changed default evalScripts prop to match documentation.,"vuln-fix: Disable script evaluation in ReactSVG component by default
 
-The ReactSVG component allowed script evaluation by default, enabling potential execution of malicious scripts embedded in SVG content. This posed a security risk by exposing applications to cross-site scripting (XSS) attacks through untrusted SVG inputs. The fix changes the default evalScripts property to 'never', preventing automatic script execution within SVGs unless explicitly enabled.
+Allowing script evaluation in SVGs can lead to cross-site scripting attacks if malicious scripts are embedded within SVG content. This poses a significant security risk by enabling attackers to execute arbitrary code in the context of the application. The fix changes the default evalScripts property to 'never', preventing automatic script execution in SVGs unless explicitly enabled.
 
 Weakness: Cross-Site Scripting (XSS) - CWE-79  
 Severity: High  
@@ -709,9 +708,9 @@ CVSS: 7.4"
 +        items.add('excerpt', <div>{excerpt}</div>, -100);
        }
      }
-   });",Fix evaluation of post content by m.trust() (#24),"vuln-fix: Prevent XSS by wrapping excerpt in safe vnode container
+   });",Fix evaluation of post content by m.trust() (#24),"vuln-fix: Prevent XSS by wrapping excerpt in a safe vnode container
 
-The vulnerability involved directly injecting a truncated plain text excerpt as trusted HTML, which could allow malicious scripts to execute if content was improperly sanitized. This posed a cross-site scripting risk by enabling attackers to inject executable code into the DOM. The fix wraps the excerpt inside a React vnode <div> element, ensuring it is treated as text content and preventing script execution.
+The vulnerability was caused by directly trusting and injecting raw HTML content into the UI without proper containment, allowing potential cross-site scripting attacks. This is a security risk because malicious scripts could execute in users' browsers, compromising user data and session integrity. The fix wraps the excerpt in a React vnode <div> element, ensuring safer rendering and preventing untrusted HTML from executing as script. 
 
 Weakness: Cross-Site Scripting (XSS) CWE-79  
 Severity: High  
@@ -725,9 +724,9 @@ CVSS: 7.4"
          return false;
      }","Sanitized username when showing user not found message.
 ------
-Saneado nombre de usuario al mostrar el mensaje de usuario no encontrado.","vuln-fix: Sanitize user input in login warning logs
+Saneado nombre de usuario al mostrar el mensaje de usuario no encontrado.","vuln-fix: Sanitize user input in login warning log
 
-The vulnerability involved logging unsanitized user input directly into warning messages, which could lead to cross-site scripting (XSS) attacks if logs are viewed in a web context. This is a security risk because malicious input could execute scripts in the browser of anyone viewing the logs, potentially compromising sensitive information or user sessions. The fix applies HTML escaping to the user nickname before logging, preventing script injection through log messages.
+The login warning log previously included raw user input without sanitization, allowing potential injection of malicious HTML or scripts. This posed a security risk by enabling cross-site scripting (XSS) attacks through log output rendering. The fix applies HTML escaping to the user nickname before logging, preventing injection of executable code in logs.
 
 Weakness: Cross-Site Scripting (XSS) - CWE-79  
 Severity: Medium  
@@ -740,9 +739,11 @@ CVSS: 5.4"
 +        _s.placeholder = escapeHTML(input.getAttribute('placeholder') || _s.placeholder || """")
          _s.required = input.hasAttribute('required')
  
-         for( let name in _s.classNames )",fixes #989 - fix XSS,"vuln-fix: Escape placeholder attribute to prevent XSS injection
+         for( let name in _s.classNames )",fixes #989 - fix XSS,"vuln-fix: Escape placeholder attribute to prevent XSS
 
-The vulnerability was that the placeholder attribute was directly assigned without escaping, allowing injection of malicious HTML or scripts in the UI. This posed a security risk by enabling cross-site scripting attacks that could compromise user data or session integrity. The fix applies HTML escaping to the placeholder value before assignment, neutralizing any embedded malicious code. 
+The placeholder attribute was assigned directly from user input without sanitization, allowing injection of malicious HTML or scripts.  
+This poses a security risk as attackers could execute arbitrary JavaScript in the context of the application, leading to cross-site scripting attacks.  
+The fix applies HTML escaping to the placeholder value before assignment, ensuring any injected code is rendered harmless.  
 
 Weakness: Cross-Site Scripting (XSS) CWE-79  
 Severity: High  
@@ -755,9 +756,9 @@ CVSS: 7.4"
 +            if ($ext === '' || $ext === 'svg' || !in_array($ext, $allowedExtensions, true)) {
                  throw new ServerErrorHttpException(Craft::t('seomatic', 'File format not allowed.'));
              }
-             // Send the file as a stream, so it can exist anywhere",Disallow SVGs,"vuln-fix: Prevent SVG file uploads in SEO file link handler
+             // Send the file as a stream, so it can exist anywhere",Disallow SVGs,"vuln-fix: Prevent SVG file extension in SEO file link handler
 
-The code allowed SVG files to bypass the file extension whitelist, enabling potentially unsafe file formats to be processed and served. SVG files can contain malicious scripts or code, posing a significant security risk if served without proper sanitization. The fix explicitly blocks SVG files by adding a condition to reject them alongside other disallowed extensions.
+The vulnerability allowed SVG files to bypass the allowed extensions check, enabling potentially unsafe file types to be processed and served by the application. This poses a security risk because SVG files can contain malicious scripts or code that lead to cross-site scripting (XSS) or other client-side attacks. The fix explicitly blocks the 'svg' extension by adding it to the disallowed condition, preventing SVG files from being accepted or served. 
 
 Weakness: CWE-434: Unrestricted Upload of File with Dangerous Type  
 Severity: High  
@@ -776,9 +777,9 @@ CVSS: 7.5"
 
 Signed-off-by: snipe <snipe@snipe.net>","vuln-fix: Prevent HTML content export to mitigate XSS risk
 
-The export functionality was modified to allow HTML content to be included in exported files, which can embed malicious scripts. This creates a security risk by enabling cross-site scripting attacks when exported files are opened in vulnerable viewers. The fix disables exporting HTML content by removing the htmlContent option, preventing script injection through exported data. 
+The export feature allowed HTML content to be included in exported files, which could embed malicious scripts. This posed a security risk by enabling cross-site scripting attacks when users opened exported documents. The fix disables exporting raw HTML content by removing the htmlContent option, ensuring only safe data formats are exported.
 
-Weakness: Cross-Site Scripting (CWE-79)  
+Weakness: Cross-Site Scripting (XSS) - CWE-79  
 Severity: High  
 CVSS: 7.4"
 29,{'CWE-79'},GHSA-6qcc-whgp-pjj2,"@@ -79,8 +79,8 @@ pimcore.document.pages.settings = Class.create(pimcore.document.settings_abstrac
@@ -791,13 +792,11 @@ CVSS: 7.4"
 +                var description = htmlspecialchars(metaPanel.getComponent(""description"").getValue());
  
                  var truncate = function( text, n ){
-                     if (text.length <= n) { return text; }",escaping fields in SERP preview,"vuln-fix: Sanitize metadata inputs to prevent XSS in SERP preview
+                     if (text.length <= n) { return text; }",escaping fields in SERP preview,"vuln-fix: Sanitize metadata inputs to prevent XSS in page settings
 
-User inputs for title and description in the metadata panel were not properly escaped, allowing injection of malicious HTML or scripts into the SERP preview.
-This posed a cross-site scripting (XSS) risk, enabling attackers to execute arbitrary scripts in users’ browsers and potentially steal sensitive data or hijack sessions.
-The fix applies htmlspecialchars encoding to these inputs before rendering, ensuring special characters are safely escaped and preventing script execution.
+User-provided metadata fields like title and description were not properly escaped before rendering, allowing injection of malicious HTML or scripts. This posed a security risk by enabling cross-site scripting attacks that could compromise user sessions or site integrity. The fix applies htmlspecialchars encoding to these inputs, ensuring special characters are safely escaped before use in the UI.
 
-Weakness: Cross-Site Scripting (CWE-79)  
+Weakness: Cross-Site Scripting (XSS) - CWE-79  
 Severity: High  
 CVSS: 7.4"
 30,{'CWE-79'},GHSA-4fc4-4p5g-6w89,"@@ -50,17 +50,18 @@
@@ -925,11 +924,11 @@ CVSS: 7.4"
 +	}
  } )();
  
- /**",Code refactoring.,"vuln-fix: Use cryptographically secure random numbers for HTML protection keys
+ /**",Code refactoring.,"vuln-fix: Use per-instance random tokens to protect HTML attributes
 
-The vulnerability was that predictable or reused random numbers were used as keys to protect HTML attributes and content, risking collision and bypass of protection mechanisms.
-This is a security risk because attackers could guess or reproduce these keys to inject malicious code or bypass attribute protections, leading to XSS or script injection attacks.
-The fix replaces the previous random number generation with a cryptographically secure random number generator, ensuring unpredictable and unique keys for each protection instance.
+The vulnerability was that static or global tokens were used to protect HTML attributes, allowing attackers to predict and bypass protection mechanisms in the editor's output.
+This posed a security risk by enabling injection or manipulation of protected attributes, potentially leading to cross-site scripting or data corruption.
+The fix generates a unique random number per event to namespace protection tokens, preventing attackers from guessing or reusing them across requests.
 
 Weakness: CWE-330: Use of Insufficiently Random Values  
 Severity: High  
@@ -987,7 +986,7 @@ CVSS: 7.5"
 ------
 Forzamos a descargar los archivos SVG para evitar problemas de seguridad.","vuln-fix: Prevent XSS by forcing SVG file download
 
-The vulnerability allowed SVG files to be served inline, enabling potential cross-site scripting (XSS) attacks when malicious SVG content was rendered in browsers. Serving SVG files inline is a security risk because it can execute embedded scripts, compromising user data and site integrity. The fix forces SVG files to be downloaded as attachments, preventing inline rendering and mitigating XSS risks.
+The vulnerability allowed SVG files to be served inline, enabling potential cross-site scripting (XSS) attacks when malicious SVG content was executed in the browser context. Serving SVG files inline is a security risk because it can lead to script execution and compromise user data or session integrity. The fix centralizes file delivery and forces SVG files to be downloaded as attachments, preventing inline rendering and mitigating XSS risks.
 
 Weakness: Cross-Site Scripting (XSS) - CWE-79  
 Severity: High  
@@ -1006,7 +1005,9 @@ The error message shown in the error template does not need to be
 rendered using the safe filter, and furthermore opens up an XSS
 vulnerability.","vuln-fix: Prevent XSS by removing unsafe error message rendering
 
-The error message was rendered using a template filter that allowed raw HTML, enabling injection of malicious scripts into the page. This posed a cross-site scripting risk, potentially compromising user data and session integrity. The fix removes the unsafe filter, ensuring error messages are properly escaped before rendering in the template.
+The error message was rendered using a template filter that allowed raw HTML, enabling injection of malicious scripts into the page.
+This posed a cross-site scripting risk, potentially compromising user sessions and data confidentiality.
+The fix removes the unsafe filter, ensuring error messages are properly escaped before rendering in the template.
 
 Weakness: Cross-Site Scripting (XSS) CWE-79  
 Severity: High  
@@ -1043,10 +1044,12 @@ CVSS: 7.4"
 
 Escape custom field values in API response","vuln-fix: Escape output to prevent cross-site scripting vulnerabilities
 
-The code was outputting user-controllable data without escaping, allowing injection of malicious scripts in rendered HTML pages. This poses a security risk by enabling attackers to execute arbitrary JavaScript in users’ browsers, potentially stealing sensitive information or hijacking sessions. The fix applies proper escaping functions to all dynamic fields before output, mitigating cross-site scripting attacks.
+The code was outputting unescaped user-controlled or database-derived strings directly into views, allowing injection of malicious scripts.
+This posed a security risk by enabling attackers to execute arbitrary JavaScript in users’ browsers, potentially stealing sensitive data or hijacking sessions.
+The fix applies proper HTML escaping to all dynamic fields before rendering, mitigating cross-site scripting attacks by neutralizing harmful input. 
 
-Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
-Severity: High
+Weakness: Cross-Site Scripting (XSS) - CWE-79  
+Severity: High  
 CVSS: 7.4"
 34,{'CWE-79'},GHSA-m8rp-q82r-c5mf,"@@ -91,7 +91,6 @@
              <hr class=""thin"" />
@@ -1070,15 +1073,13 @@ CVSS: 7.4"
 +                                    <p><?php print htmlentities($val1_1) . '<br />'; ?></p>
                                  <?php }?>
                              <?php } ?>
-                         <?php } ?>",xss on contact form fix,"vuln-fix: Sanitize output to prevent cross-site scripting
+                         <?php } ?>",xss on contact form fix,"vuln-fix: Prevent XSS by encoding output in form display
 
-User input values were directly printed into HTML without encoding, allowing injection of malicious scripts into the page content.
-This posed a critical risk of cross-site scripting attacks, enabling attackers to execute arbitrary JavaScript in users' browsers.
-The fix applies htmlentities to all output values, ensuring special characters are escaped and scripts cannot be injected via form data.
+User-submitted form values were output directly into HTML without encoding, allowing injection of malicious scripts into the page content. This posed a critical risk of cross-site scripting attacks, enabling attackers to execute arbitrary JavaScript in users' browsers. The fix applies htmlentities() to all displayed form values, ensuring special characters are safely encoded and scripts cannot be injected.
 
-Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
-Severity: Critical
-CVSS: 9.8"
+Weakness: Cross-Site Scripting (XSS) - CWE-79  
+Severity: Critical  
+CVSS: 8.8"
 35,{'CWE-79'},GHSA-3j58-p785-f27x,"@@ -17,9 +17,6 @@
  class ApiController  extends FrontendController
  {
@@ -1112,14 +1113,14 @@ CVSS: 9.8"
 +                
              }
              $request_data = $request_data_new;
-         }",fix xss on module api call in value parameters,"vuln-fix: Sanitize all input keys and values to prevent XSS attacks
+         }",fix xss on module api call in value parameters,"vuln-fix: Sanitize all request data keys and values to prevent XSS
 
-User input keys and values were not consistently sanitized, allowing malicious scripts to be injected and executed in the application context.
-This poses a security risk by enabling cross-site scripting attacks that can compromise user data and session integrity.
-The fix applies comprehensive XSS cleaning to both input keys and values using the AntiXSS library before further processing.
+The vulnerability was that user input keys and values were not consistently sanitized, allowing malicious scripts to be injected via request parameters.
+This posed a security risk by enabling cross-site scripting attacks that could compromise user sessions or execute arbitrary code in the browser.
+The fix applies XSS cleaning to both keys and values of all request data before further processing, ensuring no unsanitized input is used. 
 
-Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
-Severity: High
+Weakness: Cross-Site Scripting (CWE-79)  
+Severity: High  
 CVSS: 7.4"
 36,{'CWE-79'},GHSA-7c82-mp33-r854,"@@ -1,6 +1,128 @@
  (function ($) {
@@ -1349,7 +1350,7 @@ CVSS: 7.4"
          } else if (options) {
            for (var i in options) {",add sanitize option for data-content (#2199),"vuln-fix: Sanitize HTML content to prevent XSS attacks
 
-Unsanitized HTML content was allowed in dropdown elements and button titles, enabling injection of malicious scripts through unsafe attributes or tags. This posed a critical security risk by allowing cross-site scripting (XSS) attacks that could compromise user data and application integrity. The fix introduces a whitelist-based sanitizer that removes disallowed elements and attributes, validates URLs, and applies optional custom sanitization functions to all dynamic HTML content before rendering.
+Unsanitized HTML content was rendered in dropdown menus and button titles, allowing injection of malicious scripts via unsafe attributes or elements. This posed a critical security risk by enabling cross-site scripting attacks that could compromise user data and application integrity. The fix implements a whitelist-based HTML sanitizer that removes disallowed elements and attributes, validates URLs, and optionally allows custom sanitization functions to ensure only safe content is rendered.
 
 Weakness: Cross-Site Scripting (XSS) - CWE-79  
 Severity: Critical  
@@ -1383,11 +1384,13 @@ CVSS: 9.8"
 
 Fixes an XSS and an open redirect issue.","vuln-fix: Prevent open redirect vulnerability in login redirect
 
-The login endpoint accepted arbitrary redirect URLs without validation, allowing attackers to redirect users to malicious external sites. This posed a security risk by enabling phishing attacks and potential credential theft through crafted redirect parameters. The fix validates the redirect URL to ensure it is relative and internal, defaulting to a safe internal page if an external URL is detected.
+The login endpoint accepted arbitrary redirect URLs without validation, allowing attackers to redirect users to malicious external sites.  
+This posed a security risk by enabling phishing attacks and potential credential theft through crafted login redirects.  
+The fix validates the redirect URL to ensure it is relative and internal, rejecting and logging any external or absolute URLs.  
 
-Weakness: CWE-601 Open Redirect
-Severity: Medium
-CVSS: 5.4"
+Weakness: CWE-601 Open Redirect  
+Severity: High  
+CVSS: 7.5"
 38,{'CWE-79'},GHSA-2cqg-q7jm-j35c,"@@ -910,7 +910,7 @@ public function audit(Request $request) {
              }
          }
@@ -1397,10 +1400,12 @@ CVSS: 5.4"
 
 Escape asset_tag attribute at controller level for bulk checkout","vuln-fix: Escape user input in error message to prevent XSS
 
-The vulnerability was that user input was directly embedded in the error message without proper escaping, allowing injection of malicious scripts. This posed a security risk by enabling cross-site scripting attacks when the error message was rendered in clients. The fix applies proper escaping to the user input before including it in the error message, mitigating XSS risks.
+The vulnerability was that user-supplied input was directly embedded in the error message without proper escaping, allowing injection of malicious scripts.
+This posed a security risk by enabling cross-site scripting (XSS) attacks when the error message was rendered in clients' browsers.
+The fix applies proper escaping to the user input before including it in the error message, mitigating the XSS vulnerability.
 
-Weakness: Cross-Site Scripting (CWE-79)  
-Severity: Medium  
+Weakness: Cross-Site Scripting (CWE-79)
+Severity: Medium
 CVSS: 6.1"
 39,{'CWE-79'},GHSA-mg5h-9rhq-4cqx,"@@ -300,6 +300,7 @@ public function isDangerFilename($filename){
  			 $isDangerStr($filename , "".php"")
@@ -1409,12 +1414,14 @@ CVSS: 6.1"
 +			|| $isDangerStr($filename , "".shtm"")
  			|| $isDangerStr($filename , ""%"")
  			|| $isDangerStr($filename , "".xml"")
- 		) {",file upload bug,"vuln-fix: Prevent dangerous file extensions in filename validation
+ 		) {",file upload bug,"vuln-fix: Prevent dangerous file uploads with .shtm extension
 
-The vulnerability allowed files with the "".shtm"" extension to bypass dangerous filename checks, potentially enabling execution of malicious scripts on the server. This poses a security risk by permitting attackers to upload and execute harmful files that could compromise system integrity. The fix adds "".shtm"" to the list of blocked extensions, ensuring these files are properly detected and rejected during validation.
+The vulnerability allowed files with the .shtm extension to bypass dangerous filename checks, potentially enabling execution of malicious scripts on the server.
+This poses a security risk as attackers could upload and execute harmful code, leading to unauthorized access or data compromise.
+The fix adds .shtm to the list of blocked dangerous file extensions, improving filename validation and preventing unsafe file uploads.
 
-Weakness: CWE-434: Unrestricted Upload of File with Dangerous Type  
-Severity: High  
+Weakness: CWE-434: Unrestricted Upload of File with Dangerous Type
+Severity: High
 CVSS: 7.5"
 40,"{'CWE-89', 'CWE-79'}",GHSA-x92h-wmg2-6hp7,"@@ -1346,22 +1346,37 @@ public function setMethod($method)
       */
@@ -1469,7 +1476,7 @@ CVSS: 7.5"
  
      /**",[HttpFoundation] reject invalid method override,"vuln-fix: Validate HTTP method override to prevent injection
 
-The vulnerability allowed arbitrary HTTP method overrides without strict validation, enabling attackers to use unexpected or malicious methods in requests. This posed a security risk by potentially bypassing method-based access controls or triggering unintended server behavior. The fix enforces strict validation against a whitelist of allowed methods and rejects invalid or suspicious method override values with an exception.
+The vulnerability allowed arbitrary HTTP methods to be set via method override headers or parameters without strict validation. This posed a security risk by enabling attackers to use unexpected or malicious HTTP methods, potentially bypassing security controls or triggering unsafe behaviors. The fix enforces strict validation against a whitelist of allowed methods and rejects invalid or suspicious method overrides with an exception.
 
 Weakness: CWE-20: Improper Input Validation  
 Severity: High  
@@ -1486,11 +1493,11 @@ CVSS: 7.5"
 
 User names were rendered inside an AngularJS context without disabling expression evaluation, allowing attackers to inject malicious AngularJS expressions.
 This posed a risk of client-side code execution and data exposure through crafted user names containing AngularJS syntax.
-The fix adds the ng-non-bindable attribute to disable AngularJS expression parsing in the user name display element, preventing injection. 
+The fix adds the ng-non-bindable attribute to the dropdown toggle element to disable AngularJS expression parsing in the user name display.
 
 Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
-Severity: High
-CVSS: 7.4"
+Severity: Medium
+CVSS: 6.1"
 42,{'CWE-79'},GHSA-mrvj-7q4f-5p42,"@@ -89,6 +89,16 @@ parameters:
          - pht
          - phtml
@@ -1509,9 +1516,9 @@ CVSS: 7.4"
      # Content settings
      ezsettings.default.content.view_cache: true         # Whether to use content view cache or not (Etag/Last-Modified based)","Merge pull request from GHSA-mrvj-7q4f-5p42
 
-Co-authored-by: Gunnstein Lye <gunnstein.lye@ibexa.co>","vuln-fix: Restrict risky file extensions in upload whitelist
+Co-authored-by: Gunnstein Lye <gunnstein.lye@ibexa.co>","vuln-fix: Restrict risky file extensions in upload parameters
 
-The upload whitelist was missing several potentially dangerous file extensions like hta, html, js, and swf, allowing unsafe files to be uploaded and executed. This posed a security risk by enabling attackers to upload malicious scripts or executables that could compromise the system. The fix adds these risky extensions to the whitelist, preventing their upload and reducing the attack surface.
+The application allowed uploading files with potentially dangerous extensions like hta, html, js, and swf, which can lead to client-side code execution or malware delivery. This poses a security risk by enabling attackers to upload and execute malicious scripts or active content on the server or client browsers. The fix adds these risky extensions to the restricted list, preventing their upload and mitigating the risk of code injection and cross-site scripting attacks.
 
 Weakness: CWE-434 Unrestricted Upload of File with Dangerous Type  
 Severity: High  
@@ -1524,13 +1531,13 @@ CVSS: 7.5"
 +    'formaction'
      ])
  
- # Not in the HTML 4 spec:",Add formaction attribute to defs.link_attrs,"vuln-fix: Prevent unsafe form action attributes in HTML sanitization
+ # Not in the HTML 4 spec:",Add formaction attribute to defs.link_attrs,"vuln-fix: Add 'formaction' to allowed HTML attributes whitelist
 
-The vulnerability involved missing the 'formaction' attribute in the allowed list, which could lead to unsafe form submission URLs being sanitized incorrectly. This poses a security risk by allowing attackers to inject malicious form actions that redirect or exfiltrate user data. The fix adds 'formaction' to the whitelist of safe attributes, ensuring proper sanitization and preventing injection of harmful URLs in form elements.
+The 'formaction' attribute was missing from the allowed HTML attributes whitelist, enabling potential injection of malicious URLs in form submissions. This omission could allow attackers to redirect form actions to untrusted endpoints, leading to phishing or data exfiltration risks. The fix includes 'formaction' in the whitelist to ensure proper sanitization and prevent unsafe attribute usage.
 
-Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
+Weakness: Improper Input Validation (CWE-20)
 Severity: Medium
-CVSS: 6.1"
+CVSS: 5.3"
 44,{'CWE-79'},GHSA-8x44-pwr2-rgc6,"@@ -119,7 +119,7 @@ public function getTreeAction(Request $request)
                  'id' => $class->getId(),
                  'text' => $text,
@@ -1539,15 +1546,15 @@ CVSS: 6.1"
 +                'icon' => $class->getIcon() ? htmlspecialchars($class->getIcon()) : $defaultIcon,
                  'cls' => 'pimcore_class_icon',
                  'propertyVisibility' => $class->getPropertyVisibility(),
-                 'enableGridLocking' => $class->isEnableGridLocking(),",added escape function to the icon field,"vuln-fix: Sanitize icon output to prevent XSS in class tree
+                 'enableGridLocking' => $class->isEnableGridLocking(),",added escape function to the icon field,"vuln-fix: Sanitize icon field to prevent XSS in class tree
 
-The vulnerability was that the icon field output was not escaped, allowing injection of malicious HTML or JavaScript in the class tree UI.
-This posed a security risk by enabling cross-site scripting attacks that could compromise user sessions or perform unauthorized actions.
-The fix applies htmlspecialchars to the icon value, ensuring special characters are escaped and preventing script injection in the rendered output.
+The icon field was output without escaping, allowing injection of malicious HTML or JavaScript in the class tree UI.
+This posed a cross-site scripting risk, enabling attackers to execute arbitrary scripts in users’ browsers.
+The fix applies htmlspecialchars to the icon value, ensuring special characters are safely encoded before rendering.
 
-Weakness: Cross-Site Scripting (XSS) CWE-79  
-Severity: High  
-CVSS: 7.4"
+Weakness: Cross-Site Scripting (CWE-79)
+Severity: Medium
+CVSS: 6.1"
 45,{'CWE-79'},GHSA-3j9m-hcv9-rpj8,"@@ -1,6 +1,6 @@
  import React from 'react';
  import { css } from '@emotion/css';
@@ -1577,9 +1584,9 @@ CVSS: 7.4"
 
 Sanitized NavBar children links to remove angular interpolation v8.2.3","vuln-fix: Sanitize URLs to prevent Angular interpolation injection
 
-The vulnerability allowed untrusted URLs to be used directly in link href attributes, enabling potential Angular expression injection attacks. This posed a security risk by allowing attackers to execute arbitrary code or manipulate the application’s behavior through crafted URLs. The fix applies Angular interpolation sanitization to all URLs before rendering, mitigating injection risks by neutralizing malicious expressions.
+The vulnerability allowed untrusted URLs to be used directly in link elements without sanitization, enabling potential Angular expression injection attacks. This posed a security risk by allowing attackers to execute arbitrary code or manipulate the DOM through crafted URLs. The fix applies Angular interpolation sanitization to all URLs before rendering, preventing malicious expressions from being processed.
 
-Weakness: CWE-116: Improper Encoding or Escaping of Output
+Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
 Severity: High
 CVSS: 7.5"
 46,{'CWE-79'},GHSA-wg4r-q74r-p7c8,"@@ -305,6 +305,7 @@ public function isDangerFilename($filename){
@@ -1591,19 +1598,21 @@ CVSS: 7.5"
  			return true;
  		}","Merge pull request #1630 from ajaysenr/master
 
-Update AttachmentModel.class.php","vuln-fix: Prevent dangerous .xsl file uploads in filename validation
+Update AttachmentModel.class.php","vuln-fix: Prevent dangerous .xsl files from being accepted as safe filenames
 
-The filename validation function did not check for .xsl extensions, allowing potentially dangerous XML stylesheet files to be uploaded. This posed a security risk as .xsl files can be used for XML external entity attacks or server-side code execution. The fix adds .xsl to the list of disallowed extensions to block these risky file uploads effectively.
+The filename validation function did not consider .xsl files as dangerous, allowing potentially harmful files to bypass security checks. This posed a risk of malicious XML stylesheet injection or server-side processing vulnerabilities. The fix adds .xsl to the list of disallowed extensions to block unsafe file uploads effectively.
 Weakness: CWE-434 Unrestricted Upload of File with Dangerous Type
 Severity: High
 CVSS: 7.5"
 47,{'CWE-79'},GHSA-4p92-fv6v-fhfj,"similarity index 100%
 rename from .github/workflows/templates.yml.backup
-rename to .github/workflows/templates.yml",update,"vuln-fix: Restore GitHub workflow configuration file
+rename to .github/workflows/templates.yml",update,"vuln-fix: Restore CI workflow configuration to prevent build disruptions
 
-The GitHub Actions workflow configuration file was missing due to a backup rename, disabling automated security checks and CI validations. This posed a risk by allowing unverified code changes to be merged without proper security testing. The fix restores the workflow file to its correct location, re-enabling automated security and quality checks on code changes.
+The workflow configuration file was missing due to a backup rename, causing continuous integration processes to fail and skip security checks.
+This disruption allowed unverified code changes to be merged without automated testing or vulnerability scanning.
+The fix restores the workflow file to its correct location, ensuring CI pipelines run and enforce security validations on code changes.
 
-Weakness: Missing CI/CD Security Checks
+Weakness: Missing or Disabled CI/CD Security Checks
 Severity: Medium
 CVSS: 5.0"
 48,{'CWE-79'},GHSA-mq35-wqvf-r23c,"@@ -78,7 +78,7 @@ def unlink?
@@ -1616,9 +1625,11 @@ CVSS: 5.0"
  
      private","escape invalid query params, fixes #1428","vuln-fix: Escape HTML in error messages to prevent XSS
 
-The vulnerability was that error messages included unescaped user input, allowing injection of malicious HTML or scripts in responses. This posed a cross-site scripting risk by enabling attackers to execute arbitrary code in users’ browsers. The fix escapes HTML entities in error messages before rendering, preventing injection of executable code in the output.
+The error message included raw exception details without escaping, allowing injection of malicious HTML or scripts in the response.
+This posed a cross-site scripting (XSS) risk by enabling attackers to execute arbitrary code in users' browsers.
+The fix escapes HTML entities in the error message before rendering, preventing injection of executable code in the output.
 
-Weakness: Cross-Site Scripting (CWE-79)  
+Weakness: Cross-Site Scripting (XSS) CWE-79  
 Severity: High  
 CVSS: 7.4"
 49,{'CWE-79'},GHSA-p885-prv3-m4xv,"@@ -30,11 +30,11 @@ public function requestedAssets()
@@ -1641,12 +1652,10 @@ CVSS: 7.4"
 
 Fixes potential XSS vuln in user requestable results","vuln-fix: Escape output to prevent XSS in requested assets data
 
-The vulnerability was that user-controllable fields were output without escaping, allowing injection of malicious scripts in the asset request response.
-This is a security risk because it enables cross-site scripting attacks, potentially compromising user sessions and data integrity.
-The fix applies proper HTML escaping to all output fields and casts quantities to integers to ensure safe rendering in the frontend.
+The vulnerability was that user-controllable data was output without escaping, allowing injection of malicious scripts in the asset details displayed to users. This posed a security risk by enabling cross-site scripting attacks that could compromise user sessions or steal sensitive information. The fix applies proper HTML escaping to all output fields and casts quantities to integers to ensure safe rendering in the frontend.
 
-Weakness: Cross-Site Scripting (CWE-79)
-Severity: High
+Weakness: Cross-Site Scripting (XSS) CWE-79  
+Severity: High  
 CVSS: 7.4"
 50,{'CWE-79'},GHSA-7vvq-7r29-5vg3,"@@ -498,7 +498,7 @@ <h1><a href=""https://threejs.org"">three.js</a></h1>
  			const oldIframe = iframe;
@@ -1656,13 +1665,13 @@ CVSS: 7.4"
 +			if ( hash && titles[ splitHash[ 0 ] ] ) {
  
  				iframe.src = splitHash[ 0 ] + '.html' + splitHash[ 1 ];
- 				subtitle = titles[ splitHash[ 0 ] ] + splitHash[ 1 ] + ' – ';",Only load trusted iframe (#23245),"vuln-fix: Prevent iframe src injection by validating hash keys
+ 				subtitle = titles[ splitHash[ 0 ] ] + splitHash[ 1 ] + ' – ';",Only load trusted iframe (#23245),"vuln-fix: Prevent iframe src assignment with unverified hash keys
 
-The vulnerability allowed unvalidated hash values to set iframe src attributes, enabling potential injection of malicious URLs into the iframe source. This posed a security risk by permitting attackers to load unauthorized or harmful content within the iframe, potentially leading to cross-site scripting or phishing attacks. The fix adds a check to ensure the hash key exists in the trusted titles list before setting the iframe src, preventing arbitrary URL injection. 
+The vulnerability allowed setting iframe sources based on unvalidated hash keys, potentially enabling injection of malicious URLs into the iframe element. This posed a security risk by allowing attackers to load unauthorized or harmful content within the application context. The fix adds a verification step to ensure the hash key exists in the trusted titles list before assigning the iframe source. 
 
 Weakness: Improper Input Validation (CWE-20)  
-Severity: High  
-CVSS: 7.5"
+Severity: Medium  
+CVSS: 5.3"
 51,{'CWE-79'},GHSA-72p5-2r6g-fm6v,"@@ -559,7 +559,7 @@ COMPONENT('grid', 'filter:true;external:false;fillcount:50;filterlabel:Filtering
  			for (var j = 0, jl = columns.length; j < jl; j++) {
  				var column = columns[j];
@@ -1673,7 +1682,7 @@ CVSS: 7.5"
  				m.align = column.align;
  				m.background = column.background;",Fixed XSS.,"vuln-fix: Prevent XSS by encoding grid cell output values
 
-The vulnerability allowed untrusted data to be rendered directly in grid cells without proper encoding, enabling cross-site scripting attacks. This is a security risk because attackers could inject malicious scripts that execute in users’ browsers, compromising user data and session integrity. The fix applies HTML encoding to all formatted cell values before rendering, ensuring that injected scripts are neutralized and not executed. 
+The vulnerability allowed untrusted data to be rendered directly in grid cells without proper encoding, enabling potential cross-site scripting attacks. This is a security risk because malicious scripts could execute in users' browsers, leading to data theft or session hijacking. The fix applies HTML encoding to all formatted cell values before rendering, ensuring that injected scripts are neutralized. 
 
 Weakness: Cross-Site Scripting (XSS) CWE-79  
 Severity: High  
@@ -1710,11 +1719,9 @@ CVSS: 7.4"
              })
              ->rawColumns(['titlelink','view', 'status_id'])",fix xss for tasks index,"vuln-fix: Prevent XSS via task deletion modal data attributes
 
-The vulnerability involved injecting unescaped task titles into HTML attributes, enabling cross-site scripting attacks through maliciously crafted task titles.
-This posed a security risk by allowing attackers to execute arbitrary JavaScript in users’ browsers, potentially stealing session data or performing unauthorized actions.
-The fix removes the task title from the HTML attribute, eliminating the injection vector and preventing script execution in the deletion modal context.
+The vulnerability involved injecting unescaped task titles into HTML attributes, enabling cross-site scripting attacks through maliciously crafted task titles. This posed a security risk by allowing attackers to execute arbitrary scripts in users’ browsers, potentially stealing session data or performing unauthorized actions. The fix removes the unsafe task title attribute from the deletion modal link, eliminating the injection vector and preventing XSS exploitation.
 
-Weakness: Cross-Site Scripting (XSS) CWE-79  
+Weakness: Cross-Site Scripting (CWE-79)  
 Severity: High  
 CVSS: 7.4"
 54,{'CWE-79'},GHSA-9w7h-3wwh-6m5q,"@@ -611,10 +611,15 @@ public function module()
@@ -1744,9 +1751,7 @@ CVSS: 7.4"
              $request_data = $request_data_new;
          }",update,"vuln-fix: Prevent XSS by sanitizing angle brackets in input keys and values
 
-User input keys and values containing angle brackets were not fully sanitized, allowing potential cross-site scripting (XSS) attacks through crafted payloads.
-This posed a security risk as malicious scripts could be injected and executed in the application context, compromising user data and session integrity.
-The fix replaces angle brackets with safe characters before applying XSS cleaning, ensuring all input keys and values are properly sanitized. 
+User input keys and values containing angle brackets were not fully sanitized, allowing potential cross-site scripting (XSS) attacks through malicious HTML tags. This is a security risk because attackers could inject executable scripts that compromise user data or session integrity. The fix replaces angle brackets with safe characters before applying XSS cleaning, ensuring all input is properly sanitized.
 
 Weakness: Cross-Site Scripting (CWE-79)  
 Severity: High  
@@ -1760,7 +1765,7 @@ CVSS: 7.4"
 +
  
          return $u1;
-     }",Update UrlManager.php,"vuln-fix: Fix improper input sanitization in string processing
+     }",Update UrlManager.php,"vuln-fix: Prevent improper input sanitization in string processing
 
 The vulnerability was caused by using an incorrect sanitization method that did not fully clean input arrays, allowing potentially malicious data to pass through. This posed a risk of cross-site scripting or injection attacks due to incomplete input cleansing. The fix replaces the array cleaning method with a more appropriate single-value cleaning function to ensure thorough sanitization of input data.
 
@@ -1811,15 +1816,15 @@ CVSS: 7.5"
 +  handler(res, { ...sanitized, renderToHtml: true })
 +})
  
- module.exports = http.createServer(app);",fix: escape special characters before insertion to template,"vuln-fix: Prevent cross-site scripting by escaping user input
+ module.exports = http.createServer(app);",fix: escape special characters before insertion to template,"vuln-fix: Sanitize user input to prevent HTML injection
 
-User input parameters were directly rendered into HTML without escaping, allowing injection of malicious scripts in dynamic responses.
-This posed a critical security risk as attackers could execute arbitrary JavaScript in users’ browsers, leading to data theft or session hijacking.
-The fix sanitizes all user-supplied query and body parameters by escaping HTML special characters before rendering them in responses.
+User input parameters were directly rendered into HTML without escaping, allowing injection of malicious HTML or scripts.
+This posed a security risk by enabling cross-site scripting (XSS) attacks that could compromise user data and session integrity.
+The fix introduces HTML escaping of all input parameters before rendering, neutralizing potentially harmful characters in user input.
 
 Weakness: Cross-Site Scripting (XSS) - CWE-79  
-Severity: Critical  
-CVSS: 9.8"
+Severity: High  
+CVSS: 7.4"
 57,{'CWE-79'},GHSA-rf66-hmqf-q3fc,"@@ -260,7 +260,18 @@ $(document).ready(function () {
      }
  
@@ -1841,7 +1846,9 @@ CVSS: 9.8"
  
      // This handles the radio button selectors for the checkout-to-foo options",Janky fix for Select2 bug,"vuln-fix: Prevent XSS in Select2 rich selectlists by escaping input
 
-The vulnerability allowed unescaped HTML in Select2 dropdown text, enabling attackers to inject malicious scripts via specially crafted input fields. This posed a critical security risk as it could lead to cross-site scripting attacks compromising user data and session integrity. The fix escapes special characters in the dropdown text, sanitizing input to prevent script injection until the upstream library addresses the issue.
+The vulnerability allowed unescaped HTML characters in Select2 dropdown text, enabling cross-site scripting (XSS) attacks through malicious user input.
+This posed a critical security risk as attackers could execute arbitrary scripts in users’ browsers, potentially stealing data or hijacking sessions.
+The fix escapes special HTML characters in the dropdown text, mitigating XSS by sanitizing input until an official Select2 patch is released.
 
 Weakness: Cross-Site Scripting (CWE-79)  
 Severity: Critical  
@@ -1860,13 +1867,13 @@ CVSS: 9.8"
          } elseif ($_POST['snmpver'] === 'v2c' || $_POST['snmpver'] === 'v1') {
              if ($_POST['community']) {","XSS fix, cont. (#13776)
 
-https://huntr.dev/bounties/13951f51-deed-4a3d-8275-52306cc5a87d/","vuln-fix: Sanitize user input to prevent XSS in SNMP configuration
+https://huntr.dev/bounties/13951f51-deed-4a3d-8275-52306cc5a87d/","vuln-fix: Sanitize user input to prevent XSS in SNMP parameters
 
-User input fields for OS, hardware, and sysName were directly assigned without sanitization, allowing injection of malicious HTML or scripts.
-This posed a security risk by enabling cross-site scripting (XSS) attacks that could compromise user sessions or deface the interface.
-The fix applies strip_tags to these inputs, removing HTML and script tags to ensure only safe text is processed and stored.
+User input from POST parameters was directly assigned without sanitization, allowing injection of malicious HTML or JavaScript code.
+This posed a cross-site scripting (XSS) risk that could compromise user sessions or execute unauthorized scripts in the application context.
+The fix applies strip_tags() to sanitize the 'os_id', 'hardware', and 'sysName' inputs, removing any embedded HTML or script tags before use.
 
-Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
+Weakness: Cross-Site Scripting (CWE-79)
 Severity: Medium
 CVSS: 6.1"
 59,{'CWE-79'},GHSA-mxh3-2699-98g9,"@@ -861,7 +861,7 @@ public function fieldcollectionTreeAction(Request $request, EventDispatcherInter
@@ -1888,9 +1895,9 @@ CVSS: 6.1"
                          'leaf' => false,
                          'allowChildren' => true,",[Admin] DataObject - Escape class definitions group properly,"vuln-fix: Sanitize group names to prevent XSS in tree views
 
-Group names were output directly into the UI without escaping, allowing injection of malicious HTML or JavaScript code.
-This posed a cross-site scripting (XSS) risk, enabling attackers to execute scripts in users’ browsers and compromise their sessions.
-The fix applies htmlspecialchars to group names before rendering, ensuring special characters are safely encoded and scripts cannot run.
+User-supplied group names were directly rendered in the tree view without escaping, allowing injection of malicious HTML or scripts.
+This posed a cross-site scripting (XSS) risk, enabling attackers to execute arbitrary scripts in users’ browsers and compromise session integrity.
+The fix applies htmlspecialchars to group names before rendering, ensuring special characters are escaped and preventing script execution.
 
 Weakness: Cross-Site Scripting (CWE-79)
 Severity: High
@@ -1915,12 +1922,12 @@ CVSS: 7.4"
 +
          /**
           * Retrieve a file by ID
-          *",Checking for script tags in GIFs etc (#3017),"vuln-fix: Prevent execution of embedded scripts in uploaded files
+          *",Checking for script tags in GIFs etc (#3017),"vuln-fix: Prevent execution of embedded script tags in uploaded files
 
-Uploaded files were not checked for embedded PHP or script tags, allowing attackers to upload malicious code disguised as images. This poses a critical security risk as it can lead to remote code execution if the server processes these files. The fix adds a function that scans file contents for script or PHP tags and rejects files containing such code before further processing.
+Uploaded files were not checked for embedded PHP or script tags, allowing attackers to upload malicious code disguised as images or other file types. This poses a critical security risk as it can lead to remote code execution if the server processes these files. The fix introduces a function that scans file contents for script or PHP tags and rejects files containing such code before further processing.
 
-Weakness: CWE-94: Improper Control of Generation of Code ('Code Injection')  
-Severity: Critical  
+Weakness: CWE-94: Improper Control of Generation of Code ('Code Injection')
+Severity: Critical
 CVSS: 9.8"
 61,{'CWE-79'},GHSA-cg3h-rc9q-g8v9,"@@ -36,7 +36,7 @@ pimcore.settings.website = Class.create({
                  border:false,
@@ -1981,7 +1988,7 @@ CVSS: 9.8"
              property = {
                  xtype: 'textfield',",[Admin] Website Settings - Escape grid values properly,"vuln-fix: Prevent XSS by encoding grid cell content and restricting editors
 
-The vulnerability allowed unencoded HTML content in grid cells, enabling attackers to inject malicious scripts via editable fields in the UI. This posed a security risk by potentially executing arbitrary JavaScript in users' browsers, leading to data theft or session hijacking. The fix enforces HTML encoding on cell renderers and restricts editors to safe input components, preventing script injection through user input.
+The vulnerability allowed unencoded HTML content in grid cells, enabling attackers to inject malicious scripts via editable fields in the UI. This posed a security risk by potentially executing arbitrary JavaScript in users' browsers, leading to data theft or session hijacking. The fix enforces HTML encoding on grid cell renderers and restricts editors to safe text input components, mitigating script injection vectors.
 
 Weakness: Cross-Site Scripting (CWE-79)  
 Severity: High  
@@ -1996,9 +2003,12 @@ CVSS: 7.4"
          }
          ?>",rXSS cleaned username in editor info display,"vuln-fix: Sanitize username output to prevent XSS attacks
 
-The username stored in the session was output directly into HTML without sanitization, allowing injection of malicious scripts. This posed a security risk by enabling cross-site scripting attacks that could compromise user sessions or steal data. The fix applies an XSS cleaning function to sanitize the username before rendering it in the HTML output.
+The username stored in the session was output directly into HTML without sanitization, allowing injection of malicious scripts.
+This posed a security risk by enabling cross-site scripting attacks that could compromise user sessions and data integrity.
+The fix applies an HTML context-specific sanitization function to the username before rendering it in the page output.
 
-Weakness: Cross-Site Scripting (CWE-79)  
+
+Weakness: Cross-Site Scripting (XSS) CWE-79  
 Severity: High  
 CVSS: 7.4"
 63,{'CWE-79'},GHSA-fc38-mxwr-pfhx,"@@ -36,7 +36,7 @@ DirectoryIndex index.php
@@ -2011,7 +2021,7 @@ CVSS: 7.4"
      </FilesMatch>
  </IfModule>",NEXT-15677 - Fix XSS for SVG files,"vuln-fix: Enforce case-insensitive SVG content security policy header
 
-The Content-Security-Policy header was applied only to lowercase "".svg"" files, missing uppercase or mixed-case SVG extensions and allowing unsafe script execution. This inconsistency could enable attackers to bypass security restrictions by using differently cased file extensions. The fix updates the FilesMatch directive to apply the policy case-insensitively, ensuring all SVG files are properly restricted regardless of filename casing.
+The Content-Security-Policy header was applied only to lowercase "".svg"" files, missing uppercase or mixed-case SVG extensions and allowing unsafe script execution in those cases. This inconsistency could enable attackers to bypass security restrictions by using differently cased file extensions, leading to potential script injection attacks. The fix updates the file matching pattern to be case-insensitive, ensuring the policy applies to all SVG files regardless of extension casing.
 
 Weakness: CWE-693: Protection Mechanism Failure  
 Severity: Medium  
@@ -2026,7 +2036,7 @@ CVSS: 5.3"
      if re.match(pattern, text):
          # get get value of group regex",Update pattern,"vuln-fix: Correct regex to prevent improper markdown parsing
 
-The vulnerability was caused by an overly permissive regex pattern that allowed malformed markdown links to bypass validation checks. This posed a security risk by enabling injection of unexpected or malicious content through improperly parsed markdown. The fix tightens the regex pattern to correctly restrict the characters matched, ensuring only valid markdown syntax is accepted. 
+The vulnerability was caused by an overly permissive regex pattern that allowed malformed markdown input to bypass validation checks. This posed a security risk by enabling injection of unexpected or malicious content through improperly parsed markdown links. The fix tightens the regex pattern to correctly restrict the characters matched in the third group, preventing unintended matches and improving input validation.
 
 Weakness: Improper Input Validation (CWE-20)  
 Severity: Medium  
@@ -2071,8 +2081,8 @@ CVSS: 5.3"
 * use handlebars encodeURIComponent","vuln-fix: Escape user input in query URLs and HTML output
 
 User input in query URLs and HTML elements was not properly escaped, allowing injection of malicious scripts or malformed URLs.
-This poses a security risk by enabling cross-site scripting (XSS) attacks and potential URL manipulation leading to unauthorized actions.
-The fix applies Handlebars escaping and URL encoding to user inputs before insertion into URLs and HTML content, preventing injection attacks.
+This posed a risk of cross-site scripting (XSS) attacks and URL manipulation, potentially compromising user data and application integrity.
+The fix applies Handlebars escaping and URL encoding to sanitize user input before embedding it in URLs and HTML content.
 
 Weakness: Cross-Site Scripting (CWE-79)
 Severity: High
@@ -2088,12 +2098,10 @@ CVSS: 7.4"
 
 [SECURITY-388] Escape metacharacters in the search box","vuln-fix: Prevent XSS by escaping autocomplete results
 
-Autocomplete results were rendered without escaping, allowing malicious scripts to be injected via search suggestions.
-This posed a cross-site scripting risk by enabling attackers to execute arbitrary JavaScript in users' browsers.
-The fix applies escaping to all autocomplete results by setting the formatResult function to formatEscapedResult.
+The autocomplete widget did not escape HTML entities in its result formatting, allowing malicious scripts to be injected via search suggestions. This posed a cross-site scripting risk by enabling attackers to execute arbitrary JavaScript in users' browsers. The fix enforces escaping of autocomplete results by assigning a safe formatting function that encodes HTML entities before rendering.
 
-Weakness: Cross-Site Scripting (XSS) CWE-79  
-Severity: High  
+Weakness: Cross-Site Scripting (CWE-79)
+Severity: High
 CVSS: 7.4"
 67,{'CWE-79'},GHSA-wvh5-78h5-gmgr,"@@ -168,7 +168,7 @@ public function render_assign_user_summary(\assign_user_summary $summary) {
              $fullname = fullname($summary->user, $summary->viewfullnames);
@@ -2107,7 +2115,7 @@ CVSS: 7.4"
 
 User extra fields were output directly without escaping, allowing injection of malicious scripts in rendered user summaries.
 This posed a cross-site scripting risk, enabling attackers to execute arbitrary JavaScript in other users’ browsers.
-The fix applies proper HTML escaping to all extra user fields before rendering to ensure safe output encoding.
+The fix applies proper HTML escaping to all extra user fields before rendering, mitigating script injection vulnerabilities.
 
 Weakness: Cross-Site Scripting (CWE-79)
 Severity: High
@@ -2142,9 +2150,9 @@ CVSS: 7.4"
          )
      )",Fix CVE-2017-16876,"vuln-fix: Escape keys to prevent injection in key normalization
 
-The vulnerability involved unescaped input keys being processed, which could allow injection of malicious characters into key normalization routines.
-This posed a security risk by enabling attackers to manipulate internal parsing or data structures through crafted keys.
-The fix applies proper escaping to keys before substitution, ensuring special characters are safely handled and injection is prevented.
+The vulnerability involved unescaped keys being processed in the key normalization function, allowing crafted input to potentially inject malicious patterns into downstream processing.
+This posed a security risk by enabling attackers to manipulate keys that could lead to injection attacks or unexpected behavior in parsing or rendering.
+The fix applies proper escaping to keys before substitution, ensuring that special characters are safely encoded and cannot alter the intended pattern matching logic.
 
 Weakness: Improper Neutralization of Special Elements used in an Injection (CWE-74)
 Severity: Medium
@@ -2158,12 +2166,12 @@ CVSS: 5.3"
          ac.autoSnapContainer = true;
          ac.delimChar = e.getAttribute(""autoCompleteDelimChar"");",[SECURITY-641] Escape autocompletion suggestions,"vuln-fix: Prevent XSS by escaping autocomplete results
 
-Autocomplete results were rendered without proper escaping, allowing injection of malicious HTML or scripts into the page DOM.
-This posed a security risk by enabling cross-site scripting attacks that could compromise user data or session integrity.
-The fix enforces escaping of autocomplete results by assigning a safe formatting function to sanitize output before rendering.
+Autocomplete results were rendered without proper escaping, allowing injection of malicious HTML or scripts into the page content.
+This posed a cross-site scripting (XSS) risk, enabling attackers to execute arbitrary scripts in users' browsers.
+The fix applies an escaping function to autocomplete results, ensuring all output is safely encoded before rendering.
 
-Weakness: Cross-Site Scripting (XSS) CWE-79  
-Severity: High  
+Weakness: Cross-Site Scripting (CWE-79)
+Severity: High
 CVSS: 7.4"
 70,{'CWE-79'},GHSA-gmh3-x5w7-jg5m,"@@ -87,7 +87,7 @@
      if (isset($_GET['autosize'])) {
@@ -2208,17 +2216,19 @@ CVSS: 7.4"
 +        settingsType = '<?php print htmlentities($type); ?>';
  
          window.onbeforeunload = function () {
-             $(document.body).addClass(""mw-external-loading"")",update,"vuln-fix: Sanitize user inputs to prevent XSS and injection attacks
+             $(document.body).addClass(""mw-external-loading"")",update,"vuln-fix: Sanitize user input to prevent XSS and injection
 
-User inputs from GET parameters were insufficiently sanitized, allowing potential cross-site scripting and injection vulnerabilities through unescaped special characters and improper type handling. This posed a security risk by enabling attackers to inject malicious scripts or manipulate application behavior via crafted inputs. The fix enforces integer casting for numeric inputs, removes dangerous characters from string inputs, and applies HTML entity encoding before outputting to JavaScript contexts.
+User input from GET parameters was insufficiently sanitized, allowing injection of malicious scripts and special characters into the application context.
+This posed a security risk by enabling cross-site scripting (XSS) attacks and potential command or query injection through unsanitized input.
+The fix replaces generic XSS cleaning with strict integer casting, removes dangerous characters from strings, and encodes output with htmlentities to ensure safe rendering.
 
-Weakness: Cross-Site Scripting (CWE-79)  
-Severity: High  
+Weakness: Cross-Site Scripting (CWE-79)
+Severity: High
 CVSS: 7.4
 
-Weakness: Improper Input Validation (CWE-20)  
-Severity: Medium  
-CVSS: 6.1"
+Weakness: Improper Neutralization of Special Elements (CWE-116)
+Severity: Medium
+CVSS: 5.3"
 71,{'CWE-79'},GHSA-f655-xhvm-cwp4,"@@ -1,4 +1,5 @@
  <?jelly escape-by-default='true'?>
  <j:jelly xmlns:j=""jelly:core"">
@@ -2227,11 +2237,11 @@ CVSS: 6.1"
 +  <span>Triggered by GitLab Webhook</span>
  </j:jelly>",[SECURITY-2316],"vuln-fix: Prevent XSS by removing unsafe HTML output in description
 
-The vulnerability was caused by rendering user-controlled HTML content without proper sanitization, allowing malicious scripts to execute in the browser context. This posed a critical security risk as attackers could perform cross-site scripting attacks, compromising user sessions and data integrity. The fix replaces the vulnerable HTML output with a static safe string, eliminating the injection vector entirely.
+The vulnerability was caused by rendering user-controlled HTML content without proper sanitization, allowing malicious scripts to execute in the browser context. This posed a significant cross-site scripting risk, potentially compromising user sessions and data confidentiality. The fix replaces the vulnerable HTML output with a static, safe string to eliminate the injection vector entirely.
 
 Weakness: Cross-Site Scripting (XSS) CWE-79  
-Severity: Critical  
-CVSS: 9.8"
+Severity: High  
+CVSS: 7.4"
 72,{'CWE-79'},GHSA-fj93-7wm4-8x2g,"@@ -564,6 +564,15 @@ $.widget( ""mobile.pagecontainer"", {
  
  		return $.proxy( function( html, textStatus, xhr ) {
@@ -2248,9 +2258,9 @@ CVSS: 9.8"
  			// Pre-parse html to check for a data-url, use it as the new fileUrl, base path, etc
  			var content,","Check Content-Type header before parsing AJAX response as HTML (#8649)
 
-Fix for issue #8640 (possible XSS vulnerability)","vuln-fix: Validate Content-Type header before processing HTML response
+Fix for issue #8640 (possible XSS vulnerability)","vuln-fix: Validate Content-Type header for AJAX page loads
 
-The vulnerability allowed processing of responses with unexpected content types, potentially enabling script injection or other malicious payloads. This posed a security risk by permitting execution of non-HTML content that could compromise client integrity. The fix enforces a strict check that the Content-Type header is ""text/html"" before further processing, rejecting unsupported types and showing an error message when necessary.
+The vulnerability allowed processing of non-HTML content in AJAX page loads, which could lead to script injection or improper content handling. This poses a security risk by enabling attackers to inject malicious payloads or cause unexpected behavior in the application. The fix enforces a strict check that only responses with a Content-Type of ""text/html"" are processed, rejecting others and optionally showing an error message.
 
 Weakness: Improper Input Validation (CWE-20)  
 Severity: High  
@@ -2307,13 +2317,11 @@ CVSS: 7.5"
 
 Issue: SPR-9983","vuln-fix: Escape additional JavaScript control characters in output
 
-The vulnerability is incomplete escaping of JavaScript control characters, missing backspace and vertical tab, which can lead to injection attacks in scripts.
-This is a security risk because unescaped control characters may allow attackers to break out of string contexts and execute arbitrary code.
-The fix adds proper escaping for backspace and vertical tab characters, ensuring all relevant control characters are safely encoded in output strings.
+The JavaScript escaping function did not handle certain control characters like backspace and vertical tab, leaving them unescaped in output strings. This omission could allow injection of unexpected control characters, potentially leading to script parsing errors or security bypasses. The fix adds explicit escaping for backspace and vertical tab characters, ensuring all relevant control characters are safely encoded in JavaScript strings.
 
-Weakness: Improper Neutralization of Input During Web Page Generation (CWE-79)
-Severity: High
-CVSS: 7.5"
+Weakness: Improper Neutralization of Input During Web Page Generation (CWE-79)  
+Severity: Medium  
+CVSS: 6.1"
 74,{'CWE-79'},GHSA-4mv4-gmmf-q382,"@@ -1,11 +1,11 @@
 -/*! DataTables 1.10.10-dev
 +/*! DataTables 1.10.10
@@ -2338,12 +2346,10 @@ CVSS: 7.5"
  	/**
  	 * Private data store, containing all of the settings objects that are",Version - 1.10.10 ready,"vuln-fix: Remove development version identifier from release build
 
-The software was incorrectly marked with a development version identifier, which could cause confusion about the stability and security of the release.
-This mislabeling may lead users to run potentially unverified or unstable code, increasing the risk of deploying insecure or incomplete features.
-The fix updates the version string to the official release number, ensuring users recognize the build as a stable and secure version. 
+The code contained a development version identifier which could expose internal build information to attackers. Revealing such details may aid attackers in targeting known vulnerabilities specific to development versions. The fix replaces the development version string with the official release version to prevent leaking sensitive build metadata.
 
-Weakness: Versioning Misconfiguration
-Severity: Low
+Weakness: Information Exposure (CWE-200)  
+Severity: Low  
 CVSS: 3.1"
 75,{'CWE-79'},GHSA-q3x2-jvp3-wj78,"@@ -1154,11 +1154,11 @@ function get_allowed_files_extensions_for_upload($fileTypes = 'images', $returnA
                  break;
@@ -2358,13 +2364,13 @@ CVSS: 3.1"
 +                $are_allowed .= ',doc,docx,pdf,log,msg,odt,pages,rtf,tex,txt,wpd,wps,pps,ppt,pptx,xlr,xls,xlsx';
                  break;
              case 'archives':
-             case 'arc':",Update Files.php,"vuln-fix: Remove XML extension from allowed upload file types
+             case 'arc':",Update Files.php,"vuln-fix: Remove XML file extensions from allowed upload types
 
-The vulnerability involved permitting XML files in upload filters, which can be exploited to upload malicious XML payloads leading to XXE or injection attacks.
-Allowing XML uploads increases the risk of server-side processing vulnerabilities that can compromise data confidentiality and integrity.
-The fix removes XML from the allowed file extensions list, preventing potentially dangerous XML files from being uploaded and processed.
+Allowing XML files in uploads can lead to XML external entity (XXE) attacks, exposing sensitive data or enabling server-side request forgery.
+This is a security risk because malicious XML payloads can exploit parser vulnerabilities to access internal resources or execute arbitrary code.
+The fix removes XML extensions from allowed file types to prevent uploading potentially dangerous XML files and mitigate XXE attack vectors.
 
-Weakness: CWE-611: Improper Restriction of XML External Entity Reference
+Weakness: XML External Entity (XXE) Injection (CWE-611)
 Severity: High
 CVSS: 7.5"
 76,{'CWE-79'},GHSA-hhqj-cfjx-vj25,"@@ -368,6 +368,10 @@ <h4 class=""label"">Notes</h4>
@@ -2378,10 +2384,10 @@ CVSS: 7.5"
  					clearTimeout( connectionTimeout );
  					connectionStatus.style.display = 'none';",Fix DOM XSS,"vuln-fix: Validate message event origin to prevent unauthorized access
 
-The vulnerability allowed processing of postMessage events from any origin, enabling attackers to inject malicious data into the application context. This posed a security risk by potentially exposing sensitive operations to untrusted sources, leading to cross-origin data manipulation. The fix enforces strict origin checking by comparing event.origin with window.location.origin and ignoring messages from unauthorized origins.
+The code lacked verification of the message event's origin, allowing any origin to send messages to the window event listener. This posed a security risk by enabling attackers to inject malicious messages from untrusted origins, potentially compromising application integrity. The fix adds a strict origin check that discards messages from origins different than the current window location, ensuring only trusted sources are processed.
 
-Weakness: CWE-829: Inclusion of Functionality from Untrusted Control Sphere  
-Severity: High  
+Weakness: Improper Origin Validation (CWE-346)
+Severity: High
 CVSS: 7.5"
 77,{'CWE-79'},GHSA-h24f-9mm4-w336,"@@ -140,7 +140,9 @@ exports.handleRequest = function(vpath, path, req, res, readOnly, logHeadRequest
  															var name = results[f].name;
@@ -2395,7 +2401,7 @@ CVSS: 7.5"
  														res.end('\r\n</body></html>');
  													}",Fix not sanitizing file names rendered in html,"vuln-fix: Prevent XSS by sanitizing file names in directory listing
 
-The vulnerability allowed unescaped special characters in file names to be injected into HTML, enabling cross-site scripting attacks via crafted directory entries. This is a security risk because attackers could execute arbitrary scripts in users’ browsers, leading to session hijacking or data theft. The fix sanitizes file names by escaping HTML entities and rejects names containing double quotes to prevent injection of malicious code.
+The vulnerability allowed unescaped special characters in file names to be injected into HTML, enabling cross-site scripting attacks via crafted directory entries. This posed a security risk by allowing attackers to execute arbitrary scripts in users’ browsers, potentially stealing sensitive data or hijacking sessions. The fix sanitizes file names by escaping HTML entities and rejects file names containing double quotes to prevent injection of malicious code.
 
 Weakness: Cross-Site Scripting (XSS) CWE-79  
 Severity: High  
@@ -2427,9 +2433,9 @@ CVSS: 7.4"
 +	name = strings.ReplaceAll(name, "">"", ""]"")
  	plist := fmt.Sprintf(`<?xml version=""1.0"" encoding=""UTF-8""?><!DOCTYPE plist PUBLIC ""-//Apple//DTD PLIST 1.0//EN"" ""http://www.apple.com/DTDs/PropertyList-1.0.dtd"">
  <plist version=""1.0"">
-     <dict>",:lock: fix #645 xss vulnerability,"vuln-fix: Sanitize and validate URL input in Plist handler
+     <dict>",:lock: fix #645 xss vulnerability,"vuln-fix: Validate and sanitize URL input in Plist handler
 
-The Plist handler previously accepted raw input without proper URL parsing or sanitization, allowing potentially malicious or malformed URLs to be processed. This posed a security risk by enabling injection of harmful characters that could disrupt XML structure or lead to unintended behavior. The fix parses the input as a URL, handles parsing errors gracefully, and replaces dangerous characters to ensure safe and valid output.
+The vulnerability was improper handling of user-supplied URL input without validation or sanitization, allowing malformed or malicious URLs to be processed. This posed a security risk by enabling injection attacks or server errors due to invalid URL formats. The fix parses and validates the URL using a standard library, returns errors on failure, and sanitizes output by replacing angle brackets to prevent injection.
 
 Weakness: Improper Input Validation (CWE-20)  
 Severity: High  
@@ -2451,10 +2457,12 @@ CVSS: 7.5"
          else:
              return result",Set content type in json_error to application/json,"vuln-fix: Set Content-Type header to application/json on error responses
 
-The API error handler did not explicitly set the Content-Type header to application/json when returning JSON error messages. This omission could cause clients to misinterpret the response format, leading to security issues such as improper parsing or injection attacks. The fix explicitly sets the Content-Type header to application/json before sending JSON error responses to ensure correct content handling by clients.
+Error responses did not explicitly set the Content-Type header, causing clients to misinterpret the response format and potentially mishandle error data.
+This can lead to security issues such as improper parsing, injection attacks, or information leakage through incorrect content handling.
+The fix explicitly sets the Content-Type header to application/json for all error responses to ensure consistent and secure client processing.
 
-Weakness: Missing Content-Type Header in JSON Responses (CWE-933)  
-Severity: Medium  
+Weakness: Improper Content-Type Handling (CWE-116)
+Severity: Medium
 CVSS: 5.3"
 80,{'CWE-79'},GHSA-5fh3-25xr-g85h,"@@ -82,7 +82,7 @@ public function transformCheckedoutAccessory ($accessory, $accessory_users, $tot
                  'first_name'=> e($user->first_name),
@@ -2502,13 +2510,13 @@ CVSS: 7.4"
 +        // to send the link, we will examine thuser@example.ce response then see the message we
          // need to show to the user. Finally, we'll send out a proper response.
          // $response = $this->broker()->sendResetLink(
-         //     $this->credentials($request)",Fixes for client password reset,"vuln-fix: Prevent unauthorized password reset via company key manipulation
+         //     $this->credentials($request)",Fixes for client password reset,"vuln-fix: Prevent unauthorized password reset via company key exposure
 
-The password reset function used user-supplied input from the request to select the company database and user, allowing attackers to reset passwords across companies by manipulating the company_key parameter. This posed a critical risk of unauthorized account access and data compromise across tenant boundaries in a multi-tenant environment. The fix removes reliance on user input for company selection and restricts password reset queries to email only, preventing cross-company password reset attacks.
+The password reset function used company_key from user input instead of session, allowing attackers to specify arbitrary company keys and potentially reset passwords across companies. This is a security risk because it enables unauthorized access to user accounts by bypassing company isolation controls. The fix removes reliance on user-supplied company_key and restricts password reset queries to email only, preventing cross-company password reset attacks.
 
 Weakness: Improper Access Control (CWE-284)  
 Severity: Critical  
-CVSS: 9.8"
+CVSS: 9.1"
 82,{'CWE-79'},GHSA-hm45-mgqm-gjm4,"@@ -930,20 +930,20 @@ <h5>{{ data['message'] }}</h5>
              img.attr(""src"", `${img.attr(""data-src-url"")}png`)
          }
@@ -2681,15 +2689,15 @@ CVSS: 9.8"
              `)
 +        $(`#mod-role-${random_number}`).val(elm.text())
          elm.remove()
-     })",[UI] Fix SelectPicker not rendering properly,"vuln-fix: Prevent XSS by safely updating dynamic HTML content
+     })",[UI] Fix SelectPicker not rendering properly,"vuln-fix: Prevent XSS by escaping user-controlled content in UI
 
-The vulnerability involved unsafe insertion of user-controlled strings directly into HTML elements, allowing potential cross-site scripting (XSS) attacks through unescaped content.
-This is a critical security risk because attackers could execute arbitrary scripts in users’ browsers, leading to data theft, session hijacking, or other malicious actions.
-The fix introduces proper escaping of special characters in strings and defers setting text content until after element creation, ensuring all dynamic content is safely encoded before insertion.
+User-supplied strings were directly inserted into HTML without proper escaping, allowing injection of malicious scripts and potential cross-site scripting (XSS) attacks.
+This vulnerability could enable attackers to execute arbitrary JavaScript in users' browsers, leading to session hijacking, data theft, or UI manipulation.
+The fix introduces a safe escaping function for HTML entities and updates dynamic content insertion to use this function, ensuring all user data is properly sanitized before rendering.
 
-Weakness: Cross-Site Scripting (XSS) - CWE-79  
-Severity: Critical  
-CVSS: 9.8"
+Weakness: Cross-Site Scripting (XSS) CWE-79  
+Severity: High  
+CVSS: 7.4"
 83,{'CWE-79'},GHSA-6hjc-m38h-7jhh,"@@ -15,12 +15,15 @@
  use nystudio107\seomatic\Seomatic;
  
@@ -2723,9 +2731,9 @@ CVSS: 9.8"
              $response->sendContentAsFile(
                  $contents,","Ensure that only files with the extensions listed in `allowedFileExtensions` General Config setting can be used with the SEO File Link controller
 
-Signed-off-by: Andrew Welch <andrew@nystudio107.com>","vuln-fix: Restrict file types served by SEO file link endpoint
+Signed-off-by: Andrew Welch <andrew@nystudio107.com>","vuln-fix: Restrict file types in SEO file link endpoint
 
-The vulnerability allowed serving files with any extension, bypassing configured allowed file types and risking exposure of sensitive or unsafe files to users. This posed a security risk by enabling unauthorized access to potentially harmful or confidential files through crafted URLs. The fix enforces allowed file extensions from the configuration and blocks requests for disallowed or missing file extensions with an explicit error response.
+The vulnerability allowed serving files with any extension, bypassing configured allowed file types and risking exposure of sensitive or malicious files to users. This is a security risk because attackers could exploit it to deliver harmful content or access unauthorized data through crafted URLs. The fix enforces validation against the allowed file extensions list and blocks requests with disallowed or missing file extensions by throwing an error.
 
 Weakness: CWE-434 Unrestricted Upload of File with Dangerous Type  
 Severity: High  
@@ -2742,13 +2750,13 @@ CVSS: 7.5"
 
 Signed-off-by: snipe <snipe@snipe.net>","vuln-fix: Escape output to prevent XSS in asset checkout field
 
-The vulnerability was that the 'checked_out_to' field output was not escaped, allowing injection of malicious scripts in the rendered HTML.
-This posed a security risk by enabling cross-site scripting attacks, potentially compromising user sessions and data integrity.
-The fix applies proper escaping to the 'checked_out_to' value before output, mitigating XSS by sanitizing user-controllable content.
+The checked_out_to field was output without escaping, allowing injection of malicious scripts into the rendered HTML page.
+This vulnerability could enable attackers to execute arbitrary JavaScript in users’ browsers, leading to session hijacking or data theft.
+The fix applies proper HTML escaping to the checked_out_to value before output, mitigating cross-site scripting risks.
 
-Weakness: Cross-Site Scripting (CWE-79)
-Severity: Medium
-CVSS: 6.1"
+Weakness: Cross-Site Scripting (XSS) CWE-79  
+Severity: High  
+CVSS: 7.4"
 85,{'CWE-79'},GHSA-wg8p-w946-c482,"@@ -329,7 +329,7 @@ public function isAllowedFilename($filename){
  			'.zip','.tar','.gz','.tgz','.ipa','.apk','.rar','.iso','.bz2','.epub',
  			'.pdf','.ofd','.swf','.epub','.xps',
@@ -2756,9 +2764,9 @@ CVSS: 6.1"
 -			'.ppt','.pptx','.xls','.xlsx','.txt','.md','.psd','.csv',
 +			'.ppt','.pptx','.xls','.xlsx','.txt','.psd','.csv',
  			'.cer','.ppt','.pub','.properties','.json','.css',
- 			) ;",file upload bug,"vuln-fix: Prevent markdown file upload by restricting allowed extensions
+ 			) ;",file upload bug,"vuln-fix: Prevent upload of markdown files to reduce attack surface
 
-The vulnerability allowed uploading markdown (.md) files, which can contain executable scripts or malicious content posing security risks when processed or rendered. Allowing such files increases the attack surface for cross-site scripting or code injection attacks. The fix removes the .md extension from the allowed filename list, blocking markdown file uploads and reducing potential exploitation vectors.
+The vulnerability allowed uploading markdown (.md) files which can contain executable scripts or malicious content when rendered. This poses a security risk by enabling attackers to upload and execute harmful code or phishing content on the platform. The fix removes the .md extension from the allowed filename list, blocking markdown file uploads and reducing potential attack vectors.
 
 Weakness: CWE-434 Unrestricted Upload of File with Dangerous Type  
 Severity: Medium  
@@ -2773,9 +2781,9 @@ CVSS: 5.3"
              'iconCls' => 'plugin_pimcore_datahub_icon_' . $type,
              'expandable' => false,",follow up to https://github.com/pimcore/data-hub/pull/462,"vuln-fix: Prevent XSS by escaping configuration item names
 
-The vulnerability was that configuration item names were output without escaping, allowing injection of malicious HTML or JavaScript code into the rendered page.
-This posed a security risk by enabling cross-site scripting attacks, potentially compromising user sessions or executing unauthorized scripts.
-The fix applies htmlspecialchars to the item names before output, ensuring special characters are safely encoded and preventing script execution. 
+Unescaped configuration item names were directly output in the UI, allowing injection of malicious HTML or JavaScript code.
+This posed a security risk by enabling cross-site scripting attacks that could compromise user sessions or steal sensitive data.
+The fix applies htmlspecialchars to escape special characters, ensuring safe rendering of item names in the interface.
 
 Weakness: Cross-Site Scripting (XSS) CWE-79  
 Severity: High  
@@ -2786,13 +2794,15 @@ CVSS: 7.4"
      runs-on: ubuntu-latest
 -    needs: stop-previous-runs
      steps:
-       - uses: actions/checkout@v2",Update build-and-upload.yml,"vuln-fix: Prevent race conditions by removing unnecessary job dependency
+       - uses: actions/checkout@v2",Update build-and-upload.yml,"vuln-fix: Prevent race condition by removing unnecessary job dependency
 
-The workflow previously enforced a dependency that delayed job execution, potentially causing overlapping runs and inconsistent states during concurrent builds. This could lead to race conditions where multiple jobs interfere, risking data corruption or deployment errors. The fix removes the redundant job dependency to allow proper sequential execution and prevent overlapping runs. 
+The workflow allowed concurrent runs by depending on a job that stopped previous runs, which could cause race conditions and inconsistent states during execution.
+This posed a security risk by enabling potential state corruption or unauthorized access due to overlapping job executions.
+The fix removes the dependency on the stop-previous-runs job to ensure jobs run independently and avoid race conditions. 
 
-Weakness: Race Condition (CWE-362)  
-Severity: Medium  
-CVSS: 5.4"
+Weakness: Race Condition (CWE-362)
+Severity: Medium
+CVSS: 5.3"
 88,{'CWE-79'},GHSA-3pg8-c473-w6rr,"@@ -54,10 +54,10 @@ public function deleteFile($file_id){
  	}
  
@@ -2823,9 +2833,9 @@ CVSS: 5.4"
 +		) ;
  
  		$ext = strtolower(substr($filename,strripos($filename,'.')) ); //获取文件扩展名（转为小写后）
- 		if(in_array( $ext , $allow_array ) ){",Upload file vulnerability,"vuln-fix: Add optional filename check to file upload function
+ 		if(in_array( $ext , $allow_array ) ){",Upload file vulnerability,"vuln-fix: Add optional filename validation to file upload function
 
-The file upload function lacked flexibility to disable filename extension checks, potentially allowing disallowed file types to be uploaded when checks were bypassed. This posed a security risk by enabling upload of malicious files that could exploit the system or execute unauthorized code. The fix introduces a parameter to optionally enforce allowed filename extension validation, ensuring stricter control over uploaded file types by default.
+The file upload function lacked consistent filename validation, allowing potentially dangerous files to be uploaded without restriction. This posed a security risk by enabling attackers to upload malicious files that could compromise the system. The fix introduces an optional filename check parameter that enforces allowed extensions by default, preventing unauthorized file types from being uploaded.
 
 Weakness: CWE-434 Unrestricted Upload of File with Dangerous Type  
 Severity: High  
@@ -2849,7 +2859,7 @@ CVSS: 7.5"
  
  		$ext = strtolower(substr($filename,strripos($filename,'.')) ); //获取文件扩展名（转为小写后）",file upload bug,"vuln-fix: Restrict allowed file extensions to reduce attack surface
 
-The vulnerability involved an overly permissive whitelist of file extensions that included potentially dangerous types like executable archives and scriptable documents. This posed a security risk by allowing attackers to upload malicious files that could be executed or exploited on the server or client side. The fix narrows the allowed extensions list by removing high-risk file types, thereby reducing the chance of malicious file uploads.
+The file upload function previously allowed numerous file extensions, including potentially dangerous types that could enable execution of malicious code or unauthorized access. Allowing these extensions increases the risk of remote code execution or privilege escalation attacks through crafted files. The fix narrows the allowed extensions list by removing high-risk types, thereby limiting uploadable files to safer formats and reducing potential exploitation vectors.
 
 Weakness: CWE-434 Unrestricted Upload of File with Dangerous Type  
 Severity: High  
@@ -2864,9 +2874,9 @@ CVSS: 7.5"
                &lt;/dl&gt;
              &lt;/form&gt;",XWIKI-19292: Fix bad escaping,"vuln-fix: Escape user input in hidden form field to prevent XSS
 
-The vulnerability was that user-controlled data was inserted into a hidden input field without proper escaping, allowing injection of malicious scripts. This poses a security risk because attackers could execute cross-site scripting attacks, compromising user sessions and data integrity. The fix applies XML escaping to the input value, ensuring that any special characters are safely encoded and cannot break the HTML context. 
+The hidden input field for 'requestJoin' was directly outputting user-controlled data without escaping, allowing injection of malicious scripts. This poses a security risk as attackers could execute arbitrary JavaScript in users' browsers, leading to session hijacking or data theft. The fix applies XML escaping to the 'requestJoin' value before rendering it in the form, mitigating cross-site scripting vulnerabilities.
 
-Weakness: Cross-Site Scripting (XSS) - CWE-79  
+Weakness: Cross-Site Scripting (CWE-79)  
 Severity: High  
 CVSS: 7.4"
 91,{'CWE-79'},GHSA-4wm8-c2vv-xrpq,"@@ -14,6 +14,7 @@
@@ -2903,8 +2913,8 @@ CVSS: 7.4"
          {
              ID = request.getParameter(""ID"");",[DS-4133] Improve URL handling in Controlled Vocab JSPUI servlet,"vuln-fix: Prevent open redirect by validating callerUrl parameter
 
-The vulnerability allowed open redirect by accepting callerUrl parameters that could redirect users outside the DSpace web application context.  
-This posed a security risk by enabling phishing attacks or redirecting users to malicious external sites.  
+The vulnerability allowed open redirect by accepting callerUrl parameters pointing outside the DSpace web application context path.  
+This posed a security risk by enabling attackers to redirect users to malicious external sites, facilitating phishing or other attacks.  
 The fix enforces that callerUrl must start with the DSpace context path and rejects requests with invalid URLs by returning a 400 Bad Request error.  
 
 Weakness: CWE-601 Open Redirect  
@@ -2918,9 +2928,9 @@ CVSS: 5.4"
 +	<p class=""lead""><fmt:message key=""jsp.search.didyoumean""><fmt:param><a id=""spellCheckQuery"" data-spell=""<%= Utils.addEntities(spellCheckQuery) %>"" href=""#""><%= Utils.addEntities(spellCheckQuery) %></a></fmt:param></fmt:message></p>
  <% } %>                  
          <input type=""hidden"" value=""<%= rpp %>"" name=""rpp"" />
-         <input type=""hidden"" value=""<%= Utils.addEntities(sortedBy) %>"" name=""sort_by"" />",[DS-4453] Fix XSS handling in JSPUI discovery spellcheck,"vuln-fix: Prevent XSS by encoding spellCheckQuery output in HTML
+         <input type=""hidden"" value=""<%= Utils.addEntities(sortedBy) %>"" name=""sort_by"" />",[DS-4453] Fix XSS handling in JSPUI discovery spellcheck,"vuln-fix: Prevent XSS by encoding spellCheckQuery output in JSP
 
-The vulnerability was that spellCheckQuery was output without proper HTML entity encoding, allowing injection of malicious scripts via crafted input. This is a security risk because it enables cross-site scripting attacks, potentially compromising user data and session integrity. The fix applies HTML entity encoding to spellCheckQuery before rendering it inside the anchor tag, mitigating script injection risks.
+The vulnerability was that spellCheckQuery was output without proper HTML entity encoding, allowing injection of malicious scripts in the rendered page. This posed a cross-site scripting risk, enabling attackers to execute arbitrary JavaScript in users’ browsers. The fix applies HTML entity encoding to spellCheckQuery before outputting it, ensuring unsafe characters are escaped and scripts cannot be injected.
 
 Weakness: Cross-Site Scripting (XSS) CWE-79  
 Severity: High  
@@ -2933,11 +2943,11 @@ CVSS: 7.4"
 +    PARAM_KEY_EXCEPT_LIST = [:authenticity_token, :commit, :utf8, :_method, :script_name, :original_script_name].freeze
  
      # A tag stands for an HTML tag inside the paginator.
-     # Basically, a tag has its own partial template file, so every tag can be","Blacklist ""original_script_name"" get param","vuln-fix: Prevent exposure of internal parameter original_script_name
+     # Basically, a tag has its own partial template file, so every tag can be","Blacklist ""original_script_name"" get param","vuln-fix: Prevent exposure of original_script_name parameter in pagination
 
-The vulnerability involved omission of the internal parameter original_script_name from the exclusion list, allowing it to be unintentionally exposed in pagination helpers.
-Exposing this parameter could leak sensitive routing or environment information, increasing the risk of information disclosure attacks.
-The fix adds original_script_name to the parameter exclusion list to prevent it from being included in rendered pagination parameters. 
+The original_script_name parameter was not excluded from pagination parameters, allowing it to be unintentionally exposed or manipulated in generated URLs.
+This could lead to information leakage or URL manipulation attacks by revealing internal routing details or enabling crafted requests.
+The fix adds original_script_name to the exclusion list, preventing it from being included in pagination parameter processing and output.
 
 Weakness: Information Exposure (CWE-200)
 Severity: Medium
@@ -3076,13 +3086,13 @@ CVSS: 5.3"
 
 * [Admin UI] DataObject Class - escape general settings input values","vuln-fix: Prevent XSS by encoding user input in UI fields
 
-User input was not properly encoded before rendering in text fields, allowing injection of malicious HTML or scripts into the interface.
-This posed a cross-site scripting (XSS) risk, enabling attackers to execute arbitrary scripts in users' browsers and compromise data or sessions.
-The fix applies HTML encoding to all relevant text field values and input retrievals, ensuring unsafe characters are escaped before display.
+User input was directly assigned and rendered in multiple text fields without proper HTML encoding, allowing injection of malicious scripts.
+This posed a critical cross-site scripting risk that could lead to session hijacking or unauthorized actions in the application.
+The fix applies HTML encoding to all relevant input values before rendering, ensuring special characters are safely escaped in the UI.
 
 Weakness: Cross-Site Scripting (XSS) CWE-79  
-Severity: High  
-CVSS: 7.4"
+Severity: Critical  
+CVSS: 9.8"
 95,{'CWE-79'},GHSA-7jh9-6cpf-h4m7,"@@ -1388,8 +1388,12 @@ hello.utils.extend(hello.utils, {
  		// (URI Fragments within 302 Location URI are lost over HTTPS)
  		// Loading the redirect.html before triggering the OAuth Flow seems to fix it.
@@ -3095,9 +3105,11 @@ CVSS: 7.4"
  
 -			location.assign(decodeURIComponent(p.oauth_redirect));
  			return;
- 		}",fix(xss): oauth_redirect should be a valid url,"vuln-fix: Validate redirect URL before location assignment
+ 		}",fix(xss): oauth_redirect should be a valid url,"vuln-fix: Validate redirect URL before OAuth redirection
 
-The vulnerability involved redirecting users to URLs without validating the destination, allowing attackers to craft malicious redirect URIs. This posed a security risk by enabling open redirect attacks that could lead to phishing or session hijacking. The fix adds a validation step to ensure the redirect URL is safe before performing the location assignment.
+The OAuth redirect URL was used without validation, allowing attackers to supply malicious URLs for redirection.  
+This could lead to open redirect vulnerabilities, enabling phishing or redirecting users to harmful sites.  
+The fix adds a URL validation check to ensure only safe, valid URLs are used before performing the redirection.  
 
 Weakness: Open Redirect (CWE-601)  
 Severity: Medium  
@@ -3127,9 +3139,11 @@ CVSS: 5.4"
 
 `htmlentities()` is a function which converts special characters. This allows you to show to display the string without the browser reading it as HTML.","vuln-fix: Escape HTML entities in ticket titles to prevent XSS
 
-The vulnerability was that ticket titles were rendered without escaping, allowing injection of malicious HTML or scripts in the user interface. This posed a security risk by enabling cross-site scripting attacks that could compromise user sessions or steal sensitive data. The fix introduces a function to escape HTML entities in ticket titles before rendering, mitigating the XSS vulnerability.
+The vulnerability was that ticket titles were rendered without escaping, allowing injection of malicious HTML or scripts in the user interface.
+This posed a security risk by enabling cross-site scripting attacks, potentially compromising user sessions or stealing sensitive data.
+The fix introduces a function to escape HTML entities in ticket titles before rendering, preventing execution of injected code in the browser.
 
-Weakness: Cross-Site Scripting (CWE-79)  
+Weakness: Cross-Site Scripting (XSS) CWE-79  
 Severity: High  
 CVSS: 7.4"
 97,{'CWE-79'},GHSA-rcvx-rmvf-mxch,"similarity index 64%
@@ -3197,7 +3211,7 @@ JSON body response for HTTP 404 error may contain unsafe URL path characters. Th
 
 Signed-off-by: Dominic Schabel <dominic.schabel@bosch.io>","vuln-fix: Prevent path disclosure in error responses
 
-The error controller exposed the request path in error response bodies, potentially revealing sensitive internal URL structures to attackers. This information disclosure could aid attackers in mapping the application and crafting targeted attacks. The fix removes the path attribute from error responses to prevent leaking internal request details. 
+The error controller exposed the request path in error response bodies, revealing internal URL structures to clients. This information disclosure could aid attackers in mapping the application and crafting targeted attacks. The fix removes the path attribute from error responses to avoid leaking sensitive routing details. 
 
 Weakness: Information Exposure Through Error Messages (CWE-209)  
 Severity: Medium  
@@ -3210,11 +3224,13 @@ CVSS: 5.3"
 +		while ( stripos( $string, $remove_string ) !== false )
  		{
  			$string = str_ireplace( $remove, '', $string );
- 		}",Fix stored XSS security issue: remove inline JS from URL in PreparePHP_SELF.fnc.php,"vuln-fix: Fix case-insensitive removal of dangerous substrings
+ 		}",Fix stored XSS security issue: remove inline JS from URL in PreparePHP_SELF.fnc.php,"vuln-fix: Prevent case-insensitive string removal to avoid bypass
 
-The vulnerability was caused by case-sensitive substring removal allowing bypass of filtering by using different letter cases. This posed a security risk by enabling attackers to inject malicious content that evades detection. The fix changes the substring search and replacement to be case-insensitive, ensuring all variants are properly removed.
+The vulnerability allowed case-sensitive checks that missed variations of dangerous substrings, enabling attackers to bypass filtering by altering letter case.
+This posed a security risk by permitting malicious input to evade sanitization and potentially execute harmful actions or injections.
+The fix changes the check to case-insensitive, ensuring all case variants of the target strings are detected and removed consistently.
 
-Weakness: CWE-74: Improper Neutralization of Special Elements in Output Used by a Downstream Component ('Injection')
+Weakness: Improper Input Validation (CWE-20)
 Severity: High
 CVSS: 7.5"
 99,{'CWE-79'},GHSA-gx5w-rrhp-f436,"@@ -145,6 +145,11 @@ window.search = window.search || {};
@@ -3233,9 +3249,9 @@ CVSS: 7.5"
 Thanks to Kamil Vavra for responsibly disclosing the vulnerability
 according to Rust's Security Policy.","vuln-fix: Prevent XSS by encoding single quotes in search terms
 
-The vulnerability was caused by incomplete encoding of user input, allowing single quotes to remain unescaped in URLs, which could lead to cross-site scripting attacks. This is a security risk because attackers can inject malicious scripts through crafted search terms, compromising user data and site integrity. The fix encodes single quotes by replacing them with their URL-encoded representation (%27) after applying encodeURIComponent, ensuring all dangerous characters are properly escaped.
+The vulnerability was that single quotes in search terms were not URL-encoded, allowing potential injection of malicious scripts via crafted URLs. This posed a security risk by enabling cross-site scripting attacks through unescaped characters in generated links. The fix encodes single quotes as %27 after encodeURIComponent to ensure all dangerous characters are properly escaped in URLs.
 
-Weakness: Cross-Site Scripting (CWE-79)  
+Weakness: Cross-Site Scripting (XSS) CWE-79  
 Severity: High  
 CVSS: 7.4"
 100,{'CWE-79'},GHSA-6m26-25q2-cq46,"@@ -4,6 +4,7 @@
@@ -3267,12 +3283,12 @@ CVSS: 7.4"
          } else {
              $fn_new_folder_path = $_REQUEST['name'];",add xss clean to create media dir method,"vuln-fix: Sanitize user input in create_media_dir to prevent XSS
 
-User input from the $_REQUEST array was not sanitized before use, allowing malicious HTML or script injection in folder names or parameters.
-This poses a security risk by enabling cross-site scripting (XSS) attacks that could compromise user sessions or site integrity.
-The fix applies HTML cleaning to all $_REQUEST inputs using a dedicated sanitizer class before processing folder creation requests.
+User input from the $_REQUEST array was not sanitized before use, allowing injection of malicious HTML or scripts in directory names.
+This poses a security risk by enabling cross-site scripting attacks that could compromise user sessions or site integrity.
+The fix applies HTML cleaning to all $_REQUEST inputs using a dedicated sanitizer before processing directory creation requests.
 
-Weakness: Cross-Site Scripting (XSS) - CWE-79  
-Severity: High  
+Weakness: Cross-Site Scripting (CWE-79)
+Severity: High
 CVSS: 7.4"
 101,{'CWE-79'},GHSA-6jp6-9rf9-gc66,"@@ -1131,7 +1131,9 @@ $(function () {
        return """";
@@ -3286,11 +3302,14 @@ CVSS: 7.4"
      values: (text, callback) => {
        $.ajax({","js: Add missing escaping to username completion
 
-Fixes https://hackerone.com/reports/1486674","vuln-fix: Prevent XSS by safely rendering menu item text
+Fixes https://hackerone.com/reports/1486674","vuln-fix: Prevent XSS by safely rendering menu item strings
 
-The menuItemTemplate function previously inserted raw HTML strings without sanitization, allowing injection of malicious scripts via item.string. This posed a cross-site scripting risk by enabling attackers to execute arbitrary JavaScript in users' browsers. The fix replaces direct HTML insertion with safe DOM text assignment using createElement and innerText to neutralize script injection attempts.
+The vulnerability was caused by directly injecting unescaped HTML strings into the menu item template, allowing malicious scripts to execute.
+This is a security risk because attackers could exploit it to perform cross-site scripting attacks and compromise user data or session integrity.
+The fix replaces raw HTML injection with safe text assignment using DOM methods to ensure proper escaping of potentially dangerous characters.
 
-Weakness: Cross-Site Scripting (XSS) CWE-79  
+
+Weakness: Cross-Site Scripting (XSS) - CWE-79  
 Severity: High  
 CVSS: 7.4"
 102,{'CWE-79'},GHSA-c558-5gfm-p2r8,"@@ -147,7 +147,7 @@
@@ -3314,10 +3333,12 @@ CVSS: 7.4"
  </script>		
  </c:set>",[DS-4453] Fix XSS handling in JSPUI discovery autocomplete,"vuln-fix: Escape HTML in filter labels to prevent XSS
 
-User-supplied filter labels were rendered without escaping, allowing injection of malicious HTML or scripts into the page content. This posed a cross-site scripting (XSS) risk, enabling attackers to execute arbitrary code in users’ browsers. The fix applies a proper HTML escaping function to all filter label values before rendering them in the UI.
+User-supplied values in filter labels were rendered without escaping, allowing injection of malicious HTML or scripts into the page.
+This posed a security risk by enabling cross-site scripting attacks that could compromise user data or session integrity.
+The fix introduces a generic HTML escape function and applies it to all displayed filter labels before rendering them in the UI.
 
-Weakness: Cross-Site Scripting (XSS) CWE-79  
-Severity: High  
+Weakness: Cross-Site Scripting (CWE-79)
+Severity: High
 CVSS: 7.4"
 103,{'CWE-79'},GHSA-qf2g-q4mc-w7rr,"@@ -839,7 +839,7 @@ public static function processModuleXml(\SimpleXMLElement $xml): array
          $information['name'] = (string) $module->name;
@@ -3338,12 +3359,10 @@ CVSS: 7.4"
          // authors
          foreach ($xml->xpath('/theme/authors/author') as $author) {",Fix xss though the description in the info.xml file of a theme or module,"vuln-fix: Sanitize module and theme descriptions to prevent XSS
 
-The vulnerability involved unsanitized HTML content in module and theme descriptions, allowing injection of malicious scripts via XML input.
-This posed a security risk by enabling cross-site scripting attacks that could compromise user data and site integrity.
-The fix applies a whitelist-based strip_tags function to allow only safe HTML tags, removing potentially dangerous elements from descriptions.
+The vulnerability involved unsanitized HTML content in module and theme descriptions, allowing injection of malicious scripts. This posed a security risk by enabling cross-site scripting attacks that could compromise user data and site integrity. The fix applies a whitelist-based strip_tags function to allow only safe HTML tags, effectively mitigating XSS risks in descriptions.
 
-Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
-Severity: High
+Weakness: Cross-Site Scripting (CWE-79)  
+Severity: High  
 CVSS: 7.4"
 104,{'CWE-79'},GHSA-wrp6-9w7f-3wxg,"@@ -248,7 +248,7 @@ $(""#btn-upload-format"").on(""change"", function () {
      if (filename.substring(3, 11) === ""fakepath"") {
@@ -3364,11 +3383,11 @@ CVSS: 7.4"
  
  $(""#xchange"").click(function () {",Fix upload of cover and book formats containing html characters,"vuln-fix: Prevent XSS by using text() instead of html() for filenames
 
-User-supplied filenames were inserted into the DOM using html(), allowing injection of malicious HTML or scripts leading to cross-site scripting vulnerabilities.
-This posed a security risk as attackers could execute arbitrary JavaScript in users’ browsers, compromising user data and session integrity.
-The fix replaces html() with text() to safely encode filenames as plain text, preventing execution of injected code in the page context.
+User-supplied filenames were inserted into the DOM using html(), allowing malicious HTML or script injection via crafted filenames.
+This posed a cross-site scripting risk, enabling attackers to execute arbitrary scripts in the context of the affected page.
+The fix replaces html() with text() to safely encode filenames as plain text, preventing execution of injected code. 
 
-Weakness: Cross-Site Scripting (XSS) - CWE-79  
+Weakness: Cross-Site Scripting (XSS) CWE-79  
 Severity: High  
 CVSS: 7.4"
 105,{'CWE-79'},GHSA-49qr-xh3w-h436,"@@ -78,6 +78,13 @@ class NbconvertFileHandler(IPythonHandler):
@@ -3405,7 +3424,7 @@ from a different domain to the notebook server.","vuln-fix: Enforce sandboxed co
 
 The nbconvert file and post handlers lacked sandbox restrictions, allowing served HTML/SVG content to execute JavaScript with full access to the notebook server context. This posed a risk of cross-site scripting attacks that could compromise server integrity and user data. The fix adds a sandbox directive with allow-scripts to the content security policy, isolating JavaScript execution and preventing interaction with the notebook server environment.
 
-Weakness: CWE-79 Cross-site Scripting (XSS)
+Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
 Severity: High
 CVSS: 7.5"
 106,{'CWE-79'},GHSA-38m9-3vg4-rwvp,"@@ -114,6 +114,9 @@ public function redirect($url)
@@ -3419,10 +3438,10 @@ CVSS: 7.5"
              echo '<meta http-equiv=""refresh"" content=""0;url=' . $redirectUrl . '"">';
          } else {",Update UrlManager.php,"vuln-fix: Sanitize redirect URL to prevent injection attacks
 
-The redirect URL was not properly sanitized, allowing injection of malicious HTML or script content in the redirection response. This posed a security risk by enabling cross-site scripting (XSS) attacks through crafted redirect URLs. The fix applies HTML cleaning to the redirect URL, removing potentially dangerous characters and tags before outputting it in the response.
+The redirect URL was not fully sanitized, allowing potential injection of malicious HTML or scripts through crafted input. This posed a security risk by enabling cross-site scripting or header injection attacks during redirection. The fix applies HTML cleaning to the redirect URL, removing harmful characters and ensuring safe output in headers and meta tags.
 
-Weakness: Cross-Site Scripting (CWE-79)  
-Severity: High  
+Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
+Severity: High
 CVSS: 7.4"
 107,{'CWE-79'},GHSA-vfrc-ggmc-5jwv,"@@ -145,6 +145,7 @@ def process_attachments(followup, attached_files):
                  'application/octet-stream',
@@ -3434,11 +3453,11 @@ CVSS: 7.4"
              if attached.size < max_email_attachment_size:","Add `att.full_clean()` before saving
 
 Fix issue https://github.com/django-helpdesk/django-helpdesk/issues/983
-Also, fix bug stored XSS disclosure: https://huntr.dev/bounties/4d7a5fdd-b2de-467a-ade0-3f2fb386638e/","vuln-fix: Validate attachments before saving to prevent invalid data
+Also, fix bug stored XSS disclosure: https://huntr.dev/bounties/4d7a5fdd-b2de-467a-ade0-3f2fb386638e/","vuln-fix: Validate attachment data before saving to prevent invalid input
 
-Attachment objects were saved without validation, allowing malformed or malicious data to be persisted in the system.
-This posed a risk of data corruption or security issues due to unchecked attachment attributes.
-The fix adds a call to full_clean() on attachments before saving to enforce model validation rules.
+Attachment objects were saved without validation, allowing malformed or malicious data to be persisted in the database.
+This posed a risk of data corruption or injection attacks through unchecked attachment fields.
+The fix adds a call to full_clean() on attachment instances to enforce model validation before saving. 
 
 Weakness: Improper Input Validation (CWE-20)
 Severity: Medium
@@ -3474,12 +3493,12 @@ CVSS: 5.3"
   *      https.createServer(options, app).listen(443);
   *",fix: escape req.method in 404 response,"vuln-fix: Escape HTTP method in error response to prevent XSS
 
-The vulnerability was that the HTTP method in error messages was not escaped, allowing injection of malicious scripts in responses.
-This is a security risk because attackers could exploit this to perform cross-site scripting (XSS) attacks on clients viewing error pages.
-The fix escapes the HTTP method string before including it in the response, preventing script injection via untrusted input.
+The vulnerability was that the HTTP method in error messages was not escaped, allowing injection of malicious scripts via crafted request methods.
+This is a security risk because it enables cross-site scripting (XSS) attacks, potentially compromising user data and session integrity.
+The fix escapes the HTTP method string before including it in the response, preventing script injection through the method field.
 
-Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
-Severity: Medium
+Weakness: Cross-Site Scripting (XSS) CWE-79  
+Severity: Medium  
 CVSS: 6.1"
 109,{'CWE-79'},GHSA-455w-gv5p-wgg3,"@@ -37,6 +37,11 @@ class TargetingController extends AdminController implements KernelControllerEve
  {
@@ -3554,7 +3573,7 @@ Co-authored-by: Jacob Dreesen <j.dreesen@neusta.de>
 
 Co-authored-by: Jacob Dreesen <j.dreesen@neusta.de>","vuln-fix: Sanitize and encode user input for targeting names
 
-User-supplied names for targeting rules and groups were not properly sanitized or encoded, allowing special characters that could lead to injection or display issues. This posed a security risk by enabling potential cross-site scripting (XSS) attacks and improper data handling in the application. The fix introduces input sanitization by replacing dangerous characters with safe ones and applies HTML encoding when rendering names to prevent injection and XSS vulnerabilities.
+User-supplied names for targeting rules and groups were not properly sanitized, allowing special characters that could lead to injection or display issues. This posed a risk of cross-site scripting (XSS) and other injection attacks by enabling malicious input to be stored and rendered unsafely. The fix introduces input sanitization by replacing dangerous characters with safe ones and applies HTML escaping when outputting names to prevent script execution.
 
 Weakness: Cross-Site Scripting (CWE-79)  
 Severity: High  
@@ -3823,9 +3842,9 @@ CVSS: 7.4"
 +            'cfml'
          );",Update Files.php,"vuln-fix: Expand list of dangerous file extensions to block
 
-The vulnerability was insufficient filtering of potentially dangerous file extensions, allowing risky files to bypass security checks and be uploaded or processed. This posed a security risk by enabling execution or distribution of malicious scripts and executables that could compromise the system. The fix expands the list of blocked file extensions to include many additional high-risk types, improving detection and prevention of unsafe file handling.
+The vulnerability was insufficient filtering of potentially dangerous file extensions, allowing risky files to bypass security checks and be uploaded or processed. This posed a security risk by enabling execution or distribution of malicious scripts and executables that could compromise the system. The fix expands the list of blocked file extensions to include many additional high-risk and executable types, improving detection and prevention of unsafe files.
 
-Weakness: CWE-434 Unrestricted Upload of File with Dangerous Type  
+Weakness: CWE-434: Unrestricted Upload of File with Dangerous Type  
 Severity: High  
 CVSS: 7.5"
 111,{'CWE-79'},GHSA-q73m-3q7r-fpf7,"@@ -325,7 +325,7 @@ public function isAllowedFilename($filename){
@@ -3838,9 +3857,9 @@ CVSS: 7.5"
  			'.pdf','.ofd','.swf','.epub','.xps',
  			'.doc','.docx','.odt','.rtf','.docm','.dotm','.dot','.dotx','.wps','.wpt',","Merge pull request #1632 from ajaysenr/master
 
-Update AttachmentModel.class.php","vuln-fix: Remove unsupported file extension from allowed uploads
+Update AttachmentModel.class.php","vuln-fix: Remove unsupported file extension from allowed list
 
-The file extension '.m3u8a' was incorrectly included in the allowed filename list, permitting potentially unsafe or unrecognized media playlist files to be uploaded. Allowing such unsupported or malformed extensions increases the risk of processing unexpected file types that could lead to security vulnerabilities or application errors. The fix removes the '.m3u8a' extension from the allowed array to restrict uploads to only verified and safe file types.
+The file extension '.m3u8a' was incorrectly included in the allowed filename extensions, permitting potentially unsafe or unsupported media playlist files to be uploaded. Allowing such files can lead to security risks including unauthorized content execution or information disclosure. The fix removes the '.m3u8a' extension from the allowed list to restrict uploads to only verified safe file types.
 
 Weakness: CWE-434 Unrestricted Upload of File with Dangerous Type  
 Severity: Medium  
@@ -3855,9 +3874,11 @@ CVSS: 5.3"
        &lt;/form&gt;
      {{/html}}",XWIKI-19294: Fix bad escaping,"vuln-fix: Escape user input in hidden form field to prevent XSS
 
-User input was directly inserted into a hidden form field without escaping, allowing injection of malicious scripts in the HTML context. This posed a cross-site scripting risk, enabling attackers to execute arbitrary JavaScript in users’ browsers. The fix applies XML escaping to the user input before rendering it in the form, mitigating script injection vulnerabilities.
+User input for the newThemeName field was directly embedded in a hidden form input without escaping, allowing injection of malicious scripts.
+This posed a cross-site scripting risk, enabling attackers to execute arbitrary JavaScript in users’ browsers and compromise session integrity.
+The fix applies XML escaping to the newThemeName value before rendering it in the form, preventing script injection via this input field.
 
-Weakness: Cross-Site Scripting (CWE-79)  
+Weakness: Cross-Site Scripting (XSS) CWE-79  
 Severity: High  
 CVSS: 7.4"
 113,{'CWE-79'},GHSA-c558-5gfm-p2r8,"@@ -196,7 +196,7 @@
@@ -3868,11 +3889,9 @@ CVSS: 7.4"
 +	<p class=""lead""><fmt:message key=""jsp.search.didyoumean""><fmt:param><a id=""spellCheckQuery"" data-spell=""<%= Utils.addEntities(spellCheckQuery) %>"" href=""#""><%=Utils.addEntities(spellCheckQuery) %></a></fmt:param></fmt:message></p>
  <% } %>                  
                                  <input type=""hidden"" value=""<%= rpp %>"" name=""rpp"" />
-                                 <input type=""hidden"" value=""<%= Utils.addEntities(sortedBy) %>"" name=""sort_by"" />","[DS-4453] Escape spellcheck, autocomplete HTML (JSPUI)","vuln-fix: Prevent XSS by encoding spellCheckQuery in output link
+                                 <input type=""hidden"" value=""<%= Utils.addEntities(sortedBy) %>"" name=""sort_by"" />","[DS-4453] Escape spellcheck, autocomplete HTML (JSPUI)","vuln-fix: Prevent XSS by encoding spellCheckQuery in output
 
-The vulnerability was that spellCheckQuery was not properly HTML-encoded in the link text, allowing injection of malicious scripts via crafted input.
-This posed a security risk by enabling cross-site scripting attacks, potentially compromising user sessions and data confidentiality.
-The fix applies HTML entity encoding to spellCheckQuery in the link text, ensuring safe rendering and preventing script execution in the browser.
+The vulnerability was that spellCheckQuery was not properly HTML-encoded in the anchor text, allowing injection of malicious scripts via crafted input. This posed a security risk by enabling cross-site scripting attacks that could execute arbitrary JavaScript in users’ browsers. The fix applies proper HTML entity encoding to spellCheckQuery in the anchor text to neutralize any embedded scripts.
 
 Weakness: Cross-Site Scripting (XSS) CWE-79  
 Severity: High  
@@ -3886,10 +3905,10 @@ CVSS: 7.4"
  			return true;
  		}",file upload bug,"vuln-fix: Prevent dangerous XML file uploads in filename validation
 
-The filename validation function did not check for XML file extensions, allowing potentially dangerous XML files to be uploaded and processed by the system. This poses a security risk because XML files can contain malicious payloads such as XXE or other injection attacks that compromise system integrity. The fix adds "".xml"" to the list of dangerous file extensions, blocking these files from being accepted during upload validation.
+The filename validation did not check for XML file extensions, allowing potentially dangerous XML files to be uploaded and processed by the system. This poses a security risk as malicious XML files can exploit XML external entity (XXE) vulnerabilities or inject harmful content. The fix adds "".xml"" to the list of disallowed filename extensions to block such dangerous file uploads effectively.
 
-Weakness: CWE-434 Unrestricted Upload of File with Dangerous Type  
-Severity: High  
+Weakness: CWE-611: Improper Restriction of XML External Entity Reference
+Severity: High
 CVSS: 7.5"
 115,{'CWE-79'},GHSA-6346-5r4h-ff5x,"@@ -158,7 +158,7 @@ class=""btn btn-link btn-sm <?php if (isset($abandoned)): ?>font-weight-bold text
              $(document).ready(function () {
@@ -3901,7 +3920,7 @@ CVSS: 7.5"
                      ajaxConfig: {
                          method: 'get',",Update order_filtering.blade.php,"vuln-fix: Sanitize product keyword to prevent XSS in search placeholder
 
-The product keyword was directly echoed into the search input placeholder without sanitization, allowing injection of malicious scripts. This posed a cross-site scripting risk, enabling attackers to execute arbitrary JavaScript in users’ browsers. The fix applies an XSS cleaning function to the product keyword before rendering it in the placeholder attribute.
+The product keyword was directly embedded into the search input placeholder without sanitization, allowing injection of malicious scripts. This posed a cross-site scripting risk, enabling attackers to execute arbitrary JavaScript in users’ browsers. The fix applies an XSS cleaning function to the product keyword before rendering it in the placeholder attribute.
 
 Weakness: Cross-Site Scripting (CWE-79)  
 Severity: High  
@@ -3926,10 +3945,10 @@ CVSS: 7.4"
 
 Fixes https://hackerone.com/reports/1486674","vuln-fix: Escape user-controlled language labels to prevent XSS
 
-The vulnerability involved rendering user-controllable language labels without escaping, allowing injection of malicious HTML or JavaScript code in the output. This posed a security risk by enabling cross-site scripting (XSS) attacks that could compromise user sessions or data. The fix applies proper HTML escaping to the language label before rendering, mitigating the XSS vulnerability.
+The vulnerability involved rendering user-controllable language labels without escaping, allowing injection of malicious HTML or JavaScript code in the output. This posed a security risk by enabling cross-site scripting (XSS) attacks that could compromise user sessions or data. The fix applies proper HTML escaping to the language labels before rendering, mitigating the XSS vulnerability.
 
-Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
-Severity: High
+Weakness: Cross-Site Scripting (CWE-79)  
+Severity: High  
 CVSS: 7.4"
 117,{'CWE-79'},GHSA-3x96-m42v-hvh5,"@@ -87,11 +87,13 @@
      if (isset($_GET['autosize'])) {
@@ -3970,9 +3989,9 @@ CVSS: 7.4"
      </div>
  </div>",update,"vuln-fix: Sanitize inputs and conditionally render module elements
 
-User inputs from GET parameters were not sanitized, allowing potential cross-site scripting (XSS) attacks through malicious input injection in the autosize and type parameters.
-This is a security risk because unsanitized inputs can lead to script execution in users’ browsers, compromising user data and site integrity.
-The fix applies XSS cleaning functions to these inputs and conditionally renders HTML elements only when valid parameters are present, preventing injection and unauthorized content display.
+User inputs from GET parameters were not sanitized, allowing potential cross-site scripting (XSS) attacks through unsanitized input values used in the application.
+This is a security risk because attackers could inject malicious scripts, compromising user data and session integrity.
+The fix applies XSS cleaning functions to inputs and conditionally renders HTML elements only when safe parameters are present, preventing injection and unauthorized DOM manipulation.
 
 Weakness: Cross-Site Scripting (CWE-79)
 Severity: High
@@ -3985,13 +4004,13 @@ CVSS: 7.4"
 +			writeDirectly(""alert(\"""" + htmlEncodeButNotSpace(javascriptEncode(message)) + ""\"");"");
  			writeln("""");
  			// redirect vers une url évitant que F5 du navigateur ne refasse l'action au lieu de faire un refresh
- 			if (partToRedirectTo == null) {",fix XSS,"vuln-fix: Sanitize alert message to prevent XSS via script injection
+ 			if (partToRedirectTo == null) {",fix XSS,"vuln-fix: Prevent XSS by encoding alert message properly
 
-The vulnerability allowed unescaped HTML characters in alert messages, enabling attackers to inject malicious scripts through crafted input strings. This posed a critical security risk by potentially executing arbitrary JavaScript in users' browsers, leading to cross-site scripting attacks. The fix applies HTML encoding after JavaScript encoding to properly sanitize the message, preventing script injection while preserving alert functionality.
+The vulnerability was improper encoding of alert messages allowing injection of malicious scripts via crafted input strings. This posed a security risk by enabling cross-site scripting attacks that could execute arbitrary JavaScript in users’ browsers. The fix applies additional HTML encoding after JavaScript encoding to neutralize special characters and prevent script injection in alert dialogs.
 
-Weakness: Cross-Site Scripting (CWE-79)  
-Severity: Critical  
-CVSS: 9.8"
+Weakness: Cross-Site Scripting (XSS) CWE-79  
+Severity: High  
+CVSS: 7.4"
 119,{'CWE-79'},GHSA-3r95-23jp-mhvg,"@@ -513,10 +513,10 @@ function factory($, Helper, Icons) {
       */
      function setStageHeadline(title) {
@@ -4049,9 +4068,9 @@ Reviewed-on: https://review.typo3.org/c/Packages/TYPO3.CMS/+/73297
 Tested-by: Oliver Hader <oliver.hader@typo3.org>
 Reviewed-by: Oliver Hader <oliver.hader@typo3.org>","vuln-fix: Prevent XSS by escaping dynamic content in DOM updates
 
-The vulnerability involved inserting unescaped HTML content directly into the DOM, allowing attackers to inject malicious scripts via user-controllable input fields. This posed a critical security risk as it could lead to cross-site scripting attacks compromising user data and session integrity. The fix replaces direct HTML insertion with safe text node creation and text setting methods to properly escape content before rendering in the DOM.
+The vulnerability involved inserting unescaped HTML content directly into the DOM, allowing attackers to inject malicious scripts via user-controllable inputs. This posed a critical security risk as it could lead to cross-site scripting attacks compromising user data and application integrity. The fix replaces direct HTML insertion with safe text node creation and text setting methods to properly escape content before rendering.
 
-Weakness: Cross-Site Scripting (XSS) - CWE-79  
+Weakness: Cross-Site Scripting (CWE-79)  
 Severity: Critical  
 CVSS: 9.8"
 120,{'CWE-79'},GHSA-jp6r-xcjj-5h7r,"@@ -79,7 +79,7 @@ class TextEncodingBruteForce extends Operation {
@@ -4063,12 +4082,10 @@ CVSS: 9.8"
              table += `<tr><td>${enc}</td><td>${value}</td></tr>`;
          }",Fixed XSS in 'Text Encoding Brute Force. Closes #539,"vuln-fix: Escape HTML output to prevent XSS in encoding table
 
-The vulnerability was that unescaped encoding values were directly inserted into HTML, allowing injection of malicious scripts in the output table.
-This is a security risk because it enables cross-site scripting (XSS) attacks, potentially compromising user data and session integrity.
-The fix applies HTML escaping to all encoding values before insertion, ensuring that special characters are safely rendered as text.
+The vulnerability was that unescaped encoding values were directly inserted into HTML, allowing injection of malicious scripts in the output table. This is a security risk because it enables cross-site scripting (XSS) attacks, potentially compromising user data and session integrity. The fix applies HTML escaping to all encoding values before insertion, preventing execution of injected scripts in the rendered page.
 
-Weakness: Cross-Site Scripting (CWE-79)
-Severity: High
+Weakness: Cross-Site Scripting (XSS) CWE-79  
+Severity: High  
 CVSS: 7.4"
 121,{'CWE-79'},GHSA-rxch-gp62-574w,"@@ -170,7 +170,7 @@ public function transformAssignedTo($asset)
          }
@@ -4080,12 +4097,14 @@ CVSS: 7.4"
          ] : null;
      }","Added escape to assigned_to API response
 
-Signed-off-by: snipe <snipe@snipe.net>","vuln-fix: Escape assigned user display name to prevent XSS
+Signed-off-by: snipe <snipe@snipe.net>","vuln-fix: Escape assigned display name to prevent XSS
 
-The assigned user display name was output without escaping, allowing injection of malicious scripts in the rendered HTML response. This posed a cross-site scripting risk that could compromise user sessions or steal sensitive data. The fix applies proper HTML escaping to the display name before outputting it in the response payload.
+The vulnerability was that the assigned display name was output without escaping, allowing injection of malicious scripts in the rendered HTML.
+This posed a security risk by enabling cross-site scripting attacks that could compromise user sessions or steal sensitive data.
+The fix applies proper HTML escaping to the display name before output, mitigating the risk of script injection in the UI.
 
-Weakness: Cross-Site Scripting (CWE-79)  
-Severity: High  
+Weakness: Cross-Site Scripting (CWE-79)
+Severity: High
 CVSS: 7.4"
 122,{'CWE-79'},GHSA-6465-r752-2h8v,"@@ -24,6 +24,7 @@
  use FacturaScripts\Core\Base\DataBase\DataBaseWhere;
@@ -4132,7 +4151,7 @@ Comprobamos el parámetro url del enlace para asegurar que sea un controlador v�
 
 The backPage URL parameter was directly assigned from user input without validation, allowing attackers to inject arbitrary URLs or controller names.
 This could lead to unauthorized access or manipulation of application flow by referencing invalid or malicious pages.
-The fix validates the backPage parameter against existing controller names and defaults to a safe page if no match is found, preventing injection of arbitrary URLs.
+The fix validates the backPage parameter by checking it against existing controller names and defaults to a safe page if no match is found.
 
 Weakness: Improper Input Validation (CWE-20)
 Severity: High
@@ -4147,11 +4166,13 @@ CVSS: 7.5"
 +            'message'   => htmlspecialchars($message['message']['message'] ?? ''),
              'facility'  => is_numeric($facility) ? ""($facility) "" . __(""syslog.facility.$facility"") : $facility,
              'level'     => (is_numeric($level) && $level >= 0) ? ""($level) "" . __(""syslog.severity.$level"") : $level,
-         ];",fix graylog xss (#13931),"vuln-fix: Sanitize log message fields to prevent XSS attacks
+         ];",fix graylog xss (#13931),"vuln-fix: Sanitize log message fields to prevent XSS
 
-User-supplied log message fields were output without escaping, allowing injection of malicious HTML or JavaScript code into rendered pages. This posed a cross-site scripting risk, potentially compromising user sessions or enabling unauthorized actions. The fix applies HTML escaping to all message and source fields before output, mitigating injection of executable code in logs.
+Log message fields were output without escaping, allowing injection of malicious HTML or JavaScript into rendered logs.
+This posed a cross-site scripting risk, enabling attackers to execute scripts in users’ browsers viewing the logs.
+The fix applies htmlspecialchars to sanitize the source and message fields before rendering, preventing script injection.
 
-Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
+Weakness: Cross-Site Scripting (CWE-79)
 Severity: High
 CVSS: 7.4"
 124,{'CWE-79'},GHSA-8c76-mxv5-w4g8,"@@ -6,18 +6,30 @@
@@ -4190,12 +4211,14 @@ CVSS: 7.4"
 +                    }
 +                }
              }
-         }",Update SaveOptionApiController.php,"vuln-fix: Restrict XSS cleaning exceptions to whitelisted option groups
+         }",Update SaveOptionApiController.php,"vuln-fix: Restrict XSS cleaning exceptions to whitelisted option keys
 
-The vulnerability allowed disabling XSS cleaning for specific option keys without group context, potentially enabling cross-site scripting attacks via unfiltered inputs. This posed a security risk by permitting injection of malicious scripts in options outside intended groups. The fix enforces XSS cleaning exceptions only for keys within explicitly whitelisted option groups, preventing unauthorized bypass of sanitization.
+The vulnerability allowed disabling XSS cleaning for any option key, risking injection of malicious scripts in untrusted inputs.
+This posed a security risk by enabling attackers to bypass sanitization and execute cross-site scripting attacks on the application.
+The fix restricts exceptions to a predefined whitelist of option keys grouped by category, ensuring only trusted keys bypass XSS cleaning.
 
-Weakness: Cross-Site Scripting (CWE-79)  
-Severity: High  
+Weakness: Cross-Site Scripting (CWE-79)
+Severity: High
 CVSS: 7.4"
 125,{'CWE-79'},GHSA-rp34-85x3-3764,"@@ -34,10 +34,10 @@
  $status = 'ok';
@@ -4214,11 +4237,11 @@ CVSS: 7.4"
 
 fixing https://huntr.dev/bounties/114ba055-a2f0-4db9-aafb-95df944ba177/ (#13775)","vuln-fix: Prevent XSS by sanitizing user input with strip_tags
 
-User input fields for transport_id, name, and transport-type were not sanitized, allowing injection of malicious HTML or JavaScript code.
-This posed a cross-site scripting (XSS) risk that could lead to session hijacking or unauthorized actions in the user’s browser.
-The fix applies strip_tags to these inputs to remove HTML tags and prevent script injection before further processing.
+User input fields were directly assigned without sanitization, allowing injection of malicious HTML or JavaScript code into the application output.
+This posed a cross-site scripting (XSS) risk, enabling attackers to execute scripts in users’ browsers and potentially steal sensitive data or hijack sessions.
+The fix applies strip_tags to user inputs, removing HTML tags and preventing script injection through these fields.
 
-Weakness: Cross-Site Scripting (CWE-79)  
+Weakness: Cross-Site Scripting (XSS) CWE-79  
 Severity: High  
 CVSS: 7.4"
 126,"{'CWE-79', 'CWE-116'}",GHSA-xjfw-5vv5-vjq2,"@@ -58,9 +58,9 @@
@@ -4234,12 +4257,12 @@ CVSS: 7.4"
        &lt;/dd&gt;
      #end",XWIKI-19293: Fix bad escaping,"vuln-fix: Escape user input in form fields to prevent XSS
 
-User input was directly inserted into HTML input values without proper escaping, allowing injection of malicious scripts in the rendered page.
-This posed a cross-site scripting risk, enabling attackers to execute arbitrary JavaScript in users’ browsers and compromise their sessions.
-The fix applies XML escaping to all user-supplied input before rendering it in form fields, mitigating script injection vulnerabilities.
+User input was directly inserted into HTML form input values without proper escaping, allowing injection of malicious scripts.
+This posed a security risk by enabling cross-site scripting attacks that could compromise user sessions or steal sensitive data.
+The fix applies XML escaping to all user-supplied values before rendering them in input fields, mitigating script injection risks.
 
-Weakness: Cross-Site Scripting (XSS) CWE-79  
-Severity: High  
+Weakness: Cross-Site Scripting (CWE-79)
+Severity: High
 CVSS: 7.4"
 127,{'CWE-79'},GHSA-qq74-vgcf-54c3,"@@ -311,6 +311,7 @@ public function isDangerFilename($filename){
  			|| $isDangerStr($filename , "".asa"")
@@ -4248,10 +4271,11 @@ CVSS: 7.4"
 +			|| $isDangerStr($filename , ""htm"")
  		) {
  			return true;
- 		}",bug,"vuln-fix: Prevent dangerous file extension htm from bypassing validation
+ 		}",bug,"vuln-fix: Prevent dangerous file extension htm from being allowed
 
-The validation function did not consider the ""htm"" extension as dangerous, allowing potentially harmful files to be accepted by the system. This omission could enable attackers to upload malicious files that bypass security checks and execute unauthorized code. The fix adds ""htm"" to the list of dangerous extensions, ensuring these files are properly flagged and rejected during validation.
-Weakness: CWE-434: Unrestricted Upload of File with Dangerous Type
+The code previously did not consider files with the ""htm"" extension as dangerous, allowing potentially unsafe files to be processed or uploaded. This omission could enable attackers to upload malicious HTML files that execute scripts or perform phishing attacks. The fix adds ""htm"" to the list of dangerous filename extensions, improving the detection and blocking of risky files.
+
+Weakness: CWE-434 Unrestricted Upload of File with Dangerous Type
 Severity: High
 CVSS: 7.5"
 128,{'CWE-79'},GHSA-gx6h-936c-vrrr,"@@ -45,7 +45,7 @@
@@ -4264,12 +4288,12 @@ CVSS: 7.5"
          #set ($obj = $class.newObject())
          #set ($serverobj = $class.newObject())","XWIKI-19291: redirect parameter is badly handled in register page
 
-  * Fix the typo","vuln-fix: Escape xredirect parameter to prevent XML injection
+  * Fix the typo","vuln-fix: Escape redirect URL to prevent XSS in registration form
 
-The xredirect parameter was directly embedded in a hidden input field without escaping, allowing injection of malicious XML or script content. This posed a security risk by enabling cross-site scripting or XML injection attacks through crafted redirect URLs. The fix applies XML escaping to the xredirect value before rendering it in the input field, mitigating injection risks.
+The vulnerability was an unescaped redirect URL parameter embedded in a hidden form field, allowing injection of malicious scripts in the registration page. This posed a security risk by enabling cross-site scripting attacks that could hijack user sessions or steal sensitive data. The fix applies XML escaping to the redirect URL value before rendering it in the form, mitigating script injection risks. 
 
-Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation (Cross-site Scripting)
-Severity: High
+Weakness: Cross-Site Scripting (XSS) CWE-79  
+Severity: High  
 CVSS: 7.4"
 129,{'CWE-79'},GHSA-ff28-f46g-r9g8,"@@ -314,6 +314,7 @@ func runWeb(c *cli.Context) error {
  				}
@@ -4279,7 +4303,7 @@ CVSS: 7.4"
  				c.Header().Set(""Cache-Control"", ""public,max-age=86400"")
  				c.Header().Set(""Content-Disposition"", fmt.Sprintf(`inline; filename=""%s""`, attach.Name))",attachment: set CSP header in the serving endpoint (#6926),"vuln-fix: Add Content-Security-Policy header to mitigate XSS risks
 
-The application lacked a Content-Security-Policy header, allowing browsers to execute potentially malicious scripts and styles from untrusted sources. This absence increased the risk of cross-site scripting attacks that could compromise user data and session integrity. The fix introduces a restrictive Content-Security-Policy header that disables all content by default, permits only inline styles, and enforces sandboxing to limit script execution capabilities.
+The application lacked a Content-Security-Policy header, allowing browsers to execute potentially malicious scripts and styles from untrusted sources. This absence increased the risk of cross-site scripting attacks that could compromise user data and session integrity. The fix introduces a restrictive Content-Security-Policy header that disables all content by default, permits only inline styles, and enforces sandboxing to isolate the execution environment.
 
 Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation (Cross-site Scripting)
 Severity: High
@@ -4333,12 +4357,12 @@ Author: Marco Gaido <mgaido@apache.org>
 Closes #302 from mgaido91/escape_html.","vuln-fix: Escape HTML in session names to prevent XSS
 
 Session names were directly inserted into the DOM without escaping, allowing injection of malicious HTML or scripts by attackers.
-This posed a cross-site scripting risk, potentially compromising user data and session integrity through script execution.
-The fix introduces HTML escaping of session names before insertion, neutralizing any embedded HTML or script content safely.
+This posed a critical cross-site scripting risk, potentially compromising user data and session integrity.
+The fix introduces HTML escaping of session names before insertion, neutralizing any embedded malicious code.
 
-Weakness: Cross-Site Scripting (XSS) CWE-79  
-Severity: High  
-CVSS: 7.4"
+Weakness: Cross-Site Scripting (XSS) - CWE-79  
+Severity: Critical  
+CVSS: 9.8"
 131,{'CWE-79'},GHSA-c7pp-g2v2-2766,"@@ -891,10 +891,8 @@ var Gmail_ = function(localJQuery) {
                  endIndex = (parseInt(dataLength, 10) - 2) + response.indexOf(""["");
                  data = response.substring(response.indexOf(""[""), endIndex);
@@ -4384,10 +4408,10 @@ CVSS: 7.4"
          return api.tools.parse_email_data(api.tracker.email_data);
      };",Replace new Function() with JSON.parse(),"vuln-fix: Replace dynamic code execution with JSON parsing
 
-The vulnerability involved using dynamic Function constructors to parse data strings, which could execute arbitrary code if the input was maliciously crafted. This posed a critical security risk by enabling remote code execution through untrusted input. The fix replaces dynamic function creation with safe JSON.parse calls to securely parse data without executing code. 
+The code used dynamic function construction to parse data strings, which allowed execution of arbitrary code embedded in the input data. This posed a critical security risk as attackers could inject malicious scripts leading to code execution within the application context. The fix replaces dynamic function calls with safe JSON.parse calls to strictly parse data as JSON, eliminating code execution vulnerabilities.
 
-Weakness: CWE-95: Improper Control of Generation of Code ('Code Injection')  
-Severity: Critical  
+Weakness: CWE-95: Improper Control of Generation of Code ('Code Injection')
+Severity: Critical
 CVSS: 9.8"
 132,{'CWE-79'},GHSA-c558-5gfm-p2r8,"@@ -141,7 +141,7 @@
  									tmp_val = item.displayedValue;
@@ -4411,14 +4435,14 @@ CVSS: 9.8"
 +</script>
  </c:set>
  
- <dspace:layout titlekey=""jsp.search.title"">",[DS-4453] Discovery autocomplete HTML escaping (JSPUI),"vuln-fix: Escape user input to prevent HTML injection in labels
+ <dspace:layout titlekey=""jsp.search.title"">",[DS-4453] Discovery autocomplete HTML escaping (JSPUI),"vuln-fix: Escape HTML in displayed filter labels to prevent XSS
 
-User input was directly inserted into HTML labels without escaping, allowing injection of malicious HTML or scripts in the rendered page.
-This posed a risk of cross-site scripting (XSS) attacks, potentially compromising user data and session integrity.
-The fix introduces an HTML escaping function that sanitizes user input before rendering it in labels, mitigating injection risks.
+The vulnerability was that user-controlled filter values were rendered without escaping, allowing injection of malicious HTML or scripts in the UI.
+This posed a security risk by enabling cross-site scripting attacks, potentially compromising user sessions or data.
+The fix introduces an HTML escaping function applied to all displayed filter labels, sanitizing output and preventing script execution.
 
-Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
-Severity: High
+Weakness: Cross-Site Scripting (XSS) CWE-79  
+Severity: High  
 CVSS: 7.4"
 133,{'CWE-79'},GHSA-gj85-pvp5-mvf9,"@@ -19,7 +19,7 @@ function autoload_class($class) {
  require_once dirname(__FILE__) . '/../config.php';
@@ -4428,11 +4452,11 @@ CVSS: 7.4"
 +$GLOBALS['server'] = !empty($_GET['server']) ? htmlspecialchars($_GET['server']) : '';
  $GLOBALS['action'] = !empty($_GET['action']) ? $_GET['action'] : '';
  $GLOBALS['state'] = !empty($_GET['state']) ? $_GET['state'] : '';
- $GLOBALS['count'] = !empty($_GET['count']) ? $_GET['count'] : '';",Sanitize input,"vuln-fix: Sanitize user input to prevent XSS in server parameter
+ $GLOBALS['count'] = !empty($_GET['count']) ? $_GET['count'] : '';",Sanitize input,"vuln-fix: Sanitize server parameter to prevent XSS attacks
 
-The server parameter from the GET request was directly assigned to a global variable without sanitization, allowing injection of malicious scripts. This posed a security risk by enabling cross-site scripting attacks that could compromise user sessions or data. The fix applies htmlspecialchars to the server input, encoding special characters and preventing script execution in the output context.
+The server parameter from the GET request was used directly without sanitization, allowing injection of malicious scripts into the application output. This posed a security risk by enabling cross-site scripting (XSS) attacks that could compromise user data and session integrity. The fix applies htmlspecialchars to the server parameter, encoding special characters and preventing script execution in the browser context.
 
-Weakness: Cross-Site Scripting (XSS) - CWE-79  
+Weakness: Cross-Site Scripting (CWE-79)  
 Severity: High  
 CVSS: 7.4"
 134,{'CWE-79'},GHSA-3j9m-hcv9-rpj8,"@@ -40,5 +40,5 @@ export function escapeHtml(str: string): string {
@@ -4456,15 +4480,15 @@ From: Dan Cech <dcech@grafana.com>
 +  return url.replace(/\{\{/g, '%7B%7B').replace(/\}\}/g, '%7D%7D');
  }","Merge pull request #151 from grafana/dcech/sanitize-replaceAll
 
-use global replace when sanitizing urls in 8.2.3","vuln-fix: Correct Angular interpolation sanitization to replace all instances
+use global replace when sanitizing urls in 8.2.3","vuln-fix: Prevent incomplete Angular interpolation sanitization
 
-The sanitization function only replaced the first occurrence of Angular interpolation markers, leaving others unescaped in URLs.
-This allowed attackers to inject malicious Angular expressions, potentially leading to cross-site scripting (XSS) vulnerabilities.
-The fix uses global regular expressions to replace all instances of '{{' and '}}', ensuring complete sanitization of interpolation markers.
+The sanitizeAngularInterpolation function only replaced the first occurrence of Angular interpolation markers, leaving others unescaped in URLs.
+This allowed attackers to inject malicious Angular expressions, leading to potential client-side template injection vulnerabilities.
+The fix replaces all occurrences of '{{' and '}}' using global regular expressions to ensure complete sanitization of interpolation markers.
 
 Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
 Severity: High
-CVSS: 7.4"
+CVSS: 7.5"
 135,{'CWE-79'},GHSA-hm45-mgqm-gjm4,"@@ -72,6 +72,7 @@ <h1>{{ _('Loading servers...') }}</h1>
                  } else {
                      var base_guild_url = ""{{ url_for('home_blueprint.guild', guild='123456789123456789') }}""
@@ -4493,9 +4517,9 @@ CVSS: 7.4"
                  }
              }",Fix unformatted HTML,"vuln-fix: Prevent XSS by avoiding direct HTML injection of unescaped data
 
-The vulnerability is caused by directly injecting unescaped user-controlled data into HTML, allowing malicious scripts to execute in the client browser. This is a security risk because it enables cross-site scripting (XSS) attacks, potentially compromising user sessions and data integrity. The fix replaces direct HTML interpolation with safe DOM text updates, ensuring data is properly escaped before rendering.
+The vulnerability involves directly injecting unescaped user-controlled data into HTML, which can lead to cross-site scripting (XSS) attacks if malicious content is present. This is a security risk because attackers can execute arbitrary scripts in users’ browsers, potentially stealing sensitive information or performing unauthorized actions. The fix replaces direct HTML injection with safe text assignment methods that properly escape content, preventing script execution.
 
-Weakness: Cross-Site Scripting (XSS) CWE-79  
+Weakness: Cross-Site Scripting (CWE-79)  
 Severity: High  
 CVSS: 7.4"
 136,{'CWE-79'},GHSA-c53x-wwx2-pg96,"@@ -21,7 +21,7 @@ const liljs = (elem, data = {}) => {
@@ -4518,9 +4542,11 @@ CVSS: 7.4"
          clone.querySelectorAll(""[lil-list-text]"").forEach(node => {","Use textContent over innerHTML so you can bind untrusted text values
 without the possibility of an XSS attack.","vuln-fix: Prevent XSS by replacing innerHTML with textContent
 
-The vulnerability involved using innerHTML to set element content, which allowed injection of malicious HTML and JavaScript code. This posed a critical security risk as attackers could execute arbitrary scripts in users' browsers, leading to cross-site scripting (XSS) attacks. The fix replaces innerHTML assignments with textContent to safely render text without interpreting it as HTML, eliminating the XSS vector.
+The code used innerHTML to set element content, which allowed injection of malicious HTML and JavaScript code through untrusted input.
+This posed a critical cross-site scripting (XSS) risk, enabling attackers to execute arbitrary scripts in users' browsers.
+The fix replaces innerHTML assignments with textContent to safely render text without interpreting it as HTML, mitigating XSS vulnerabilities.
 
-Weakness: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')
+Weakness: Cross-Site Scripting (CWE-79)
 Severity: Critical
 CVSS: 9.8"
 137,{'CWE-79'},GHSA-vhm6-gw82-6f8j,"@@ -62,7 +62,7 @@
@@ -4533,9 +4559,9 @@ CVSS: 9.8"
                                      <td>{$rule['id']}</td>
                                  </tr>",Resolved XSS issue from alert rule list modal (#13805),"vuln-fix: Prevent XSS by stripping HTML tags before encoding output
 
-The vulnerability allowed HTML tags in rule display content to be encoded but still potentially rendered in unsafe contexts, leading to cross-site scripting risks. This is a security risk because malicious scripts could execute in users' browsers, compromising user data and session integrity. The fix strips all HTML tags from the rule display before encoding, ensuring no executable code can be injected or rendered. 
+The vulnerability allowed HTML tags in rule display content to be encoded but still rendered as HTML entities, potentially enabling cross-site scripting attacks. This is a security risk because malicious scripts could be injected and executed in users' browsers, compromising user data and session integrity. The fix strips all HTML tags from the rule display content before encoding it with htmlentities, ensuring no executable code is rendered in the output.
 
-Weakness: Cross-Site Scripting (XSS) CWE-79  
+Weakness: Cross-Site Scripting (XSS) - CWE-79  
 Severity: High  
 CVSS: 7.4"
 138,{'CWE-79'},GHSA-mw75-qvfr-hpmr,"@@ -303,6 +303,7 @@ public function isDangerFilename($filename){
@@ -4554,9 +4580,9 @@ CVSS: 7.4"
 \ No newline at end of file
 +}","Merge pull request #1628 from ajaysenr/master
 
-Update AttachmentModel.class.php","vuln-fix: Prevent dangerous .xxhtml file uploads
+Update AttachmentModel.class.php","vuln-fix: Prevent dangerous .xxhtml file extension in filename checks
 
-The vulnerability involved missing validation for files with the .xxhtml extension, which could be treated as executable or dangerous content by the system. This posed a security risk by allowing attackers to upload and execute malicious files, potentially compromising the server. The fix adds .xxhtml to the list of disallowed filename extensions, blocking such uploads and mitigating the risk.
+The filename validation function did not consider the .xxhtml extension as dangerous, allowing potentially harmful files to bypass security filters. This omission could enable attackers to upload malicious files disguised with this extension, risking server-side code execution or data exposure. The fix adds .xxhtml to the list of disallowed filename extensions, strengthening input validation against unsafe file uploads.
 
 Weakness: CWE-434 Unrestricted Upload of File with Dangerous Type  
 Severity: High  
@@ -4584,11 +4610,11 @@ CVSS: 7.5"
 +    svgString = svgString.replace(eventsRegex, '');
  
      return svgString;
- };",Remove lots of event handlers,"vuln-fix: Remove all SVG event handler attributes to prevent script execution
+ };",Remove lots of event handlers,"vuln-fix: Prevent event handler injection in SVG sanitization
 
-The vulnerability allowed SVG elements to include event handler attributes that could execute arbitrary JavaScript when triggered by user interaction. This poses a security risk by enabling cross-site scripting (XSS) attacks through malicious SVG content embedded in web pages. The fix removes a comprehensive list of event handler attributes from SVG strings, preventing any embedded scripts from executing via event triggers.
+The vulnerability allowed SVG elements to retain event handler attributes, enabling execution of arbitrary JavaScript when the SVG was rendered. This posed a security risk by facilitating cross-site scripting (XSS) attacks through malicious SVG content. The fix removes a comprehensive list of event handler attributes from SVG strings using a regex, preventing script execution via embedded event handlers.
 
-Weakness: Cross-Site Scripting (XSS) via SVG event handlers (CWE-79)  
+Weakness: Cross-Site Scripting (XSS) - CWE-79  
 Severity: High  
 CVSS: 7.5"
 140,{'CWE-79'},GHSA-q6mp-562x-ggvv,"@@ -1154,11 +1154,11 @@ function get_allowed_files_extensions_for_upload($fileTypes = 'images', $returnA
@@ -4604,9 +4630,9 @@ CVSS: 7.5"
 +                $are_allowed .= ',doc,docx,pdf,odt,rtf,txt,pps,ppt,pptx,xls,xlsx';
                  break;
              case 'archives':
-             case 'arc':",update,"vuln-fix: Restrict allowed file extensions to prevent unsafe uploads
+             case 'arc':",update,"vuln-fix: Restrict allowed file upload extensions to reduce risk
 
-The file upload function included potentially unsafe file types like PSD and removed some document types, which could allow malicious files to be uploaded and executed. Allowing unsafe file extensions increases the risk of arbitrary code execution or data compromise through crafted files. The fix adjusts the allowed extensions list to exclude risky types and maintain only safe, necessary formats for upload validation.
+The file upload function previously allowed potentially unsafe file types like PSD and Pages, increasing the attack surface for malicious uploads. Allowing these file types can lead to execution of harmful content or exploitation of vulnerabilities in file handlers. The fix removes risky extensions from allowed lists, limiting uploads to safer, well-validated file types only.
 
 Weakness: CWE-434 Unrestricted Upload of File with Dangerous Type  
 Severity: High  

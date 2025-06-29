@@ -8,12 +8,12 @@ def filter_web_vulnerabilities():
     os.makedirs(output_dir, exist_ok=True)
     
     # Define the CWE IDs we're interested in
-    # CWE-617
     # CWE-79
+    # CWE-400
+    # CWE-787
+    # CWE-20
     # CWE-125
-    # CWE-89
-    # CWE-918
-    cwe_ids = [f'CWE-{i}' for i in ('617', '79', '125', '89', '918')]  # CWE-79 through CWE-88
+    cwe_ids = [f'CWE-{i}' for i in ('400', '787', '20')]  # the extra 3 ones with the most data entries
     print(f"Looking for vulnerabilities: {', '.join(cwe_ids)}")
     
     # Dictionary to store samples by CWE ID

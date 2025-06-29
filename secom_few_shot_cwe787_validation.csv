@@ -1,0 +1,45 @@
+vuln_id,generated_vuln_id,vuln_id_match,original_weakness,generated_weakness,weakness_match,original_severity,generated_severity,severity_match,original_cvss,generated_cvss,cvss_match
+GHSA-crch-j389-5f84,,False,cwe-787,cwe-125,False,low,high,False,2.5,7.5,False
+GHSA-v6r6-84gr-92rm,,False,"cwe-787', 'cwe-119",cwe-125,False,low,high,False,2.5,7.5,False
+GHSA-2wwc-w2gw-4329,,False,cwe-787,cwe-704,False,high,medium,False,7.5,5.0,False
+GHSA-wcv5-qrj6-9pfm,,False,"cwe-787', 'cwe-120",cwe-125,False,low,high,False,2.5,7.5,False
+GHSA-4hvf-hxvg-f67v,,False,"cwe-787', 'cwe-125",cwe-125,False,high,high,True,8.8,7.5,False
+GHSA-q5wr-fvpq-p67g,,False,"cwe-787', 'cwe-190",cwe-190,False,high,high,True,8.8,7.8,False
+GHSA-9xh4-23q4-v6wr,,False,"cwe-476', 'cwe-787', 'cwe-125",cwe-125,False,low,high,False,2.5,7.5,False
+GHSA-pvrc-hg3f-58r6,,False,cwe-787,cwe-787,True,low,high,False,2.5,7.5,False
+GHSA-44qp-9wwf-734r,,False,"cwe-787', 'cwe-120",cwe-20,False,high,high,True,7.6,7.5,True
+GHSA-p23j-g745-8449,,False,cwe-787,cwe-704,False,high,high,True,7.5,7.2,False
+GHSA-77gp-3h4r-6428,,False,"cwe-787', 'cwe-125",cwe-125,False,high,high,True,8.8,7.5,False
+GHSA-37pf-w9ff-gqvm,,False,cwe-787,cwe-704,False,high,medium,False,7.5,5.0,False
+GHSA-3ff2-r28g-w7h9,,False,"cwe-787', 'cwe-120",cwe-125,False,medium,medium,True,5.5,5.3,False
+GHSA-6f89-8j54-29xf,,False,"cwe-787', 'cwe-119",cwe-125,False,low,high,False,2.5,7.5,False
+GHSA-m3f9-w3p3-p669,,False,"cwe-787', 'cwe-131",cwe-20,False,low,high,False,2.5,7.5,False
+GHSA-2rfj-2mwp-787v,,False,cwe-787,cwe-841,False,high,medium,False,7.5,5.0,False
+GHSA-2gfx-95x2-5v3x,,False,cwe-787,cwe-125,False,low,medium,False,2.5,5.3,False
+GHSA-5rcr-q3rx-j7vr,,False,cwe-787,cwe-704,False,high,medium,False,7.5,5.0,False
+GHSA-cvpc-8phh-8f45,,False,"cwe-787', 'cwe-125",cwe-476,False,medium,high,False,4.8,7.5,False
+GHSA-q99r-j969-6jwr,,False,cwe-787,cwe-682,False,high,high,True,7.5,7.5,True
+GHSA-grvw-q343-58wh,,False,cwe-787,cwe-416,False,high,high,True,7.5,7.8,False
+GHSA-f8h4-7rgh-q2gm,,False,"cwe-787', 'cwe-120",cwe-20,False,high,medium,False,7.8,5.3,False
+GHSA-4278-2v5v-65r4,,False,"cwe-787', 'cwe-120",cwe-125,False,low,high,False,2.5,7.5,False
+GHSA-q4qf-3fc6-8x34,,False,"cwe-787', 'cwe-119",cwe-125,False,high,high,True,8.7,7.5,False
+GHSA-8gvg-8vhf-h26g,,False,cwe-787,cwe-284,False,high,medium,False,7.5,5.0,False
+GHSA-hrmm-f4j8-8vxc,,False,cwe-787,cwe-704,False,high,medium,False,7.5,5.0,False
+GHSA-79fv-9865-4qcv,,False,"cwe-787', 'cwe-119",cwe-125,False,low,high,False,2.5,7.5,False
+GHSA-cjc7-49v2-jp64,,False,"cwe-787', 'cwe-665",cwe-20,False,medium,medium,True,5.3,5.3,True
+GHSA-5qw5-89mw-wcg2,,False,cwe-787,cwe-125,False,high,medium,False,8.8,5.9,False
+GHSA-w32p-76xr-88pc,,False,cwe-787,cwe-676,False,high,medium,False,7.5,5.0,False
+GHSA-6j89-jhpr-849f,,False,cwe-787,cwe-704,False,high,medium,False,7.5,5.0,False
+GHSA-mw7r-3g6w-85qg,,False,cwe-787,cwe-20,False,high,medium,False,7.5,5.0,False
+GHSA-9g8h-pjm4-q92p,,False,cwe-787,cwe-20,False,medium,high,False,5.5,7.5,False
+GHSA-88cw-3m6x-49f7,,False,cwe-787,cwe-476,False,high,medium,False,7.5,5.5,False
+GHSA-9c78-vcq7-7vxq,,False,cwe-787,cwe-125,False,high,high,True,8.8,7.5,False
+GHSA-cjc7-49v2-jp64,,False,"cwe-787', 'cwe-665",cwe-20,False,medium,high,False,5.3,7.5,False
+GHSA-cvpc-8phh-8f45,,False,"cwe-787', 'cwe-125",cwe-119,False,medium,high,False,4.8,7.5,False
+GHSA-8gv3-57p6-g35r,,False,"cwe-787', 'cwe-125",cwe-125,False,low,high,False,2.5,7.5,False
+GHSA-hpv4-7p9c-mvfr,,False,"cwe-787', 'cwe-125",cwe-119,False,high,medium,False,7.1,5.9,False
+GHSA-7cqx-92hp-x6wh,,False,"cwe-787', 'cwe-119",cwe-125,False,low,high,False,2.5,7.5,False
+GHSA-w89r-qch4-8jv5,,False,cwe-787,cwe-704,False,high,high,True,7.5,7.2,False
+GHSA-8c89-2vwr-chcq,,False,"cwe-787', 'cwe-131",cwe-125,False,low,medium,False,2.5,5.3,False
+GHSA-44qp-9wwf-734r,,False,"cwe-787', 'cwe-120",cwe-125,False,high,high,True,7.6,7.5,True
+GHSA-mqh2-9wrp-vx84,,False,cwe-787,cwe-125,False,low,high,False,2.5,7.5,False

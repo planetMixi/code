@@ -1,0 +1,1751 @@
+id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message,original_message_score,original_message_entities,generated_secom_message_score,generated_secom_message_entities
+0,{'CWE-787'},GHSA-crch-j389-5f84,"@@ -48,6 +48,9 @@ TfLiteStatus ResizeOutput(TfLiteContext* context, const TfLiteTensor* input,
+     axis_value += NumDimensions(input);
+   }
+ 
++  TF_LITE_ENSURE(context, axis_value >= 0);
++  TF_LITE_ENSURE(context, axis_value < NumDimensions(input));
++
+   // Copy the input dimensions to output except the axis dimension.
+   TfLiteIntArray* output_dims = TfLiteIntArrayCreate(NumDimensions(input) - 1);
+   int j = 0;","Prevent array write out-of-bounds.
+
+If user passes an invalid axis, then we copy one too many dimensions to the output in the loop below these checks. Even if we didn't do that, there will be further issues with an invalid axis, so we check for that right now.
+
+PiperOrigin-RevId: 371023299
+Change-Id: I9eca37ffc2b29e8e48710f500701270ef0790224","vuln-fix: Validate axis index bounds in tensor resize operation
+
+The vulnerability is an unchecked axis index that could be out of valid tensor dimension range during output resizing.
+This poses a security risk by enabling out-of-bounds memory access, potentially leading to crashes or arbitrary code execution.
+The fix adds explicit checks to ensure the axis index is within valid bounds before proceeding with dimension manipulation.
+
+Weakness: Improper Input Validation (CWE-20)
+Severity: High
+CVSS: 7.5",0.23529411764705882,"[('prevent', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('issues', 'FLAW', ''), ('change', 'ACTION', ''), ('i9eca37ffc2b29e8e48710f500701270ef0790224', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('security', 'secword', ''), ('out-of-bounds', 'secword', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+1,"{'CWE-787', 'CWE-119'}",GHSA-v6r6-84gr-92rm,"@@ -383,6 +383,19 @@ struct LaunchAvgPooling3dGradOp<CPUDevice, T> {
+                      const std::array<int64, 3>& output_shape,
+                      const std::array<int64, 3>& padding,
+                      TensorFormat data_format, Tensor* output) {
++    OP_REQUIRES(
++        context, tensor_in_shape.dim_size(0) == out_backprop.dim_size(0),
++        errors::InvalidArgument(
++            ""Expected first dimension of tensor_in_shape and ""
++            ""out_backprop to match, got "",
++            tensor_in_shape.dim_size(0), "" and "", out_backprop.dim_size(0)));
++    OP_REQUIRES(
++        context, tensor_in_shape.dim_size(4) == out_backprop.dim_size(4),
++        errors::InvalidArgument(
++            ""Expected last dimension of tensor_in_shape and ""
++            ""out_backprop to match, got "",
++            tensor_in_shape.dim_size(4), "" and "", out_backprop.dim_size(4)));
++
+     output->flat<T>().setZero();
+     std::array<int64, 3> input_size = {{tensor_in_shape.dim_size(3),
+                                         tensor_in_shape.dim_size(2),","Fix assertion failure in pooling_ops_3d
+
+PiperOrigin-RevId: 372364504
+Change-Id: Iecde4fe26b47a8fa935d6e2611b5585ed5777781","vuln-fix: Validate tensor dimension consistency in pooling gradient
+
+A lack of dimension checks between tensor_in_shape and out_backprop allowed mismatched tensor sizes to proceed, risking out-of-bounds memory access during gradient computation. This could lead to memory corruption or crashes, potentially exploitable for denial of service or arbitrary code execution. The fix adds explicit validation to ensure the first and last tensor dimensions match before processing, preventing invalid memory operations.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.17647058823529413,"[('fix', 'ACTION', ''), ('change', 'ACTION', ''), ('iecde4fe26b47a8fa935d6e2611b5585ed5777781', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('out-of-bounds', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('exploitable', 'SECWORD', ''), ('denial of service', 'secword', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+2,{'CWE-787'},GHSA-2wwc-w2gw-4329,"@@ -3603,7 +3603,7 @@ GlobOpt::OptSrc(IR::Opnd *opnd, IR::Instr * *pInstr, Value **indirIndexValRef, I
+ 
+         opnd->SetValueType(valueType);
+ 
+-        if(!IsLoopPrePass() && opnd->IsSymOpnd() && valueType.IsDefinite())
++        if(!IsLoopPrePass() && opnd->IsSymOpnd() && (valueType.IsDefinite() || valueType.IsNotTaggedValue()))
+         {
+             if (opnd->AsSymOpnd()->m_sym->IsPropertySym())
+             {",CVE-2019-1366,"vuln-fix: Prevent unsafe optimization on untagged values
+
+The vulnerability involved unsafe optimization on symbolic operands with untagged values, which could lead to incorrect assumptions about data types during code generation. This poses a security risk by potentially causing type confusion or incorrect memory accesses exploitable by attackers. The fix extends the condition to include untagged values, ensuring safer handling and preventing improper optimizations on uncertain data types.
+
+Weakness: CWE-704: Incorrect Type Conversion or Cast  
+Severity: Medium  
+CVSS: 5.3",0.17647058823529413,"[('cve-2019-1366', 'VULNID', 'CVE')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('unsafe', 'SECWORD', ''), ('security', 'SECWORD', ''), ('type confusion', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('cwe-704', 'CWEID', ''), ('incorrect type conversion', 'SECWORD', ''), ('medium', 'SEVERITY', '')]"
+3,"{'CWE-787', 'CWE-120'}",GHSA-wcv5-qrj6-9pfm,"@@ -239,6 +239,20 @@ class Conv3DBackpropInputOp : public OpKernel {
+       input_shape = context->input(0).shape();
+     }
+ 
++    OP_REQUIRES(
++        context, input_shape.dim_size(4) == filter_shape.dim_size(3),
++        errors::InvalidArgument(""input and filter_sizes must have the same ""
++                                ""number of channels. Got "",
++                                input_shape.dim_size(4), "" for input and "",
++                                filter_shape.dim_size(3), "" for filter_sizes""));
++    OP_REQUIRES(
++        context, out_backprop_shape.dim_size(4) == filter_shape.dim_size(4),
++        errors::InvalidArgument(""out_backprop and filter_sizes must have the ""
++                                ""same number of channels. Got "",
++                                out_backprop_shape.dim_size(4),
++                                "" for out_backprop and "",
++                                filter_shape.dim_size(4), "" for filter_sizes""));
++
+     ConvBackpropDimensions dims;
+     OP_REQUIRES_OK(context, ConvBackpropComputeDimensions(
+                                 ""Conv3DBackpropInputOp"", /*num_spatial_dims=*/3,
+@@ -346,6 +360,20 @@ class Conv3DCustomBackpropInputOp : public OpKernel {
+       input_shape = context->input(0).shape();
+     }
+ 
++    OP_REQUIRES(
++        context, input_shape.dim_size(4) == filter_shape.dim_size(3),
++        errors::InvalidArgument(""input and filter_sizes must have the same ""
++                                ""number of channels. Got "",
++                                input_shape.dim_size(4), "" for input and "",
++                                filter_shape.dim_size(3), "" for filter_sizes""));
++    OP_REQUIRES(
++        context, out_backprop_shape.dim_size(4) == filter_shape.dim_size(4),
++        errors::InvalidArgument(""out_backprop and filter_sizes must have the ""
++                                ""same number of channels. Got "",
++                                out_backprop_shape.dim_size(4),
++                                "" for out_backprop and "",
++                                filter_shape.dim_size(4), "" for filter_sizes""));
++
+     ConvBackpropDimensions dims;
+     OP_REQUIRES_OK(context, ConvBackpropComputeDimensions(
+                                 ""Conv3DBackpropInputOp"", /*num_spatial_dims=*/3,
+@@ -696,6 +724,20 @@ class Conv3DBackpropFilterOp : public OpKernel {
+       filter_shape = context->input(1).shape();
+     }
+ 
++    OP_REQUIRES(
++        context, input_shape.dim_size(4) == filter_shape.dim_size(3),
++        errors::InvalidArgument(""input and filter_sizes must have the same ""
++                                ""number of channels. Got "",
++                                input_shape.dim_size(4), "" for input and "",
++                                filter_shape.dim_size(3), "" for filter_sizes""));
++    OP_REQUIRES(
++        context, out_backprop_shape.dim_size(4) == filter_shape.dim_size(4),
++        errors::InvalidArgument(""out_backprop and filter_sizes must have the ""
++                                ""same number of channels. Got "",
++                                out_backprop_shape.dim_size(4),
++                                "" for out_backprop and "",
++                                filter_shape.dim_size(4), "" for filter_sizes""));
++
+     ConvBackpropDimensions dims;
+     OP_REQUIRES_OK(context,
+                    ConvBackpropComputeDimensions(
+@@ -808,6 +850,20 @@ class Conv3DCustomBackpropFilterOp : public OpKernel {
+       filter_shape = context->input(1).shape();
+     }
+ 
++    OP_REQUIRES(
++        context, input_shape.dim_size(4) == filter_shape.dim_size(3),
++        errors::InvalidArgument(""input and filter_sizes must have the same ""
++                                ""number of channels. Got "",
++                                input_shape.dim_size(4), "" for input and "",
++                                filter_shape.dim_size(3), "" for filter_sizes""));
++    OP_REQUIRES(
++        context, out_backprop_shape.dim_size(4) == filter_shape.dim_size(4),
++        errors::InvalidArgument(""out_backprop and filter_sizes must have the ""
++                                ""same number of channels. Got "",
++                                out_backprop_shape.dim_size(4),
++                                "" for out_backprop and "",
++                                filter_shape.dim_size(4), "" for filter_sizes""));
++
+     ConvBackpropDimensions dims;
+     OP_REQUIRES_OK(context,
+                    ConvBackpropComputeDimensions(","Validate some shape requirements for `Conv3DBackpropFilter*` and `Conv3DBackpropInput*` ops.
+
+Older versions of Eigen might otherwise crash / produce OOB read on specially crafted inputs.
+
+PiperOrigin-RevId: 369293977
+Change-Id: I58f51445a93936d7cf8e616f75de17677df36718","vuln-fix: Validate channel dimensions in 3D convolution backprop ops
+
+The vulnerability was missing validation of channel dimension consistency between input, filter, and out_backprop tensors in 3D convolution backpropagation operations. This inconsistency could lead to out-of-bounds memory access or corrupted computations, potentially causing crashes or exploitable undefined behavior. The fix adds explicit checks that input and out_backprop channel dimensions match the filter dimensions, rejecting invalid inputs early with clear error messages.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.17647058823529413,"[('validate', 'secword', ''), ('oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('i58f51445a93936d7cf8e616f75de17677df36718', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('missing validation', 'secword', ''), ('out-of-bounds', 'secword', ''), ('exploitable', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+4,"{'CWE-787', 'CWE-125'}",GHSA-4hvf-hxvg-f67v,"@@ -282,10 +282,12 @@ void FormatConverter<T>::InitSparseToDenseConverter(
+   block_size_.resize(block_map_.size());
+   for (int i = 0; i < original_rank; i++) {
+     if (block_dim < block_map_.size() && block_map_[block_dim] == i) {
+-      int orig_dim = traversal_order_[original_rank + block_dim];
+-      block_size_[block_dim] = dense_size[orig_dim];
+-      blocked_shape_[i] = dense_shape_[i] / dense_size[orig_dim];
+-      block_dim++;
++      if (original_rank + block_dim < traversal_order_.size()) {
++        int orig_dim = traversal_order_[original_rank + block_dim];
++        block_size_[block_dim] = dense_size[orig_dim];
++        blocked_shape_[i] = dense_shape_[i] / dense_size[orig_dim];
++        block_dim++;
++      }
+     } else {
+       blocked_shape_[i] = dense_shape_[i];
+     }
+@@ -328,13 +330,15 @@ void FormatConverter<T>::Populate(const T* src_data, std::vector<int> indices,
+       Populate(src_data, indices, level + 1, prev_idx * shape_of_level + i,
+                src_data_ptr, dest_data);
+     }
+-  } else {
++  } else if (prev_idx + 1 < dim_metadata_[metadata_idx].size()) {
+     const auto& array_segments = dim_metadata_[metadata_idx];
+     const auto& array_indices = dim_metadata_[metadata_idx + 1];
+     for (int i = array_segments[prev_idx]; i < array_segments[prev_idx + 1];
+          i++) {
+-      indices[level] = array_indices[i];
+-      Populate(src_data, indices, level + 1, i, src_data_ptr, dest_data);
++      if (i < array_indices.size() && level < indices.size()) {
++        indices[level] = array_indices[i];
++        Populate(src_data, indices, level + 1, i, src_data_ptr, dest_data);
++      }
+     }
+   }
+ }","[lite] Add some safety checks to avoid out of bound access for sparsity format
+
+PiperOrigin-RevId: 416910386
+Change-Id: Ic0b4dc048dc4b5a6309c572b8c4c9f776e4db60a","vuln-fix: Prevent out-of-bounds access in sparse-to-dense conversion
+
+The vulnerability involved unchecked array indexing that could lead to out-of-bounds memory access during sparse-to-dense format conversion operations. This posed a security risk by potentially causing memory corruption or crashes, which attackers could exploit for denial of service or arbitrary code execution. The fix adds explicit boundary checks before accessing array elements to ensure all indices are within valid ranges, preventing invalid memory reads or writes.
+
+Weakness: Improper Bounds Checking (CWE-125)  
+Severity: High  
+CVSS: 7.5",0.11764705882352941,"[('add', 'ACTION', ''), ('safety checks', 'SECWORD', ''), ('out of bound access', 'SECWORD', ''), ('change', 'ACTION', ''), ('ic0b4dc048dc4b5a6309c572b8c4c9f776e4db60a', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('vulnerability', 'secword', ''), ('out-of-bounds', 'SECWORD', ''), ('security', 'secword', ''), ('memory corruption', 'secword', ''), ('attackers', 'FLAW', ''), ('exploit', 'secword', ''), ('denial of service', 'secword', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('boundary checks', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('bounds checking', 'SECWORD', ''), ('cwe-125', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+5,"{'CWE-787', 'CWE-190'}",GHSA-q5wr-fvpq-p67g,"@@ -60,10 +60,20 @@ void PngImg::ReadInfo_(PngReadStruct& rs) {
+ ///
+ void PngImg::InitStorage_() {
+     rowPtrs_.resize(info_.height, nullptr);
+-    data_ = new png_byte[info_.height * info_.rowbytes];
++    // Extend height and rowbytes from uint32_t to size_t to avoid multiplication overflow when size_t is larger
++    size_t h = info_.height;
++    size_t rb = info_.rowbytes;
++    // We need to make sure that info_.height * info_.rowbytes will not overflow size_t
++    // Unfotunately, there's no simple and portable way to do this in C++
++    // For integer division of positive numbers a * b > c <==> a > c / b holds
++    if (h > std::numeric_limits<size_t>::max() / rb) {
++        // TODO Propagate this exception to JS, and test it
++        throw std::runtime_error(""Image is too large to allocate single buffer"");
++    }
++    data_ = new png_byte[h * rb];
+ 
+     for(size_t i = 0; i < info_.height; ++i) {
+-        rowPtrs_[i] = data_ + i * info_.rowbytes;
++        rowPtrs_[i] = data_ + i * rb;
+     }
+ }",Handle image size overflow,"vuln-fix: Prevent integer overflow in image buffer allocation
+
+The vulnerability is an integer overflow during the multiplication of image height and row bytes, causing buffer allocation size to wrap around. This overflow can lead to insufficient memory allocation, enabling buffer overflows and potential arbitrary code execution. The fix adds a size_t overflow check before allocation and throws an exception if the requested buffer size exceeds the maximum representable size.
+
+Weakness: Integer Overflow or Wraparound (CWE-190)  
+Severity: High  
+CVSS: 7.5",0.11764705882352941,"[('overflow', 'secword', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('integer overflow', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('integer overflow', 'secword', ''), ('overflow', 'SECWORD', ''), ('buffer overflows', 'SECWORD', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('overflow', 'secword', ''), ('weakness', 'SECWORD', ''), ('integer overflow', 'secword', ''), ('cwe-190', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+6,"{'CWE-476', 'CWE-787', 'CWE-125'}",GHSA-9xh4-23q4-v6wr,"@@ -1282,6 +1282,32 @@ class FusedBatchNormOpBase : public OpKernel {
+                   errors::InvalidArgument(""Error during tensor copy.""));
+     }
+ 
++    const auto num_channels = GetTensorDim(x, tensor_format_, 'C');
++    OP_REQUIRES(
++        context, scale.NumElements() == num_channels,
++        errors::InvalidArgument(""scale must have the same number of elements ""
++                                ""as the channels of x, got "",
++                                scale.NumElements(), "" and "", num_channels));
++    OP_REQUIRES(
++        context, offset.NumElements() == num_channels,
++        errors::InvalidArgument(""offset must have the same number of elements ""
++                                ""as the channels of x, got "",
++                                offset.NumElements(), "" and "", num_channels));
++    if (estimated_mean.NumElements() != 0) {
++      OP_REQUIRES(context, estimated_mean.NumElements() == num_channels,
++                  errors::InvalidArgument(
++                      ""mean must be empty or have the same number of ""
++                      ""elements as the channels of x, got "",
++                      estimated_mean.NumElements(), "" and "", num_channels));
++    }
++    if (estimated_variance.NumElements() != 0) {
++      OP_REQUIRES(context, estimated_variance.NumElements() == num_channels,
++                  errors::InvalidArgument(
++                      ""variance must be empty or have the same number of ""
++                      ""elements as the channels of x, got "",
++                      estimated_variance.NumElements(), "" and "", num_channels));
++    }
++
+     if (has_side_input_) {
+       OP_REQUIRES(context, side_input->shape() == x.shape(),
+                   errors::InvalidArgument(
+@@ -1294,7 +1320,7 @@ class FusedBatchNormOpBase : public OpKernel {
+       // NOTE(ezhulenev): This requirement is coming from implementation
+       // details of cudnnBatchNormalizationForwardTrainingEx.
+       OP_REQUIRES(
+-          context, !is_training_ || x.dim_size(3) % 4 == 0,
++          context, !is_training_ || num_channels % 4 == 0,
+           errors::InvalidArgument(""FusedBatchNorm with activation requires ""
+                                   ""channel dimension to be a multiple of 4.""));
+     }","Add missing valuidation to FusedBatchNorm.
+
+PiperOrigin-RevId: 372460336
+Change-Id: Ic8c4e4de67c58a741bd87f2e182bed07247d1126","vuln-fix: Validate channel dimension consistency in batch norm inputs
+
+The vulnerability was missing validation of input tensor dimensions against scale, offset, mean, and variance tensors in batch normalization operations.  
+This could lead to out-of-bounds memory access or corrupted computations, potentially causing crashes or exploitable undefined behavior.  
+The fix adds explicit checks ensuring these tensors have matching channel dimensions, preventing invalid inputs from proceeding.  
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.17647058823529413,"[('add', 'ACTION', ''), ('change', 'ACTION', ''), ('ic8c4e4de67c58a741bd87f2e182bed07247d1126', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('missing validation', 'secword', ''), ('out-of-bounds', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+7,{'CWE-787'},GHSA-pvrc-hg3f-58r6,"@@ -130,6 +130,7 @@ class DilationOp : public OpKernel {
+     ParseSizes(context, strides_, rates_, padding_, &stride_rows, &stride_cols,
+                &rate_rows, &rate_cols, &pad_top, &pad_left, &out_rows,
+                &out_cols);
++    if (!context->status().ok()) return;
+ 
+     // Output tensor is of the following dimensions:
+     // [ batch, out_rows, out_cols, depth ]
+@@ -229,6 +230,7 @@ class DilationBackpropInputOp : public OpKernel {
+     ParseSizes(context, strides_, rates_, padding_, &stride_rows, &stride_cols,
+                &rate_rows, &rate_cols, &pad_top, &pad_left, &out_rows,
+                &out_cols);
++    if (!context->status().ok()) return;
+ 
+     // Verify that the incoming gradient tensor has the expected size
+     // [ batch, out_rows, out_cols, depth ]
+@@ -318,8 +320,10 @@ struct DilationBackpropInput<CPUDevice, T> {
+                 }
+               }
+             }
+-            in_backprop(b, h_in_max, w_in_max, d) +=
+-                out_backprop(b, h_out, w_out, d);
++            if (h_in_max < input_rows && w_in_max < input_cols) {
++              in_backprop(b, h_in_max, w_in_max, d) +=
++                  out_backprop(b, h_out, w_out, d);
++            }
+           }
+         }
+       }
+@@ -349,6 +353,7 @@ class DilationBackpropFilterOp : public OpKernel {
+     ParseSizes(context, strides_, rates_, padding_, &stride_rows, &stride_cols,
+                &rate_rows, &rate_cols, &pad_top, &pad_left, &out_rows,
+                &out_cols);
++    if (!context->status().ok()) return;
+ 
+     // Verify that the incoming gradient tensor has the expected size
+     // [ batch, out_rows, out_cols, depth ]
+@@ -438,8 +443,10 @@ struct DilationBackpropFilter<CPUDevice, T> {
+                 }
+               }
+             }
+-            filter_backprop(h_max, w_max, d) +=
+-                out_backprop(b, h_out, w_out, d);
++            if (h_max < filter_rows && w_max < filter_cols) {
++              filter_backprop(h_max, w_max, d) +=
++                  out_backprop(b, h_out, w_out, d);
++            }
+           }
+         }
+       }","Add missing validations in dillation ops.
+
+PiperOrigin-RevId: 372037158
+Change-Id: I4ee304c84a02550c030288a6534000b934fc1599","vuln-fix: Prevent out-of-bounds memory access in dilation ops
+
+The code lacked boundary checks on indices used for tensor updates, causing potential out-of-bounds memory writes during dilation backpropagation operations. This is a security risk because it can lead to memory corruption, crashes, or exploitation by attackers controlling input data. The fix adds explicit boundary checks before memory writes and early returns on invalid parsing status to ensure safe memory access.
+
+Weakness: Out-of-bounds Write (CWE-787)  
+Severity: High  
+CVSS: 7.5",0.17647058823529413,"[('add', 'ACTION', ''), ('missing validations', 'SECWORD', ''), ('change', 'ACTION', ''), ('i4ee304c84a02550c030288a6534000b934fc1599', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('boundary checks', 'SECWORD', ''), ('updates', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('security', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('exploitation', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('boundary checks', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'SECWORD', ''), ('out-of-bounds write', 'secword', ''), ('cwe-787', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+8,"{'CWE-787', 'CWE-120'}",GHSA-44qp-9wwf-734r,"@@ -185,6 +185,27 @@ class SparseCount : public OpKernel {
+                 errors::InvalidArgument(
+                     ""Input indices must be a 2-dimensional tensor. Got: "",
+                     indices.shape().DebugString()));
++    OP_REQUIRES(context, TensorShapeUtils::IsVector(values.shape()),
++                errors::InvalidArgument(""Input values must be a vector. Got: "",
++                                        values.shape().DebugString()));
++    OP_REQUIRES(context, TensorShapeUtils::IsVector(shape.shape()),
++                errors::InvalidArgument(""Input shape must be a vector. Got: "",
++                                        shape.shape().DebugString()));
++    OP_REQUIRES(context,
++                values.shape().dim_size(0) == indices.shape().dim_size(0),
++                errors::InvalidArgument(
++                    ""Number of values must match first dimension of indices."",
++                    ""Got "", values.shape().dim_size(0),
++                    "" values, indices shape: "", indices.shape().DebugString()));
++    OP_REQUIRES(
++        context, shape.shape().dim_size(0) == indices.shape().dim_size(1),
++        errors::InvalidArgument(
++            ""Number of dimensions must match second dimension of indices."",
++            ""Got "", shape.shape().dim_size(0),
++            "" dimensions, indices shape: "", indices.shape().DebugString()));
++    OP_REQUIRES(context, shape.NumElements() > 0,
++                errors::InvalidArgument(
++                    ""The shape argument requires at least one element.""));
+ 
+     if (use_weights) {
+       OP_REQUIRES(
+@@ -195,28 +216,11 @@ class SparseCount : public OpKernel {
+               ""; values shape: "", values.shape().DebugString()));
+     }
+ 
+-    OP_REQUIRES(context, shape.NumElements() != 0,
+-                errors::InvalidArgument(
+-                    ""The shape argument requires at least one element.""));
+-
+     bool is_1d = shape.NumElements() == 1;
+     auto shape_vector = shape.flat<int64_t>();
+     int num_batches = is_1d ? 1 : shape_vector(0);
+     int num_values = values.NumElements();
+ 
+-    for (int b = 0; b < shape_vector.size(); b++) {
+-      OP_REQUIRES(context, shape_vector(b) >= 0,
+-                  errors::InvalidArgument(
+-                      ""Elements in dense_shape must be >= 0. Instead got:"",
+-                      shape.DebugString()));
+-    }
+-
+-    OP_REQUIRES(context, num_values == indices.shape().dim_size(0),
+-                errors::InvalidArgument(
+-                    ""Number of values must match first dimension of indices."",
+-                    ""Got "", num_values,
+-                    "" values, indices shape: "", indices.shape().DebugString()));
+-
+     const auto indices_values = indices.matrix<int64_t>();
+     const auto values_values = values.flat<T>();
+     const auto weight_values = weights.flat<W>();
+@@ -225,16 +229,6 @@ class SparseCount : public OpKernel {
+ 
+     T max_value = 0;
+ 
+-    OP_REQUIRES(context, num_values <= indices.shape().dim_size(0),
+-                errors::InvalidArgument(
+-                    ""The first dimension of indices must be equal to or ""
+-                    ""greather than number of values. ( "",
+-                    indices.shape().dim_size(0), "" vs. "", num_values, "" )""));
+-    OP_REQUIRES(context, indices.shape().dim_size(1) > 0,
+-                errors::InvalidArgument(""The second dimension of indices must ""
+-                                        ""be greater than 0. Received: "",
+-                                        indices.shape().dim_size(1)));
+-
+     for (int idx = 0; idx < num_values; ++idx) {
+       int batch = is_1d ? 0 : indices_values(idx, 0);
+       if (batch >= num_batches) {","Cleanup and remove duplicate validation in `SparseCount`.
+
+We have valdiation that is duplicated, checking different conditions, in different formats and failing to capture all cases. This should fix all the previous bugs.
+
+PiperOrigin-RevId: 414886981
+Change-Id: Ibf0bba0beb057b76d505324bb9487565daf95f01","vuln-fix: Validate input tensor shapes to prevent malformed data processing
+
+The vulnerability was missing comprehensive validation of input tensor shapes, allowing malformed or inconsistent tensor dimensions to be processed without error. This posed a security risk by enabling potential out-of-bounds access or logic errors that could be exploited to cause crashes or data corruption. The fix adds strict shape and dimension checks for all input tensors, ensuring their sizes and relationships are consistent before further processing.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.17647058823529413,"[('remove', 'ACTION', ''), ('duplicate validation', 'secword', ''), ('fix', 'ACTION', ''), ('bugs', 'FLAW', ''), ('change', 'ACTION', ''), ('ibf0bba0beb057b76d505324bb9487565daf95f01', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('error', 'FLAW', ''), ('security', 'secword', ''), ('out-of-bounds', 'SECWORD', ''), ('logic errors', 'SECWORD', ''), ('exploited', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+9,{'CWE-787'},GHSA-p23j-g745-8449,"@@ -2161,27 +2161,46 @@ GlobOpt::CollectMemOpInfo(IR::Instr *instrBegin, IR::Instr *instr, Value *src1Va
+             return false;
+         }
+         break;
+-    case Js::OpCode::Decr_A:
+-        isIncr = false;
+-    case Js::OpCode::Incr_A:
+-        isChangedByOne = true;
+-        goto MemOpCheckInductionVariable;
+     case Js::OpCode::Sub_I4:
+-    case Js::OpCode::Sub_A:
+         isIncr = false;
+-    case Js::OpCode::Add_A:
+     case Js::OpCode::Add_I4:
+     {
+-MemOpCheckInductionVariable:
+-        StackSym *sym = instr->GetSrc1()->GetStackSym();
+-        if (!sym)
++        // The only case in which these OpCodes can contribute to an inductionVariableChangeInfo
++        // is when the induction variable is being modified and overwritten aswell (ex: j = j + 1)
++        // and not when the induction variable is modified but not overwritten (ex: k = j + 1).
++        // This can either be detected in IR as
++        // s1     = Add_I4 s1     1  // Case #1, can be seen with ""j++"".
++        // or as
++        // s4(s2) = Add_I4 s3(s1) 1  // Case #2, can be see with ""j = j + 1"".
++        // s1     = Ld_A   s2
++        bool isInductionVar = false;
++        IR::Instr* nextInstr = instr->m_next;
++        if (
++            // Checks for Case #1 and Case #2
++            instr->GetDst()->GetStackSym() != nullptr &&
++            instr->GetDst()->IsRegOpnd() &&
++            (
++                // Checks for Case #1
++                (instr->GetDst()->GetStackSym() == instr->GetSrc1()->GetStackSym()) ||
++
++                // Checks for Case #2
++                (nextInstr&& nextInstr->m_opcode == Js::OpCode::Ld_A &&
++                 nextInstr->GetSrc1()->IsRegOpnd() &&
++                 nextInstr->GetDst()->IsRegOpnd() &&
++                 GetVarSymID(instr->GetDst()->GetStackSym()) == nextInstr->GetSrc1()->GetStackSym()->m_id &&
++                 GetVarSymID(instr->GetSrc1()->GetStackSym()) == nextInstr->GetDst()->GetStackSym()->m_id)
++            )
++        )
+         {
+-            sym = instr->GetSrc2()->GetStackSym();
++            isInductionVar = true;
+         }
++        
++        // Even if dstIsInductionVar then dst == src1 so it's safe to use src1 as the induction sym always.
++        StackSym* sym = instr->GetSrc1()->GetStackSym();
+ 
+         SymID inductionSymID = GetVarSymID(sym);
+ 
+-        if (IsSymIDInductionVariable(inductionSymID, this->currentBlock->loop))
++        if (isInductionVar && IsSymIDInductionVariable(inductionSymID, this->currentBlock->loop))
+         {
+             if (!isChangedByOne)
+             {
+@@ -2246,7 +2265,6 @@ GlobOpt::CollectMemOpInfo(IR::Instr *instrBegin, IR::Instr *instr, Value *src1Va
+                     {
+                         inductionVariableChangeInfo.unroll++;
+                     }
+-                    
+                     inductionVariableChangeInfo.isIncremental = isIncr;
+                     loop->memOpInfo->inductionVariableChangeInfoMap->Item(inductionSymID, inductionVariableChangeInfo);
+                 }
+@@ -2284,6 +2302,27 @@ GlobOpt::CollectMemOpInfo(IR::Instr *instrBegin, IR::Instr *instr, Value *src1Va
+             }
+         }
+         NEXT_INSTR_IN_RANGE;
++        IR::Instr* prevInstr = instr->m_prev;
++
++        // If an instr where the dst is an induction variable (and thus is being written to) is not caught by a case in the above
++        // switch statement (which implies that this instr does not contributes to a inductionVariableChangeInfo) and in the default
++        // case does not set doMemOp to false (which implies that this instr does not invalidate this MemOp), then FailFast as we
++        // should not be performing a MemOp under these conditions. 
++        AssertOrFailFast(!instr->GetDst() || instr->m_opcode == Js::OpCode::IncrLoopBodyCount || !loop->memOpInfo ||
++
++            // Refer to ""Case #2"" described above in this function. For the following IR:
++            // Line #1: s4(s2) = Add_I4 s3(s1) 1
++            // Line #2: s3(s1) = Ld_A   s4(s2)
++            // do not consider line #2 as a violating instr
++            (instr->m_opcode == Js::OpCode::Ld_I4 &&
++                prevInstr && (prevInstr->m_opcode == Js::OpCode::Add_I4 || prevInstr->m_opcode == Js::OpCode::Sub_I4) &&
++                instr->GetSrc1()->IsRegOpnd() &&
++                instr->GetDst()->IsRegOpnd() &&
++                prevInstr->GetDst()->IsRegOpnd() &&
++                instr->GetDst()->GetStackSym() == prevInstr->GetSrc1()->GetStackSym() &&
++                instr->GetSrc1()->GetStackSym() == prevInstr->GetDst()->GetStackSym()) ||
++
++            !loop->memOpInfo->inductionVariableChangeInfoMap->ContainsKey(GetVarSymID(instr->GetDst()->GetStackSym())));
+     }
+ 
+     return true;",CVE-2019-1335,"vuln-fix: Prevent incorrect induction variable handling in loop optimization
+
+The vulnerability involved improper detection of induction variable modifications, allowing unsafe memory operation assumptions during loop optimizations. This could lead to incorrect optimizations that compromise program correctness and potentially enable security exploits through corrupted memory states. The fix improves induction variable detection logic and adds strict assertions to fail fast on unexpected instruction patterns, ensuring only valid induction variable changes are processed.
+
+Weakness: Improper Control Flow Management (CWE-703)  
+Severity: High  
+CVSS: 7.5",0.17647058823529413,"[('cve-2019-1335', 'VULNID', 'CVE')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('unsafe', 'secword', ''), ('security', 'SECWORD', ''), ('exploits', 'SECWORD', ''), ('fix', 'ACTION', ''), ('improves', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('changes', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper control', 'secword', ''), ('cwe-703', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+10,"{'CWE-787', 'CWE-125'}",GHSA-77gp-3h4r-6428,"@@ -100,7 +100,7 @@ StatusOr<FullTypeDef> SpecializeType(const AttrSlice& attrs,
+     // verifications are needed, they should be done by separately, and in a
+     // way that can be reused for type inference.
+     for (int j = 0; j < t->args_size(); j++) {
+-      auto* arg = t->mutable_args(i);
++      auto* arg = t->mutable_args(j);
+       if (arg->type_id() == TFT_VAR) {
+         const auto* attr = attrs.Find(arg->s());
+         if (attr == nullptr) {","Fix heap OOB read/write due to incorrect indexing.
+
+PiperOrigin-RevId: 408578046
+Change-Id: Ifc9ffea49e5890f55fcb2c27568611052c3ddcfa","vuln-fix: Correct loop index to prevent out-of-bounds access in type specialization
+
+The vulnerability was an incorrect loop index causing potential out-of-bounds access when modifying type arguments during specialization.
+This could lead to memory corruption or undefined behavior, posing a risk of crashes or exploitation by crafted inputs.
+The fix replaces the incorrect fixed index with the loop variable to ensure safe and correct access to each argument element.
+
+Weakness: CWE-125: Out-of-bounds Read
+Severity: High
+CVSS: 7.5",0.17647058823529413,"[('fix', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('ifc9ffea49e5890f55fcb2c27568611052c3ddcfa', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('out-of-bounds', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('exploitation', 'SECWORD', ''), ('fix', 'ACTION', ''), ('fixed', 'ACTION', ''), ('ensure', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'SECWORD', ''), ('cwe-125', 'CWEID', ''), ('out-of-bounds read', 'SECWORD', ''), ('high', 'SEVERITY', '')]"
+11,{'CWE-787'},GHSA-37pf-w9ff-gqvm,"@@ -394,6 +394,7 @@ GlobOpt::ProcessFieldKills(IR::Instr *instr, BVSparse<JitArenaAllocator> *bv, bo
+     case Js::OpCode::StRootFldStrict:
+     case Js::OpCode::StSlot:
+     case Js::OpCode::StSlotChkUndecl:
++    case Js::OpCode::StSuperFld:
+         Assert(dstOpnd != nullptr);
+         sym = dstOpnd->AsSymOpnd()->m_sym;
+         if (inGlobOpt)",[CVE-2019-0927],"vuln-fix: Prevent missing handling of StSuperFld opcode in field kill processing
+
+The vulnerability was caused by the omission of the StSuperFld opcode in the field kill processing logic, leading to incomplete tracking of symbol state changes. This posed a security risk by potentially allowing stale or incorrect symbol information to persist, which attackers could exploit to manipulate program behavior. The fix adds explicit handling for the StSuperFld opcode to ensure accurate and secure symbol state updates during optimization passes.
+
+Weakness: CWE-704: Incorrect Type Conversion or Cast  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('cve-2019-0927', 'VULNID', 'CVE')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('changes', 'ACTION', ''), ('security', 'secword', ''), ('attackers', 'SECWORD', ''), ('exploit', 'secword', ''), ('manipulate', 'ACTION', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('secure', 'secword', ''), ('updates', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('cwe-704', 'CWEID', ''), ('incorrect type conversion', 'SECWORD', ''), ('medium', 'SEVERITY', '')]"
+12,"{'CWE-787', 'CWE-120'}",GHSA-3ff2-r28g-w7h9,"@@ -168,7 +168,7 @@ Status TransposeShapeFn(InferenceContext* c) {
+ 
+     for (int32_t i = 0; i < rank; ++i) {
+       int64_t in_idx = data[i];
+-      if (in_idx >= rank) {
++      if (in_idx >= rank || in_idx <= -rank) {
+         return errors::InvalidArgument(""perm dim "", in_idx,
+                                        "" is out of range of input rank "", rank);
+       }","Make Transpose's shape inference function validate that negative `perm` values are within the tensor's rank.
+
+PiperOrigin-RevId: 403252853
+Change-Id: Ia6b31b45b237312668bb31c2c3b3c7bbce2d2610","vuln-fix: Validate negative perm indices in transpose shape function
+
+The vulnerability is that negative permutation indices were not properly validated against the input rank, allowing out-of-range negative values to pass unnoticed. This is a security risk because it can lead to undefined behavior or memory access errors when processing tensor shapes, potentially causing crashes or exploitable conditions. The fix adds a check to ensure negative indices are within the valid range by rejecting indices less than or equal to the negative rank value.
+
+Weakness: Improper Input Validation (CWE-20)
+Severity: Medium
+CVSS: 5.3",0.11764705882352941,"[('validate', 'secword', ''), ('change', 'ACTION', ''), ('ia6b31b45b237312668bb31c2c3b3c7bbce2d2610', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('out-of-range', 'SECWORD', ''), ('security', 'secword', ''), ('errors', 'FLAW', ''), ('exploitable', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+13,"{'CWE-787', 'CWE-119'}",GHSA-6f89-8j54-29xf,"@@ -250,6 +250,19 @@ class FractionalAvgPoolGradOp : public OpKernel {
+     const int64 out_cols = out_backprop.dim_size(2);
+     const int64 out_depth = out_backprop.dim_size(3);
+ 
++    OP_REQUIRES(context, row_seq_tensor.NumElements() > out_rows,
++                errors::InvalidArgument(""Given out_backprop shape "",
++                                        out_backprop.shape().DebugString(),
++                                        "", row_seq_tensor must have at least "",
++                                        out_rows + 1, "" elements, but got "",
++                                        row_seq_tensor.NumElements()));
++    OP_REQUIRES(context, col_seq_tensor.NumElements() > out_cols,
++                errors::InvalidArgument(""Given out_backprop shape "",
++                                        out_backprop.shape().DebugString(),
++                                        "", col_seq_tensor must have at least "",
++                                        out_cols + 1, "" elements, but got "",
++                                        col_seq_tensor.NumElements()));
++
+     auto row_seq_tensor_flat = row_seq_tensor.flat<int64>();
+     auto col_seq_tensor_flat = col_seq_tensor.flat<int64>();
+     auto orig_input_tensor_shape_flat = orig_input_tensor_shape.flat<int64>();","Validate inputs of `FractionalAvgPoolGrad`.
+
+PiperOrigin-RevId: 372420640
+Change-Id: Icc583928e6cdc3062e12498e4d2337a8fe3da016","vuln-fix: Validate sequence tensor sizes in FractionalAvgPoolGradOp
+
+The vulnerability was missing validation of row and column sequence tensor sizes against output dimensions, allowing out-of-bounds access during gradient computation. This posed a risk of memory corruption or crashes when processing malformed inputs, potentially leading to denial of service or arbitrary code execution. The fix adds explicit checks ensuring sequence tensors have sufficient elements relative to output shape, preventing invalid memory access.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.17647058823529413,"[('validate', 'secword', ''), ('change', 'ACTION', ''), ('icc583928e6cdc3062e12498e4d2337a8fe3da016', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('missing validation', 'secword', ''), ('out-of-bounds', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('denial of service', 'secword', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('preventing', 'ACTION', ''), ('invalid memory access', 'secword', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+14,"{'CWE-787', 'CWE-131'}",GHSA-m3f9-w3p3-p669,"@@ -284,10 +284,22 @@ class QuantizedMulOp : public OpKernel {
+   void Compute(OpKernelContext* context) override {
+     const Tensor& x = context->input(0);
+     const Tensor& y = context->input(1);
+-    const float min_x = context->input(2).flat<float>()(0);
+-    const float max_x = context->input(3).flat<float>()(0);
+-    const float min_y = context->input(4).flat<float>()(0);
+-    const float max_y = context->input(5).flat<float>()(0);
++    auto& min_x_tensor = context->input(2);
++    OP_REQUIRES(context, TensorShapeUtils::IsScalar(min_x_tensor.shape()),
++                errors::InvalidArgument(""min_x must be a scalar""));
++    const float min_x = min_x_tensor.flat<float>()(0);
++    auto& max_x_tensor = context->input(3);
++    OP_REQUIRES(context, TensorShapeUtils::IsScalar(max_x_tensor.shape()),
++                errors::InvalidArgument(""max_x must be a scalar""));
++    const float max_x = max_x_tensor.flat<float>()(0);
++    auto& min_y_tensor = context->input(4);
++    OP_REQUIRES(context, TensorShapeUtils::IsScalar(min_y_tensor.shape()),
++                errors::InvalidArgument(""min_y must be a scalar""));
++    const float min_y = min_y_tensor.flat<float>()(0);
++    auto& max_y_tensor = context->input(5);
++    OP_REQUIRES(context, TensorShapeUtils::IsScalar(max_y_tensor.shape()),
++                errors::InvalidArgument(""max_y must be a scalar""));
++    const float max_y = max_y_tensor.flat<float>()(0);
+ 
+     BCast bcast(BCast::FromShape(x.shape()), BCast::FromShape(y.shape()));
+     if (!bcast.IsValid()) {","Validate inputs to `QuantizedMul`
+
+PiperOrigin-RevId: 369756982
+Change-Id: I00d960cc3b9316fd7a86bd37a44e341c96e17624","vuln-fix: Validate scalar inputs in QuantizedMulOp to prevent misuse
+
+The vulnerability was that inputs expected to be scalars were not validated, allowing tensors of incorrect shapes to be processed without error. This posed a security risk by enabling malformed inputs that could cause undefined behavior or memory corruption. The fix adds explicit checks to ensure all min and max inputs are scalar tensors, rejecting invalid shapes with clear error messages.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.17647058823529413,"[('validate', 'secword', ''), ('change', 'ACTION', ''), ('i00d960cc3b9316fd7a86bd37a44e341c96e17624', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('error', 'FLAW', ''), ('security', 'secword', ''), ('memory corruption', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+15,{'CWE-787'},GHSA-2rfj-2mwp-787v,"@@ -9655,6 +9655,10 @@ using namespace Js;
+             Var result = CALL_ENTRYPOINT(threadContext, marshalledFunction->GetEntryPoint(), function, CallInfo(flags, 1), thisVar);
+             result = CrossSite::MarshalVar(requestContext, result);
+ 
++            // Set implicit call flags so we bail out if we're trying to propagate the value forward, e.g., from a compare. Subsequent calls
++            // to the getter may produce different results.
++            threadContext->AddImplicitCallFlags(ImplicitCall_Accessor);
++
+             return result;
+         });
+     }",CVE-2019-0993,"vuln-fix: Prevent inconsistent getter results via implicit call flags
+
+The vulnerability allowed multiple getter calls to produce different results during value propagation, leading to inconsistent or unexpected behavior in cross-site contexts. This inconsistency could be exploited to bypass security checks or cause state confusion in the application. The fix sets implicit call flags to ensure the system bails out on repeated getter calls, preventing propagation of inconsistent values.
+
+Weakness: Improper Control Flow / State Management  
+Severity: Medium  
+CVSS: 5.4",0.17647058823529413,"[('cve-2019-0993', 'VULNID', 'CVE')]",0.29411764705882354,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('exploited', 'SECWORD', ''), ('bypass', 'SECWORD', ''), ('security', 'secword', ''), ('fix', 'ACTION', ''), ('ensure', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper control', 'secword', ''), ('medium', 'SEVERITY', '')]"
+16,{'CWE-787'},GHSA-2gfx-95x2-5v3x,"@@ -17,6 +17,7 @@ limitations under the License.
+ 
+ #include ""tensorflow/core/framework/op_kernel.h""
+ #include ""tensorflow/core/framework/register_types.h""
++#include ""tensorflow/core/framework/tensor_shape.h""
+ #include ""tensorflow/core/framework/tensor_types.h""
+ #include ""tensorflow/core/framework/types.h""
+ #include ""tensorflow/core/kernels/reshape_op.h""
+@@ -30,9 +31,29 @@ class QuantizedReshapeOp : public ReshapeOp {
+   void Compute(OpKernelContext* ctx) override {
+     // This call processes inputs 1 and 2 to write output 0.
+     ReshapeOp::Compute(ctx);
++    if (!ctx->status().ok()) {
++      return;
++    }
++
++    const auto& input_min_float_tensor = ctx->input(2);
++    const auto& input_min_float_shape = input_min_float_tensor.shape();
++    OP_REQUIRES(ctx,
++                TensorShapeUtils::IsScalar(input_min_float_shape) ||
++                    (TensorShapeUtils::IsVector(input_min_float_shape) &&
++                     (input_min_float_shape.dim_size(0) == 1)),
++                errors::InvalidArgument(
++                    ""input_min must be a scalar or a vector of 1 element""));
++    const float input_min_float = input_min_float_tensor.flat<float>()(0);
++    const auto& input_max_float_tensor = ctx->input(3);
++    const auto& input_max_float_shape = input_max_float_tensor.shape();
++    OP_REQUIRES(ctx,
++                TensorShapeUtils::IsScalar(input_max_float_shape) ||
++                    (TensorShapeUtils::IsVector(input_max_float_shape) &&
++                     (input_max_float_shape.dim_size(0) == 1)),
++                errors::InvalidArgument(
++                    ""input_max must be a scalar or a vector of 1 element""));
++    const float input_max_float = input_max_float_tensor.flat<float>()(0);
+ 
+-    const float input_min_float = ctx->input(2).flat<float>()(0);
+-    const float input_max_float = ctx->input(3).flat<float>()(0);
+     Tensor* output_min = nullptr;
+     OP_REQUIRES_OK(ctx, ctx->allocate_output(1, TensorShape({}), &output_min));
+     output_min->flat<float>()(0) = input_min_float;","Validate arguments to `QuantizedReshape`.
+
+Ensure that validations from `Reshape` also terminate `QuantizedReshape` on failure.
+
+PiperOrigin-RevId: 369775421
+Change-Id: If8c5342267aceea65b7cb83a4b183304886f1ce8","vuln-fix: Validate tensor shapes in QuantizedReshapeOp inputs
+
+The vulnerability was due to missing validation of input_min and input_max tensor shapes, allowing malformed tensors to be processed without error. This posed a security risk by potentially causing undefined behavior or memory corruption from unexpected tensor shapes. The fix adds explicit checks ensuring these inputs are either scalars or single-element vectors, rejecting invalid shapes early in the computation. 
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.23529411764705882,"[('validate', 'secword', ''), ('ensure', 'ACTION', ''), ('change', 'ACTION', ''), ('if8c5342267aceea65b7cb83a4b183304886f1ce8', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('missing validation', 'SECWORD', ''), ('error', 'FLAW', ''), ('security', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+17,{'CWE-787'},GHSA-5rcr-q3rx-j7vr,"@@ -410,6 +410,14 @@ GlobOpt::ProcessFieldKills(IR::Instr *instr, BVSparse<JitArenaAllocator> *bv, bo
+         if (inGlobOpt)
+         {
+             KillObjectHeaderInlinedTypeSyms(this->currentBlock, false);
++            if (this->objectTypeSyms)
++            {
++                if (this->currentBlock->globOptData.maybeWrittenTypeSyms == nullptr)
++                {
++                    this->currentBlock->globOptData.maybeWrittenTypeSyms = JitAnew(this->alloc, BVSparse<JitArenaAllocator>, this->alloc);
++                }
++                this->currentBlock->globOptData.maybeWrittenTypeSyms->Or(this->objectTypeSyms);
++            }
+         }
+ 
+         // fall through",[CVE-2019-1107] Chakra JIT Type Confusion FinishOptPropOp,"vuln-fix: Prevent use-after-free by tracking written type symbols
+
+The vulnerability involved missing tracking of type symbols that could be written during global optimization, leading to potential use-after-free errors in JIT-compiled code.
+This is a security risk because use-after-free can allow attackers to execute arbitrary code or cause memory corruption, compromising system integrity.
+The fix adds initialization and merging of type symbol bitsets to ensure proper tracking and prevent invalid memory accesses during optimization. 
+
+Weakness: Use-After-Free (CWE-416)  
+Severity: High  
+CVSS: 7.5",0.058823529411764705,"[('cve-2019-1107', 'VULNID', 'CVE'), ('type confusion', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('use-after-free', 'secword', ''), ('vulnerability', 'secword', ''), ('use-after-free', 'SECWORD', ''), ('errors', 'FLAW', ''), ('security', 'SECWORD', ''), ('use-after-free', 'secword', ''), ('attackers', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('integrity', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('initialization', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('prevent', 'ACTION', ''), ('invalid memory accesses', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('use-after-free', 'SECWORD', ''), ('cwe-416', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+18,"{'CWE-787', 'CWE-125'}",GHSA-cvpc-8phh-8f45,"@@ -601,7 +601,8 @@ TfLiteStatus SimpleStatefulOp::Prepare(TfLiteContext* context,
+   OpData* data = reinterpret_cast<OpData*>(node->user_data);
+ 
+   // Make sure that the input is in uint8_t with at least 1 data entry.
+-  const TfLiteTensor* input = tflite::GetInput(context, node, kInputTensor);
++  const TfLiteTensor* input;
++  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kInputTensor, &input));
+   if (input->type != kTfLiteUInt8) return kTfLiteError;
+   if (NumElements(input->dims) == 0) return kTfLiteError;
+ 
+@@ -622,7 +623,8 @@ TfLiteStatus SimpleStatefulOp::Invoke(TfLiteContext* context,
+   OpData* data = reinterpret_cast<OpData*>(node->user_data);
+   *data->invoke_count += 1;
+ 
+-  const TfLiteTensor* input = GetInput(context, node, kInputTensor);
++  const TfLiteTensor* input;
++  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kInputTensor, &input));
+   const uint8_t* input_data = GetTensorData<uint8_t>(input);
+   int size = NumElements(input->dims);
+ 
+@@ -641,9 +643,13 @@ TfLiteStatus SimpleStatefulOp::Invoke(TfLiteContext* context,
+     }
+   }
+ 
+-  TfLiteTensor* median = GetOutput(context, node, kMedianTensor);
++  TfLiteTensor* median;
++  TF_LITE_ENSURE_OK(context,
++                    GetOutputSafe(context, node, kMedianTensor, &median));
+   uint8_t* median_data = GetTensorData<uint8_t>(median);
+-  TfLiteTensor* invoke_count = GetOutput(context, node, kInvokeCount);
++  TfLiteTensor* invoke_count;
++  TF_LITE_ENSURE_OK(context,
++                    GetOutputSafe(context, node, kInvokeCount, &invoke_count));
+   int32_t* invoke_count_data = GetTensorData<int32_t>(invoke_count);
+ 
+   median_data[0] = sorting_buffer[size / 2];
+@@ -681,11 +687,14 @@ TfLiteStatus MockCustom::Prepare(TfLiteContext* context, TfLiteNode* node) {
+ }
+ 
+ TfLiteStatus MockCustom::Invoke(TfLiteContext* context, TfLiteNode* node) {
+-  const TfLiteTensor* input = tflite::GetInput(context, node, 0);
++  const TfLiteTensor* input;
++  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 0, &input));
+   const int32_t* input_data = input->data.i32;
+-  const TfLiteTensor* weight = tflite::GetInput(context, node, 1);
++  const TfLiteTensor* weight;
++  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 1, &weight));
+   const uint8_t* weight_data = weight->data.uint8;
+-  TfLiteTensor* output = GetOutput(context, node, 0);
++  TfLiteTensor* output;
++  TF_LITE_ENSURE_OK(context, GetOutputSafe(context, node, 0, &output));
+   int32_t* output_data = output->data.i32;
+   output_data[0] =
+       0;  // Catch output tensor sharing memory with an input tensor","[tflite]: Insert `nullptr` checks when obtaining tensors.
+
+As part of ongoing refactoring, `tflite::GetInput`, `tflite::GetOutput`, `tflite::GetTemporary` and `tflite::GetIntermediates` will return `nullptr` in some cases. Hence, we insert the `nullptr` checks on all usages.
+
+We also insert `nullptr` checks on usages of `tflite::GetVariableInput` and `tflite::GetOptionalInputTensor` but only in the cases where there is no obvious check that `nullptr` is acceptable (that is, we only insert the check for the output of these two functions if the tensor is accessed as if it is always not `nullptr`).
+
+PiperOrigin-RevId: 332518902
+Change-Id: I92eb164a6101ac3cca66090061a9b56a97288236","vuln-fix: Enforce safe tensor access to prevent null pointer dereference
+
+The vulnerability involved unsafe direct tensor pointer retrieval without error checking, risking null pointer dereferences during tensor access in model operations. This could lead to crashes or undefined behavior, potentially exploitable for denial of service or memory corruption. The fix replaces unsafe tensor getters with safe variants that validate and ensure successful tensor retrieval before use, preventing invalid memory access.
+
+Weakness: CWE-476: NULL Pointer Dereference  
+Severity: High  
+CVSS: 7.5",0.11764705882352941,"[('nullptr', 'SECWORD', ''), ('nullptr', 'SECWORD', ''), ('nullptr', 'SECWORD', ''), ('nullptr', 'SECWORD', ''), ('nullptr', 'SECWORD', ''), ('nullptr', 'SECWORD', ''), ('change', 'ACTION', ''), ('i92eb164a6101ac3cca66090061a9b56a97288236', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('safe', 'secword', ''), ('prevent', 'ACTION', ''), ('null pointer dereference', 'secword', ''), ('vulnerability', 'secword', ''), ('unsafe', 'SECWORD', ''), ('error', 'FLAW', ''), ('null pointer dereferences', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('fix', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('safe', 'secword', ''), ('validate', 'secword', ''), ('ensure', 'ACTION', ''), ('preventing', 'ACTION', ''), ('invalid memory access', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('cwe-476', 'CWEID', ''), ('null pointer dereference', 'SECWORD', ''), ('high', 'SEVERITY', '')]"
+19,{'CWE-787'},GHSA-q99r-j969-6jwr,"@@ -354,6 +354,12 @@ namespace Js
+             Var varLength;
+             if (targetFunction->GetProperty(targetFunction, PropertyIds::length, &varLength, nullptr, requestContext))
+             {
++                if (!TaggedInt::Is(varLength))
++                {
++                    // ToInt32 conversion on non-primitive length can invalidate assumptions made by the JIT,
++                    // so add implicit call flag if length isn't a TaggedInt already
++                    requestContext->GetThreadContext()->AddImplicitCallFlags(ImplicitCall_Accessor);
++                }
+                 len = JavascriptConversion::ToInt32(varLength, requestContext);
+             }",[CVE-2019-1237],"vuln-fix: Prevent JIT assumption invalidation from non-primitive length values
+
+The vulnerability occurs when ToInt32 conversion is performed on a non-primitive length value without proper checks, potentially causing JIT optimization assumptions to be invalidated. This can lead to unpredictable behavior or exploitation through crafted inputs that manipulate JIT execution paths. The fix adds a check for non-TaggedInt length values and sets an implicit call flag to ensure safe handling during JIT compilation.
+
+Weakness: Improper Handling of Non-Primitive Types in JIT (CWE-682)  
+Severity: High  
+CVSS: 7.5",0.11764705882352941,"[('cve-2019-1237', 'VULNID', 'CVE')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('exploitation', 'SECWORD', ''), ('manipulate', 'ACTION', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'SECWORD', ''), ('improper handling', 'secword', ''), ('cwe-682', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+20,{'CWE-787'},GHSA-grvw-q343-58wh,"@@ -1167,6 +1167,10 @@ void GlobOpt::InsertValueCompensation(
+     IR::Instr *insertBeforeInstr = predecessor->GetLastInstr();
+     Func *const func = insertBeforeInstr->m_func;
+     bool setLastInstrInPredecessor;
++    // If this is a loop back edge, and the successor has been completed, don't attempt to update its block data.
++    // The update is unnecessary, and the data has likely been freed.
++    bool updateSuccessorBlockData = !this->isPerformingLoopBackEdgeCompensation || successor->GetDataUseCount() > 0;
++
+     if(insertBeforeInstr->IsBranchInstr() || insertBeforeInstr->m_opcode == Js::OpCode::BailTarget)
+     {
+         // Don't insert code between the branch and the corresponding ByteCodeUses instructions
+@@ -1257,29 +1261,33 @@ void GlobOpt::InsertValueCompensation(
+             // Merge the head segment length value
+             Assert(predecessorBlockData.liveVarSyms->Test(predecessorHeadSegmentLengthSym->m_id));
+             predecessorBlockData.liveVarSyms->Set(mergedHeadSegmentLengthSym->m_id);
+-            successorBlockData.liveVarSyms->Set(mergedHeadSegmentLengthSym->m_id);
+             Value *const predecessorHeadSegmentLengthValue =
+                 predecessorBlockData.FindValue(predecessorHeadSegmentLengthSym);
+             Assert(predecessorHeadSegmentLengthValue);
+             predecessorBlockData.SetValue(predecessorHeadSegmentLengthValue, mergedHeadSegmentLengthSym);
+-            Value *const mergedHeadSegmentLengthValue = successorBlockData.FindValue(mergedHeadSegmentLengthSym);
+-            if(mergedHeadSegmentLengthValue)
++
++            if (updateSuccessorBlockData)
+             {
+-                Assert(mergedHeadSegmentLengthValue->GetValueNumber() != predecessorHeadSegmentLengthValue->GetValueNumber());
+-                if(predecessorHeadSegmentLengthValue->GetValueInfo() != mergedHeadSegmentLengthValue->GetValueInfo())
++                successorBlockData.liveVarSyms->Set(mergedHeadSegmentLengthSym->m_id);
++                Value *const mergedHeadSegmentLengthValue = successorBlockData.FindValue(mergedHeadSegmentLengthSym);
++                if(mergedHeadSegmentLengthValue)
+                 {
+-                    mergedHeadSegmentLengthValue->SetValueInfo(
+-                        ValueInfo::MergeLikelyIntValueInfo(
+-                            this->alloc,
+-                            mergedHeadSegmentLengthValue,
+-                            predecessorHeadSegmentLengthValue,
+-                            mergedHeadSegmentLengthValue->GetValueInfo()->Type()
+-                                .Merge(predecessorHeadSegmentLengthValue->GetValueInfo()->Type())));
++                    Assert(mergedHeadSegmentLengthValue->GetValueNumber() != predecessorHeadSegmentLengthValue->GetValueNumber());
++                    if(predecessorHeadSegmentLengthValue->GetValueInfo() != mergedHeadSegmentLengthValue->GetValueInfo())
++                    {
++                        mergedHeadSegmentLengthValue->SetValueInfo(
++                            ValueInfo::MergeLikelyIntValueInfo(
++                                this->alloc,
++                                mergedHeadSegmentLengthValue,
++                                predecessorHeadSegmentLengthValue,
++                                mergedHeadSegmentLengthValue->GetValueInfo()->Type()
++                                    .Merge(predecessorHeadSegmentLengthValue->GetValueInfo()->Type())));
++                    }
++                }
++                else
++                {
++                    successorBlockData.SetValue(CopyValue(predecessorHeadSegmentLengthValue), mergedHeadSegmentLengthSym);
+                 }
+-            }
+-            else
+-            {
+-                successorBlockData.SetValue(CopyValue(predecessorHeadSegmentLengthValue), mergedHeadSegmentLengthSym);
+             }
+         }
+ 
+@@ -1300,27 +1308,31 @@ void GlobOpt::InsertValueCompensation(
+             // Merge the length value
+             Assert(predecessorBlockData.liveVarSyms->Test(predecessorLengthSym->m_id));
+             predecessorBlockData.liveVarSyms->Set(mergedLengthSym->m_id);
+-            successorBlockData.liveVarSyms->Set(mergedLengthSym->m_id);
+             Value *const predecessorLengthValue = predecessorBlockData.FindValue(predecessorLengthSym);
+             Assert(predecessorLengthValue);
+             predecessorBlockData.SetValue(predecessorLengthValue, mergedLengthSym);
+-            Value *const mergedLengthValue = successorBlockData.FindValue(mergedLengthSym);
+-            if(mergedLengthValue)
++
++            if (updateSuccessorBlockData)
+             {
+-                Assert(mergedLengthValue->GetValueNumber() != predecessorLengthValue->GetValueNumber());
+-                if(predecessorLengthValue->GetValueInfo() != mergedLengthValue->GetValueInfo())
++                successorBlockData.liveVarSyms->Set(mergedLengthSym->m_id);
++                Value *const mergedLengthValue = successorBlockData.FindValue(mergedLengthSym);
++                if(mergedLengthValue)
+                 {
+-                    mergedLengthValue->SetValueInfo(
+-                        ValueInfo::MergeLikelyIntValueInfo(
+-                            this->alloc,
+-                            mergedLengthValue,
+-                            predecessorLengthValue,
+-                            mergedLengthValue->GetValueInfo()->Type().Merge(predecessorLengthValue->GetValueInfo()->Type())));
++                    Assert(mergedLengthValue->GetValueNumber() != predecessorLengthValue->GetValueNumber());
++                    if(predecessorLengthValue->GetValueInfo() != mergedLengthValue->GetValueInfo())
++                    {
++                        mergedLengthValue->SetValueInfo(
++                            ValueInfo::MergeLikelyIntValueInfo(
++                                this->alloc,
++                                mergedLengthValue,
++                                predecessorLengthValue,
++                                mergedLengthValue->GetValueInfo()->Type().Merge(predecessorLengthValue->GetValueInfo()->Type())));
++                    }
++                }
++                else
++                {
++                    successorBlockData.SetValue(CopyValue(predecessorLengthValue), mergedLengthSym);
+                 }
+-            }
+-            else
+-            {
+-                successorBlockData.SetValue(CopyValue(predecessorLengthValue), mergedLengthSym);
+             }
+         }",[CVE-2019-1300],"vuln-fix: Prevent use-after-free in loop back edge compensation
+
+The vulnerability occurs when updating successor block data after loop back edge compensation, potentially accessing freed memory if the successor block is already completed. This is a security risk because it can lead to use-after-free errors, causing undefined behavior or exploitable memory corruption. The fix adds a condition to skip updating successor block data if the loop back edge compensation is active and the successor’s data use count is zero, preventing access to freed data.
+
+Weakness: Use-After-Free (CWE-416)  
+Severity: High  
+CVSS: 7.5",0.11764705882352941,"[('cve-2019-1300', 'VULNID', 'CVE')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('use-after-free', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('updating', 'ACTION', ''), ('security', 'SECWORD', ''), ('use-after-free', 'secword', ''), ('errors', 'FLAW', ''), ('exploitable', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('updating', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('use-after-free', 'SECWORD', ''), ('cwe-416', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+21,"{'CWE-787', 'CWE-120'}",GHSA-f8h4-7rgh-q2gm,"@@ -18,6 +18,7 @@ limitations under the License.
+ #include ""tensorflow/core/framework/function_handle_cache.h""
+ #include ""tensorflow/core/framework/op_kernel.h""
+ #include ""tensorflow/core/framework/resource_mgr.h""
++#include ""tensorflow/core/framework/types.h""
+ #include ""tensorflow/core/kernels/ops_util.h""
+ #include ""tensorflow/core/lib/core/threadpool.h""
+ #include ""tensorflow/core/lib/io/record_writer.h""
+@@ -91,8 +92,20 @@ class ToTFRecordOp : public AsyncOpKernel {
+     TF_RETURN_IF_ERROR(finalized_dataset->MakeIterator(
+         &iter_ctx, /*parent=*/nullptr, ""ToTFRecordOpIterator"", &iterator));
+ 
++    const int num_output_dtypes = finalized_dataset->output_dtypes().size();
++    if (num_output_dtypes != 1) {
++      return errors::InvalidArgument(
++          ""ToTFRecordOp currently only support datasets of 1 single column, "",
++          ""but got "", num_output_dtypes);
++    }
++    const DataType dt = finalized_dataset->output_dtypes()[0];
++    if (dt != DT_STRING) {
++      return errors::InvalidArgument(
++          ""ToTFRecordOp currently only supports DT_STRING dataypes, but got "",
++          DataTypeString(dt));
++    }
+     std::vector<Tensor> components;
+-    components.reserve(finalized_dataset->output_dtypes().size());
++    components.reserve(num_output_dtypes);
+     bool end_of_sequence;
+     do {
+       TF_RETURN_IF_ERROR(","Fix segfault/heap buffer overflow in `{Experimental,}DatasetToTFRecord` where dataset is numeric.
+
+Code assumes only strings inputs and then interprets numbers as valid `tstring`s. Then, when trying to compute the CRC of the record this results in heap buffer overflow.
+
+PiperOrigin-RevId: 387675909
+Change-Id: I7396b9b8afc1ac744112af7c0b1cd7bb41e0f556","vuln-fix: Restrict ToTFRecordOp to single string column datasets
+
+The vulnerability allowed ToTFRecordOp to process datasets with multiple columns or non-string types, which could lead to unexpected behavior or data corruption during serialization.
+This poses a security risk by potentially causing crashes or memory corruption when handling unsupported data types, enabling denial of service or data integrity issues.
+The fix enforces validation to accept only single-column datasets of DT_STRING type, returning errors for unsupported dataset structures before processing begins.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.17647058823529413,"[('fix', 'ACTION', ''), ('segfault', 'SECWORD', ''), ('buffer overflow', 'secword', ''), ('crc', 'secword', ''), ('buffer overflow', 'secword', ''), ('change', 'ACTION', ''), ('i7396b9b8afc1ac744112af7c0b1cd7bb41e0f556', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('serialization', 'SECWORD', ''), ('security', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('denial of service', 'secword', ''), ('integrity', 'secword', ''), ('issues', 'FLAW', ''), ('fix', 'ACTION', ''), ('errors', 'FLAW', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+22,"{'CWE-787', 'CWE-120'}",GHSA-4278-2v5v-65r4,"@@ -420,6 +420,15 @@ class RaggedBincountOp : public OpKernel {
+     int num_values = values.size();
+     int batch_idx = 0;
+ 
++    OP_REQUIRES(ctx, splits(0) == 0,
++                errors::InvalidArgument(""Splits must start with 0, not with "",
++                                        splits(0)));
++
++    OP_REQUIRES(ctx, splits(num_rows) == num_values,
++                errors::InvalidArgument(
++                    ""Splits must end with the number of values, got "",
++                    splits(num_rows), "" instead of "", num_values));
++
+     Tensor* out_t;
+     OP_REQUIRES_OK(
+         ctx, ctx->allocate_output(0, TensorShape({num_rows, size}), &out_t));","Fix an invalid address vulnerability in `tf.raw_ops.RaggedBincount`.
+
+PiperOrigin-RevId: 368293153
+Change-Id: I4b4e493d3fd05e7dc55a55de3a041a80a4f275c3","vuln-fix: Validate splits array boundaries in RaggedBincountOp
+
+The vulnerability was that the splits array was not validated to start at zero and end at the number of values, allowing out-of-bounds memory access.
+This could lead to memory corruption or crashes, potentially exploitable for denial of service or arbitrary code execution.
+The fix adds explicit checks to ensure splits start with zero and end with the total number of values, rejecting invalid inputs early. 
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('vulnerability', 'secword', ''), ('tf.raw_ops.raggedbincount', 'URL', ''), ('change', 'ACTION', ''), ('i4b4e493d3fd05e7dc55a55de3a041a80a4f275c3', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('out-of-bounds', 'secword', ''), ('memory corruption', 'secword', ''), ('exploitable', 'SECWORD', ''), ('denial of service', 'secword', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+23,"{'CWE-787', 'CWE-119'}",GHSA-q4qf-3fc6-8x34,"@@ -70,6 +70,9 @@ inline bool ResolveAxis(const int num_dims, const int* axis,
+     // eg: For num_dims=3, [0, 1, 2] is the same as [-3, -2, -1]  */
+     int current = axis[idx] < 0 ? (axis[idx] + num_dims) : axis[idx];
+     TFLITE_DCHECK(current >= 0 && current < num_dims);
++    if (current < 0 || current >= num_dims) {
++      return false;
++    }
+     bool is_dup = false;
+     for (int j = 0; j < *out_num_axis; ++j) {
+       if (out_axis[j] == current) {","[tflite] Ensure `ResolveAxis` properly handles negative inputs.
+
+In Python, a list `l` of length `n` allows indexing with negative indices, `l[i]`. The only constraint is that `n + i` becomes positive. Code in `ResolveAxis` assumes the constraints and only checks it using a `DCHECK`. But the macro is a no-op in non-debug builds and that can result in reading from negative offsets (buffer underflows).
+
+PiperOrigin-RevId: 332530683
+Change-Id: I464e073fee618054ae3719a3679739007bb3f3bc","vuln-fix: Prevent out-of-bounds axis indexing in ResolveAxis function
+
+The vulnerability allows negative or out-of-range axis indices to bypass checks, potentially causing undefined behavior or memory corruption during tensor operations. This is a security risk because it can lead to crashes or exploitable conditions in applications processing untrusted input. The fix adds explicit bounds checking to reject invalid axis values before further processing, ensuring safe and predictable behavior.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.17647058823529413,"[('ensure', 'ACTION', ''), ('buffer underflows', 'SECWORD', ''), ('change', 'ACTION', ''), ('i464e073fee618054ae3719a3679739007bb3f3bc', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('out-of-range', 'SECWORD', ''), ('bypass', 'SECWORD', ''), ('memory corruption', 'SECWORD', ''), ('security', 'secword', ''), ('exploitable', 'SECWORD', ''), ('untrusted', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('bounds checking', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+24,{'CWE-787'},GHSA-8gvg-8vhf-h26g,"@@ -4006,6 +4006,11 @@ void ByteCodeGenerator::StartEmitCatch(ParseNodeCatch *pnodeCatch)
+                 sym->SetIsGlobalCatch(true);
+             }
+ 
++            if (sym->NeedsScopeObject())
++            {
++                scope->SetIsObject();
++            }
++
+             Assert(sym->GetScopeSlot() == Js::Constants::NoProperty);
+             if (sym->NeedsSlotAlloc(this, funcInfo))
+             {
+@@ -4029,6 +4034,11 @@ void ByteCodeGenerator::StartEmitCatch(ParseNodeCatch *pnodeCatch)
+             sym->SetIsGlobalCatch(true);
+         }
+ 
++        if (sym->NeedsScopeObject())
++        {
++            scope->SetIsObject();
++        }
++
+         if (scope->GetMustInstantiate())
+         {
+             if (sym->IsInSlot(this, funcInfo))",[CVE-2019-0937],"vuln-fix: Ensure scope object creation for symbols needing scope
+
+The vulnerability was that symbols requiring a scope object were not always causing the scope to be marked as an object, leading to inconsistent scope handling during catch block emission. This inconsistency could allow incorrect variable resolution or scope pollution, potentially enabling unauthorized access or manipulation of variables. The fix ensures that whenever a symbol needs a scope object, the scope is explicitly marked as an object, maintaining correct scope semantics and preventing scope-related security issues.
+
+Weakness: Improper Scope Handling (CWE-710)
+Severity: Medium
+CVSS: 5.3",0.11764705882352941,"[('cve-2019-0937', 'VULNID', 'CVE')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('ensure', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('fix', 'ACTION', ''), ('ensures', 'ACTION', ''), ('preventing', 'ACTION', ''), ('security', 'secword', ''), ('issues', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-710', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+25,{'CWE-787'},GHSA-hrmm-f4j8-8vxc,"@@ -1736,7 +1736,14 @@ void GlobOpt::ArraySrcOpt::Optimize()
+     {
+         if (newBaseValueType != baseValueType)
+         {
+-            UpdateValue(nullptr, nullptr, nullptr);
++            if (globOpt->IsSafeToTransferInPrePass(baseOpnd, baseValue))
++            {
++                UpdateValue(nullptr, nullptr, nullptr);
++            }
++            else if (globOpt->IsOperationThatLikelyKillsJsArraysWithNoMissingValues(instr) && baseValueInfo->HasNoMissingValues())
++            {
++                globOpt->ChangeValueType(nullptr, baseValue, baseValueInfo->Type().SetHasNoMissingValues(false), true);
++            }
+         }
+ 
+         // For javascript arrays and objects with javascript arrays:",[CVE-2019-0922] Type confusion in Edge - Individual,"vuln-fix: Prevent unsafe value updates in array optimization pass
+
+The vulnerability allowed unsafe updates to value types during array optimization without verifying transfer safety, potentially corrupting internal state. This posed a risk of inconsistent or invalid data leading to incorrect program behavior or exploitable conditions. The fix adds checks to ensure updates occur only when safe to transfer or adjusts value types to reflect missing values accurately, preventing unsafe state changes.
+
+Weakness: Improper Validation of Array State Changes (CWE-704)
+Severity: Medium
+CVSS: 5.3",0.058823529411764705,"[('cve-2019-0922', 'VULNID', 'CVE'), ('type confusion', 'SECWORD', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('unsafe value', 'SECWORD', ''), ('updates', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('unsafe', 'SECWORD', ''), ('updates', 'ACTION', ''), ('exploitable', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('updates', 'ACTION', ''), ('safe', 'secword', ''), ('preventing', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('changes', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper validation', 'secword', ''), ('changes', 'ACTION', ''), ('cwe-704', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+26,"{'CWE-787', 'CWE-119'}",GHSA-79fv-9865-4qcv,"@@ -199,7 +199,9 @@ static void SpatialMaxPoolWithArgMaxHelper(
+         // CHECK(input_backprop_index >= in_start && input_backprop_index <
+         // in_end)
+         FastBoundsCheck(input_backprop_index - in_start, in_end - in_start);
+-        input_backprop_flat(input_backprop_index) += out_backprop_flat(index);
++        if (index < out_backprop.NumElements()) {
++          input_backprop_flat(input_backprop_index) += out_backprop_flat(index);
++        }
+       }
+     }
+   };","Prevent heap OOB error in `MaxPoolGrad`
+
+PiperOrigin-RevId: 372424854
+Change-Id: Idac0f23867ad8b0601cafbaaa52d5e64269e63a7","vuln-fix: Prevent out-of-bounds access in SpatialMaxPool backprop
+
+The vulnerability was an unchecked array access that could read beyond the valid range of the output gradient tensor during backpropagation. This out-of-bounds access could lead to memory corruption or crashes, posing a security risk in environments processing untrusted inputs. The fix adds a boundary check to ensure the index is within valid limits before accessing the output gradient array, preventing invalid memory reads.
+
+Weakness: Out-of-bounds Read (CWE-125)  
+Severity: High  
+CVSS: 7.5",0.17647058823529413,"[('prevent', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('error', 'FLAW', ''), ('change', 'ACTION', ''), ('idac0f23867ad8b0601cafbaaa52d5e64269e63a7', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('out-of-bounds', 'secword', ''), ('memory corruption', 'secword', ''), ('security', 'SECWORD', ''), ('untrusted inputs', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('boundary check', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('out-of-bounds read', 'secword', ''), ('cwe-125', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+27,"{'CWE-787', 'CWE-665'}",GHSA-cjc7-49v2-jp64,"@@ -14,6 +14,7 @@ limitations under the License.
+ ==============================================================================*/
+ 
+ #include ""tensorflow/core/framework/op_kernel.h""
++#include ""tensorflow/core/framework/op_requires.h""
+ #include ""tensorflow/core/framework/register_types.h""
+ #include ""tensorflow/core/framework/tensor.h""
+ #include ""tensorflow/core/framework/tensor_util.h""
+@@ -101,6 +102,10 @@ class SparseAddOp : public OpKernel {
+     std::vector<T> out_values;
+     const int num_dims = a_shape->dim_size(0);
+ 
++    OP_REQUIRES(ctx, num_dims > 0,
++                errors::InvalidArgument(""Invalid input_a shape. Received: "",
++                                        a_shape->DebugString()));
++
+     // The input and output sparse tensors are assumed to be ordered along
+     // increasing dimension number.
+     int64 i = 0, j = 0;","Fix `tf.raw_ops.SparseAdd ` invalid memory access failure.
+
+PiperOrigin-RevId: 370568774
+Change-Id: I5f73b31c865f2948a1c8dfb7ebd22b3cfb6405bf","vuln-fix: Validate sparse tensor input shape in SparseAddOp
+
+The vulnerability is the lack of validation for the input sparse tensor shape, which could lead to undefined behavior or crashes when processing invalid inputs. This is a security risk because attackers could exploit malformed inputs to cause denial of service or memory corruption. The fix adds explicit validation to ensure the input tensor shape has a positive dimension size, rejecting invalid inputs early in the operation. 
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('fix', 'ACTION', ''), ('tf.raw_ops.sparseadd', 'URL', ''), ('invalid memory access', 'secword', ''), ('change', 'ACTION', ''), ('i5f73b31c865f2948a1c8dfb7ebd22b3cfb6405bf', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('exploit', 'secword', ''), ('denial of service', 'secword', ''), ('memory corruption', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+28,{'CWE-787'},GHSA-5qw5-89mw-wcg2,"@@ -1134,7 +1134,12 @@ class SymbolicShapeRefiner {
+         GetUnknownOutputShape(node, output_port);
+     InferenceContext* ctx = GetContext(node);
+     if (ctx == nullptr) {
+-      return errors::InvalidArgument(""Missing context"");
++      return errors::InvalidArgument(""SetUnknownShape: Missing context"");
++    }
++    if (output_port < 0 || output_port >= ctx->num_outputs()) {
++      return errors::InvalidArgument(
++          ""SetUnknownShape: output_port must be in [0, "", ctx->num_outputs(),
++          "") but was "", output_port);
+     }
+     ctx->set_output(output_port, shape);
+     return Status::OK();","Prevent a crash due to heap OOB write in grappler.
+
+PiperOrigin-RevId: 408318417
+Change-Id: If095feb8c001e3a8ac4a85b7387b81e8309df47d","vuln-fix: Validate output_port bounds to prevent invalid access
+
+The vulnerability was that output_port was not checked for valid range before use, allowing out-of-bounds access to inference context outputs. This could lead to undefined behavior or memory corruption, posing a security risk in shape inference operations. The fix adds explicit validation ensuring output_port is within the valid range before proceeding with shape assignment.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.17647058823529413,"[('prevent', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('if095feb8c001e3a8ac4a85b7387b81e8309df47d', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('out-of-bounds', 'SECWORD', ''), ('memory corruption', 'SECWORD', ''), ('security', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+29,{'CWE-787'},GHSA-w32p-76xr-88pc,"@@ -392,6 +392,8 @@ namespace Js
+         }
+         propertyDescriptor->SetValue(getGetResult);
+ 
++        threadContext->AddImplicitCallFlags(Js::ImplicitCall_External);
++
+         return TRUE;
+     }
+ 
+@@ -1907,6 +1909,9 @@ namespace Js
+                 }
+             }
+         }
++
++        threadContext->AddImplicitCallFlags(Js::ImplicitCall_External);
++
+         return TRUE;
+ 
+     }",CVE-2019-1003,"vuln-fix: Add implicit call flags to mark external calls
+
+The vulnerability involved missing implicit call flags when executing external code, which could lead to untracked side effects during runtime. This is a security risk because it allows external code to perform operations without proper detection, potentially causing unauthorized state changes or code execution. The fix adds explicit implicit call flags to the thread context to ensure all external calls are properly marked and monitored during execution.
+
+Weakness: CWE-829: Inclusion of Functionality from Untrusted Control Sphere  
+Severity: High  
+CVSS: 7.5",0.17647058823529413,"[('cve-2019-1003', 'VULNID', 'CVE')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('add', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('security', 'SECWORD', ''), ('changes', 'ACTION', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('cwe-829', 'CWEID', ''), ('untrusted control sphere', 'SECWORD', ''), ('high', 'SEVERITY', '')]"
+30,{'CWE-787'},GHSA-6j89-jhpr-849f,"@@ -370,6 +370,7 @@ class JsArrayKills
+             (valueType.IsArrayOrObjectWithArray() &&
+              (
+               (killsArraysWithNoMissingValues && valueType.HasNoMissingValues()) ||
++              (killsObjectArraysWithNoMissingValues && !valueType.IsArray() && valueType.HasNoMissingValues()) ||
+               (killsNativeArrays && !valueType.HasVarElements())
+              )
+             );",CVE-2019-1307,"vuln-fix: Prevent incorrect array kill logic for object arrays
+
+The vulnerability was caused by improper handling of object arrays without missing values, leading to potential incorrect data processing or security bypasses.
+This could allow attackers to exploit logic flaws by crafting object arrays that bypass intended validation or sanitization checks.
+The fix adds a condition to correctly identify and handle object arrays with no missing values, ensuring consistent and secure array processing.
+
+Weakness: Improper Input Validation (CWE-20)
+Severity: Medium
+CVSS: 5.3",0.17647058823529413,"[('cve-2019-1307', 'VULNID', 'CVE')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'secword', ''), ('improper handling', 'SECWORD', ''), ('security', 'SECWORD', ''), ('bypasses', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('exploit', 'secword', ''), ('flaws', 'FLAW', ''), ('bypass', 'secword', ''), ('sanitization', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('secure', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+31,{'CWE-787'},GHSA-mw7r-3g6w-85qg,"@@ -4664,10 +4664,7 @@ ParseNodePtr Parser::ParseMemberList(LPCOLESTR pNameHint, uint32* pNameHintLengt
+                     }
+                 }
+ 
+-                if (buildAST)
+-                {
+-                    CheckArgumentsUse(pidHint, GetCurrentFunctionNode());
+-                }
++                CheckArgumentsUse(pidHint, GetCurrentFunctionNode());
+ 
+                 bool couldBeObjectPattern = !isObjectPattern && m_token.tk == tkAsg;
+                 // Saving the current state as we may change the isObjectPattern down below.",[CVE-2019-1131] Chakra Type confusion,"vuln-fix: Always check argument usage to prevent bypass
+
+The vulnerability was caused by conditional skipping of argument usage checks when building the AST, allowing some invalid argument patterns to go unchecked.
+This posed a security risk by potentially enabling malformed or malicious code to bypass validation, leading to unexpected behavior or exploitation.
+The fix enforces argument usage checks unconditionally, ensuring all code paths validate arguments regardless of AST build state.
+
+Weakness: CWE-20: Improper Input Validation  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('cve-2019-1131', 'VULNID', 'CVE'), ('type confusion', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('bypass', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('security', 'SECWORD', ''), ('malicious code', 'secword', ''), ('bypass', 'SECWORD', ''), ('exploitation', 'SECWORD', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('validate', 'secword', ''), ('weakness', 'SECWORD', ''), ('cwe-20', 'CWEID', ''), ('improper input validation', 'SECWORD', ''), ('medium', 'SEVERITY', '')]"
+32,{'CWE-787'},GHSA-9g8h-pjm4-q92p,"@@ -77,7 +77,8 @@ static JasperInitializer initialize_jasper;
+ 
+ Jpeg2KDecoder::Jpeg2KDecoder()
+ {
+-    m_signature = '\0' + String() + '\0' + String() + '\0' + String(""\x0cjP  \r\n\x87\n"");
++    static const unsigned char signature_[12] = { 0, 0, 0, 0x0c, 'j', 'P', ' ', ' ', 13, 10, 0x87, 10};
++    m_signature = String((const char*)signature_, (const char*)signature_ + sizeof(signature_));
+     m_stream = 0;
+     m_image = 0;
+ }
+@@ -121,6 +122,8 @@ bool  Jpeg2KDecoder::readHeader()
+         jas_image_t* image = jas_image_decode( stream, -1, 0 );
+         m_image = image;
+         if( image ) {
++            CV_Assert(0 == (jas_image_tlx(image)) && ""not supported"");
++            CV_Assert(0 == (jas_image_tly(image)) && ""not supported"");
+             m_width = jas_image_width( image );
+             m_height = jas_image_height( image );
+ 
+@@ -130,14 +133,31 @@ bool  Jpeg2KDecoder::readHeader()
+             for( int i = 0; i < numcmpts; i++ )
+             {
+                 int depth_i = jas_image_cmptprec( image, i );
++                CV_Assert(depth == 0 || depth == depth_i); // component data type mismatch
+                 depth = MAX(depth, depth_i);
+                 if( jas_image_cmpttype( image, i ) > 2 )
+                     continue;
++                int sgnd = jas_image_cmptsgnd(image, i);
++                int xstart = jas_image_cmpttlx(image, i);
++                int xend = jas_image_cmptbrx(image, i);
++                int xstep = jas_image_cmpthstep(image, i);
++                int ystart = jas_image_cmpttly(image, i);
++                int yend = jas_image_cmptbry(image, i);
++                int ystep = jas_image_cmptvstep(image, i);
++                CV_Assert(sgnd == 0 && ""not supported"");
++                CV_Assert(xstart == 0 && ""not supported"");
++                CV_Assert(ystart == 0 && ""not supported"");
++                CV_Assert(xstep == 1 && ""not supported"");
++                CV_Assert(ystep == 1 && ""not supported"");
++                CV_Assert(xend == m_width);
++                CV_Assert(yend == m_height);
+                 cntcmpts++;
+             }
+ 
+             if( cntcmpts )
+             {
++                CV_Assert(depth == 8 || depth == 16);
++                CV_Assert(cntcmpts == 1 || cntcmpts == 3);
+                 m_type = CV_MAKETYPE(depth <= 8 ? CV_8U : CV_16U, cntcmpts > 1 ? 3 : 1);
+                 result = true;
+             }
+@@ -150,9 +170,14 @@ bool  Jpeg2KDecoder::readHeader()
+     return result;
+ }
+ 
++static void Jpeg2KDecoder_close(Jpeg2KDecoder* ptr)
++{
++    ptr->close();
++}
+ 
+ bool  Jpeg2KDecoder::readData( Mat& img )
+ {
++    Ptr<Jpeg2KDecoder> close_this(this, Jpeg2KDecoder_close);
+     bool result = false;
+     int color = img.channels() > 1;
+     uchar* data = img.ptr();
+@@ -204,11 +229,16 @@ bool  Jpeg2KDecoder::readData( Mat& img )
+                     result = true;
+                 }
+                 else
+-                    fprintf(stderr, ""JPEG 2000 LOADER ERROR: cannot convert colorspace\n"");
++                {
++                    jas_cmprof_destroy(clrprof);
++                    CV_Error(Error::StsError, ""JPEG 2000 LOADER ERROR: cannot convert colorspace"");
++                }
+                 jas_cmprof_destroy( clrprof );
+             }
+             else
+-                fprintf(stderr, ""JPEG 2000 LOADER ERROR: unable to create colorspace\n"");
++            {
++                CV_Error(Error::StsError, ""JPEG 2000 LOADER ERROR: unable to create colorspace"");
++            }
+         }
+         else
+             result = true;
+@@ -257,8 +287,8 @@ bool  Jpeg2KDecoder::readData( Mat& img )
+                                 result = readComponent16u( ((unsigned short *)data) + i, buffer, validateToInt(step / 2), cmptlut[i], maxval, offset, ncmpts );
+                             if( !result )
+                             {
+-                                i = ncmpts;
+-                                result = false;
++                                jas_matrix_destroy( buffer );
++                                CV_Error(Error::StsError, ""JPEG2000 LOADER ERROR: failed to read component"");
+                             }
+                         }
+                         jas_matrix_destroy( buffer );
+@@ -267,10 +297,12 @@ bool  Jpeg2KDecoder::readData( Mat& img )
+             }
+         }
+         else
+-            fprintf(stderr, ""JPEG2000 LOADER ERROR: colorspace conversion failed\n"" );
++        {
++            CV_Error(Error::StsError, ""JPEG2000 LOADER ERROR: colorspace conversion failed"");
++        }
+     }
+ 
+-    close();
++    CV_Assert(result == true);
+ 
+ #ifndef _WIN32
+     if (!clr.empty())",imgcodecs: add more Jasper checks for supported and tested cases,"vuln-fix: Harden JPEG 2000 decoder input validation and error handling
+
+The JPEG 2000 decoder lacked strict validation of image component parameters and error handling, allowing unsupported or malformed images to be processed unsafely. This posed a risk of memory corruption or crashes due to unchecked assumptions about image layout and component properties. The fix adds comprehensive assertions on image component properties, enforces strict error handling with exceptions, and ensures proper resource cleanup to prevent exploitation.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5
+
+Weakness: Improper Error Handling (CWE-391)  
+Severity: Medium  
+CVSS: 5.0",0.058823529411764705,"[('add', 'ACTION', '')]",0.5294117647058824,"[('fix', 'ACTION', ''), ('decoder', 'SECWORD', ''), ('input validation', 'SECWORD', ''), ('error handling', 'SECWORD', ''), ('decoder', 'SECWORD', ''), ('error handling', 'SECWORD', ''), ('unsafely', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error handling', 'SECWORD', ''), ('ensures', 'ACTION', ''), ('prevent', 'ACTION', ''), ('exploitation', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', ''), ('weakness', 'SECWORD', ''), ('improper error handling', 'secword', ''), ('cwe-391', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+33,{'CWE-787'},GHSA-88cw-3m6x-49f7,"@@ -27152,8 +27152,11 @@ void Lowerer::LowerLdFrameDisplay(IR::Instr *instr, bool doStackFrameDisplay)
+         if (instr->m_func != this->m_func && this->m_func->DoStackFrameDisplay())
+         {
+             StackSym * inlineeFrameDisplaySym = instr->m_func->GetLocalFrameDisplaySym();
+-            Assert(inlineeFrameDisplaySym->IsAllocated());
+-            InsertMove(IR::SymOpnd::New(inlineeFrameDisplaySym, TyMachReg, m_func), dstOpnd, instr);
++            Assert((inlineeFrameDisplaySym && inlineeFrameDisplaySym->IsAllocated()) || this->m_func->IsLoopBody());
++            if (inlineeFrameDisplaySym && inlineeFrameDisplaySym->IsAllocated())
++            {
++                InsertMove(IR::SymOpnd::New(inlineeFrameDisplaySym, TyMachReg, m_func), dstOpnd, instr);
++            }
+         }
+     }",[CVE-2020-17054],"vuln-fix: Prevent null dereference in frame display lowering
+
+The code dereferenced a potentially null pointer without checking its validity before use, leading to undefined behavior during frame display lowering. This is a security risk because it can cause crashes or memory corruption, potentially exploitable for denial of service or code execution. The fix adds a null check and conditional logic to ensure the pointer is valid before dereferencing and moving data.
+
+Weakness: CWE-476: NULL Pointer Dereference  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('cve-2020-17054', 'VULNID', 'CVE')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('null dereference', 'SECWORD', ''), ('security', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('denial of service', 'secword', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('cwe-476', 'CWEID', ''), ('null pointer dereference', 'SECWORD', ''), ('medium', 'SEVERITY', '')]"
+34,{'CWE-787'},GHSA-9c78-vcq7-7vxq,"@@ -928,6 +928,36 @@ TfLiteStatus EvalShuffledQuantized(TfLiteContext* context, TfLiteNode* node,
+   return kTfLiteOk;
+ }
+ 
++// Verifies that sparsity values are valid given input/weight/output.
++bool VerifySparsity(const RuntimeShape& weights_shape,
++                    const RuntimeShape& input_shape,
++                    const RuntimeShape& output_shape,
++                    const TfLiteSparsity* sparsity) {
++  const int weights_dims_count = weights_shape.DimensionsCount();
++  const int output_dims_count = output_shape.DimensionsCount();
++  const int w0_size = sparsity->dim_metadata[0].dense_size;
++  const int accum_depth = weights_shape.Dims(weights_dims_count - 1);
++  const int output_elements = output_shape.FlatSize();
++  const int input_elements = input_shape.FlatSize();
++  const int batches = FlatSizeSkipDim(output_shape, output_dims_count - 1);
++  const int output_depth = MatchingDim(weights_shape, weights_dims_count - 2,
++                                       output_shape, output_dims_count - 1);
++  const int max_batch_index = batches - 1;
++  const int max_output = max_batch_index * output_depth + w0_size;
++  const int max_batch_depth = accum_depth * max_batch_index;
++
++  // Verify output size is enough.
++  if (output_elements < max_output) return false;
++
++  // Verify index from sparse in input is valid.
++  for (int i = 0; i < sparsity->dim_metadata[1].array_indices->size; ++i) {
++    if (input_elements <=
++        max_batch_depth + sparsity->dim_metadata[1].array_indices->data[i])
++      return false;
++  }
++  return true;
++}
++
+ template <KernelType kernel_type>
+ TfLiteStatus EvalFloat(TfLiteContext* context, TfLiteNode* node,
+                        TfLiteFullyConnectedParams* params, OpData* data,
+@@ -968,24 +998,32 @@ TfLiteStatus EvalFloat(TfLiteContext* context, TfLiteNode* node,
+                            ""Unsupported sparse fully-connected weight format."");
+         return kTfLiteError;
+       }
++      const auto& input_shape = GetTensorShape(input);
++      const auto& filter_shape = GetTensorShape(filter);
++      const auto& output_shape = GetTensorShape(output);
++      const auto& bias_shape = GetTensorShape(bias);
++      if (!VerifySparsity(filter_shape, input_shape, output_shape, &sparsity)) {
++        TF_LITE_KERNEL_LOG(context, ""Invalid sparse fully-connected format."");
++        return kTfLiteError;
++      }
+ 
+       if (sparsity.dim_metadata_size == kDimMetadataSizeRandomSparse) {
+         // Random sparse.
+         optimized_ops::FullyConnectedSparseWeight(
+-            sparsity, op_params, GetTensorShape(input),
+-            GetTensorData<float>(input), GetTensorShape(filter),
+-            GetTensorData<float>(filter), GetTensorShape(bias),
+-            GetTensorData<float>(bias), GetTensorShape(output),
+-            GetTensorData<float>(output));
++            sparsity, op_params,                         // Disable formatting
++            input_shape, GetTensorData<float>(input),    // Disable formatting
++            filter_shape, GetTensorData<float>(filter),  // Disable formatting
++            bias_shape, GetTensorData<float>(bias),      // Disable formatting
++            output_shape, GetTensorData<float>(output));
+       } else if (sparsity.dim_metadata_size == kDimMetadataSizeBlockSparse &&
+                  sparsity.dim_metadata[2].dense_size == 4) {
+         // Block sparse with block size of 1x4.
+         optimized_ops::FullyConnectedSparseWeight1x4(
+-            sparsity, op_params, GetTensorShape(input),
+-            GetTensorData<float>(input), GetTensorShape(filter),
+-            GetTensorData<float>(filter), GetTensorShape(bias),
+-            GetTensorData<float>(bias), GetTensorShape(output),
+-            GetTensorData<float>(output),
++            sparsity, op_params,                         // Disable formatting
++            input_shape, GetTensorData<float>(input),    // Disable formatting
++            filter_shape, GetTensorData<float>(filter),  // Disable formatting
++            bias_shape, GetTensorData<float>(bias),      // Disable formatting
++            output_shape, GetTensorData<float>(output),
+             CpuBackendContext::GetFromContext(context));
+       } else {
+         TF_LITE_KERNEL_LOG(context,","[lite] add validation check for sparse fully connected
+
+PiperOrigin-RevId: 417629354
+Change-Id: If96171c4bd4f5fdb01d6368d6deab19d1c9beca7","vuln-fix: Validate sparsity metadata to prevent out-of-bounds access
+
+The vulnerability is caused by missing validation of sparsity metadata, which can lead to out-of-bounds memory access during sparse fully-connected operations. This is a security risk because it may allow attackers to cause crashes or execute arbitrary code by crafting malformed sparse tensors. The fix adds a VerifySparsity function that checks sparsity indices against input, weight, and output shapes, rejecting invalid sparse formats before processing.
+
+Weakness: Out-of-bounds Write (CWE-787)  
+Severity: High  
+CVSS: 7.5",0.11764705882352941,"[('add', 'ACTION', ''), ('change', 'ACTION', ''), ('if96171c4bd4f5fdb01d6368d6deab19d1c9beca7', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('missing validation', 'SECWORD', ''), ('out-of-bounds', 'SECWORD', ''), ('security', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('out-of-bounds write', 'secword', ''), ('cwe-787', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+35,"{'CWE-787', 'CWE-665'}",GHSA-cjc7-49v2-jp64,"@@ -44,6 +44,11 @@ class SparseAddOp : public OpKernel {
+                     b_indices->shape().DebugString()));
+     const int64 a_nnz = a_indices->dim_size(0);
+     const int64 b_nnz = b_indices->dim_size(0);
++    const int num_dims = a_indices->dim_size(1);
++    OP_REQUIRES(ctx, b_indices->dim_size(1) == num_dims,
++                errors::InvalidArgument(
++                    ""Input indices must have the same dimension, got "",
++                    num_dims, "" and "", b_indices->dim_size(1)));
+ 
+     OP_REQUIRES_OK(ctx, ctx->input(""a_values"", &a_values_t));
+     OP_REQUIRES_OK(ctx, ctx->input(""b_values"", &b_values_t));
+@@ -72,6 +77,13 @@ class SparseAddOp : public OpKernel {
+                     ""Input shapes should be a vector but received shapes "",
+                     a_shape->shape().DebugString(), "" and "",
+                     b_shape->shape().DebugString()));
++    OP_REQUIRES(
++        ctx, a_shape->NumElements() == num_dims,
++        errors::InvalidArgument(""Second dimension of a_indices and length of ""
++                                ""a_shape must match, got "",
++                                num_dims, "" and "", a_shape->NumElements()));
++    OP_REQUIRES(ctx, num_dims > 0,
++                errors::InvalidArgument(""Tesors must not be empty""));
+     OP_REQUIRES(
+         ctx, a_shape->IsSameSize(*b_shape),
+         errors::InvalidArgument(
+@@ -100,11 +112,6 @@ class SparseAddOp : public OpKernel {
+     std::vector<std::pair<bool, int64>> entries_to_copy;  // from_a?, idx
+     entries_to_copy.reserve(a_nnz + b_nnz);
+     std::vector<T> out_values;
+-    const int num_dims = a_shape->dim_size(0);
+-
+-    OP_REQUIRES(ctx, num_dims > 0,
+-                errors::InvalidArgument(""Invalid input_a shape. Received: "",
+-                                        a_shape->DebugString()));
+ 
+     // The input and output sparse tensors are assumed to be ordered along
+     // increasing dimension number.","Validate that a and b are proper sparse tensors
+
+PiperOrigin-RevId: 373248068
+Change-Id: I0a2041a0747901b3f00387a6a3bce9bca6b0b3b1","vuln-fix: Validate sparse tensor dimensions to prevent shape mismatch
+
+The vulnerability was due to missing validation of input sparse tensor dimensions, allowing inconsistent shapes to be processed without error. This posed a security risk by enabling potential memory corruption or logic errors from malformed inputs. The fix adds explicit checks ensuring input indices and shapes have matching and non-empty dimensions before processing.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.17647058823529413,"[('validate', 'secword', ''), ('change', 'ACTION', ''), ('i0a2041a0747901b3f00387a6a3bce9bca6b0b3b1', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('missing validation', 'SECWORD', ''), ('error', 'FLAW', ''), ('security', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('logic errors', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+36,"{'CWE-787', 'CWE-125'}",GHSA-cvpc-8phh-8f45,"@@ -75,12 +75,7 @@ TfLiteTensor* GetOutput(TfLiteContext* context, const TfLiteNode* node,
+ 
+ const TfLiteTensor* GetOptionalInputTensor(const TfLiteContext* context,
+                                            const TfLiteNode* node, int index) {
+-  const bool use_tensor = index < node->inputs->size &&
+-                          node->inputs->data[index] != kTfLiteOptionalTensor;
+-  if (use_tensor) {
+-    return GetMutableInput(context, node, index);
+-  }
+-  return nullptr;
++  return GetInput(context, node, index);
+ }
+ 
+ // Per-axis","[tflite] Make `GetOptionalInputTensor` the same as `GetInput`.
+
+With the previous change, there is no more need for two separate APIs. We would deprecate `GetOptionalInputTensor` in the future.
+
+PiperOrigin-RevId: 332513386
+Change-Id: Id7110271c25ebd6126ad8c82a493e37e0e0756b3","vuln-fix: Prevent invalid optional tensor access in input retrieval
+
+The function incorrectly checked for optional tensor presence, potentially allowing out-of-bounds or invalid tensor access leading to undefined behavior or memory corruption.
+This could be exploited to cause crashes or leak sensitive data by accessing unintended memory regions.
+The fix replaces the conditional check with a direct safe input retrieval call that properly handles optional tensors and prevents invalid access. 
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.17647058823529413,"[('change', 'ACTION', ''), ('change', 'ACTION', ''), ('id7110271c25ebd6126ad8c82a493e37e0e0756b3', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('incorrectly checked', 'SECWORD', ''), ('out-of-bounds', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('exploited', 'SECWORD', ''), ('leak', 'secword', ''), ('sensitive data', 'SECWORD', ''), ('fix', 'ACTION', ''), ('safe', 'secword', ''), ('prevents', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+37,"{'CWE-787', 'CWE-125'}",GHSA-8gv3-57p6-g35r,"@@ -313,6 +313,12 @@ class RaggedTensorToTensorBaseOp : public OpKernel {
+             output_index_multiplier, output_size, result);
+         return tensorflow::Status::OK();
+       case RowPartitionType::ROW_SPLITS:
++        if (row_partition_tensor.size() - 1 > parent_output_index.size()) {
++          return errors::InvalidArgument(
++              ""Row partition size is greater than output size: "",
++              row_partition_tensor.size() - 1, "" > "",
++              parent_output_index.size());
++        }
+         CalculateOutputIndexRowSplit(
+             context, row_partition_tensor, parent_output_index,
+             output_index_multiplier, output_size, result);","Fix heap-buffer-overflow issue with `tf.raw_ops.RaggedTensorToTensor`.
+
+PiperOrigin-RevId: 371986929
+Change-Id: I79ab962a22c5867f36f7f45b780a1ac881b1dbdd","vuln-fix: Prevent out-of-bounds access in row partition handling
+
+The vulnerability is an unchecked condition where the row partition size could exceed the output size, leading to potential out-of-bounds memory access. This is a security risk because it can cause crashes or memory corruption, enabling denial of service or arbitrary code execution. The fix adds a validation check that returns an error if the row partition size is greater than the output size, preventing invalid memory access.
+
+Weakness: CWE-125: Out-of-bounds Read  
+Severity: High  
+CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('overflow', 'SECWORD', ''), ('issue', 'FLAW', ''), ('tf.raw_ops.raggedtensortotensor', 'URL', ''), ('change', 'ACTION', ''), ('i79ab962a22c5867f36f7f45b780a1ac881b1dbdd', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('out-of-bounds', 'secword', ''), ('security', 'secword', ''), ('memory corruption', 'secword', ''), ('denial of service', 'SECWORD', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('preventing', 'ACTION', ''), ('invalid memory access', 'secword', ''), ('weakness', 'SECWORD', ''), ('cwe-125', 'CWEID', ''), ('out-of-bounds read', 'SECWORD', ''), ('high', 'SEVERITY', '')]"
+38,"{'CWE-787', 'CWE-125'}",GHSA-hpv4-7p9c-mvfr,"@@ -271,6 +271,18 @@ class FractionalAvgPoolGradOp : public OpKernel {
+     const int64_t in_rows = orig_input_tensor_shape_flat(1);
+     const int64_t in_cols = orig_input_tensor_shape_flat(2);
+     const int64_t in_depth = orig_input_tensor_shape_flat(3);
++    OP_REQUIRES(
++        context, in_batch != 0,
++        errors::InvalidArgument(""Batch dimension of input must not be 0""));
++    OP_REQUIRES(
++        context, in_rows != 0,
++        errors::InvalidArgument(""Rows dimension of input must not be 0""));
++    OP_REQUIRES(
++        context, in_cols != 0,
++        errors::InvalidArgument(""Columns dimension of input must not be 0""));
++    OP_REQUIRES(
++        context, in_depth != 0,
++        errors::InvalidArgument(""Depth dimension of input must not be 0""));
+ 
+     constexpr int tensor_in_and_out_dims = 4;
+     // Transform orig_input_tensor_shape into TensorShape","Validate dimensions of input tensor in `FractionalAvgPoolGrad`
+
+PiperOrigin-RevId: 388286227
+Change-Id: Ieb7566155e92acc8993a2212c76deacadc0edc8a","vuln-fix: Validate tensor input dimensions to prevent zero-size inputs
+
+The vulnerability allowed zero-sized tensor dimensions to be processed, which could lead to undefined behavior or crashes during computation. This is a security risk because it may cause denial of service or memory corruption in downstream operations. The fix adds explicit checks to ensure all tensor dimensions are non-zero before proceeding with processing.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('validate', 'secword', ''), ('change', 'ACTION', ''), ('ieb7566155e92acc8993a2212c76deacadc0edc8a', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('security', 'secword', ''), ('denial of service', 'secword', ''), ('memory corruption', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+39,"{'CWE-787', 'CWE-119'}",GHSA-7cqx-92hp-x6wh,"@@ -693,6 +693,7 @@ class MaxPooling3dGradGradOp : public OpKernel {
+ 
+     Pool3dParameters params{context,  ksize_,       stride_,
+                             padding_, data_format_, tensor_in.shape()};
++    if (!context->status().ok()) return;  // params is invalid
+ 
+     Tensor* output = nullptr;
+     OP_REQUIRES_OK(context, context->forward_input_or_allocate_output(
+@@ -710,6 +711,17 @@ class MaxPooling3dGradGradOp : public OpKernel {
+         context, out_grad_backprop.NumElements() > 0,
+         errors::InvalidArgument(""received empty tensor out_grad_backprop: "",
+                                 out_grad_backprop.DebugString()));
++    OP_REQUIRES(context,
++                tensor_in.NumElements() == out_grad_backprop.NumElements(),
++                errors::InvalidArgument(""tensor_in and out_grad_backprop must ""
++                                        ""have same number of elements, got <"",
++                                        tensor_in.DebugString(), ""> and <"",
++                                        out_grad_backprop.DebugString(), "">""));
++    OP_REQUIRES(
++        context, tensor_out.NumElements() == output->NumElements(),
++        errors::InvalidArgument(
++            ""tensor_out and output must have same number of elements, got <"",
++            tensor_out.DebugString(), ""> and <"", output->DebugString(), "">""));
+ 
+     LaunchMaxPooling3dGradGradOp<Device, T>::launch(
+         context, params, tensor_in, tensor_out, out_grad_backprop, output);","Add missing validation, prevent heap OOB
+
+PiperOrigin-RevId: 372246723
+Change-Id: I1a454a643810e77d7d14821b342098c56a09fbbf","vuln-fix: Validate tensor dimensions in MaxPooling3dGradGradOp kernel
+
+The vulnerability is that tensor dimension mismatches were not checked, allowing inconsistent tensor sizes to propagate through the pooling gradient computation.
+This can lead to out-of-bounds memory access or corrupted data, posing risks of crashes or potential information leakage.
+The fix adds explicit validation to ensure input and output tensors have matching element counts before proceeding with the operation.
+
+Weakness: Improper Input Validation (CWE-20)
+Severity: High
+CVSS: 7.5",0.17647058823529413,"[('add', 'ACTION', ''), ('missing validation', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('i1a454a643810e77d7d14821b342098c56a09fbbf', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('out-of-bounds', 'secword', ''), ('information leakage', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+40,{'CWE-787'},GHSA-w89r-qch4-8jv5,"@@ -415,11 +415,19 @@ GlobOpt::ProcessFieldKills(IR::Instr *instr, BVSparse<JitArenaAllocator> *bv, bo
+ 
+     case Js::OpCode::InlineArrayPush:
+     case Js::OpCode::InlineArrayPop:
+-        KillLiveFields(this->lengthEquivBv, bv);
+-        if (inGlobOpt)
++        if(instr->m_func->GetThisOrParentInlinerHasArguments())
+         {
+-            // Deleting an item, or pushing a property to a non-array, may change object layout
+-            KillAllObjectTypes(bv);
++            this->KillAllFields(bv);
++            this->SetAnyPropertyMayBeWrittenTo();
++        }
++        else
++        {
++            KillLiveFields(this->lengthEquivBv, bv);
++            if (inGlobOpt)
++            {
++                // Deleting an item, or pushing a property to a non-array, may change object layout
++                KillAllObjectTypes(bv);
++            }
+         }
+         break;
+ 
+@@ -444,14 +452,23 @@ GlobOpt::ProcessFieldKills(IR::Instr *instr, BVSparse<JitArenaAllocator> *bv, bo
+                 // Kill length field for built-ins that can update it.
+                 if (nullptr != this->lengthEquivBv)
+                 {
+-                    KillLiveFields(this->lengthEquivBv, bv);
++                    // If has arguments, all fields are killed in fall through
++                    if (!instr->m_func->GetThisOrParentInlinerHasArguments())
++                    {
++                        KillLiveFields(this->lengthEquivBv, bv);
++                    }
+                 }
+                 // fall through
+ 
+             case IR::JnHelperMethod::HelperArray_Reverse:
+-                // Deleting an item may change object layout
+-                if (inGlobOpt)
++                if (instr->m_func->GetThisOrParentInlinerHasArguments())
++                {
++                    this->KillAllFields(bv);
++                    this->SetAnyPropertyMayBeWrittenTo();
++                }
++                else if (inGlobOpt)
+                 {
++                    // Deleting an item may change object layout
+                     KillAllObjectTypes(bv);
+                 }
+                 break;",[CVE-2019-0912],"vuln-fix: Correct field kill logic to prevent stale object state
+
+The vulnerability is due to improper handling of field kills when functions have arguments, causing stale or inconsistent object state during optimization phases. This can lead to incorrect assumptions about object layouts, potentially enabling type confusion or memory corruption exploits. The fix updates the kill logic to comprehensively kill all fields and mark properties as writable when arguments are present, ensuring accurate object state tracking.
+
+Weakness: Improper Handling of Object State During Optimization (CWE-704)
+Severity: High
+CVSS: 7.5",0.11764705882352941,"[('cve-2019-0912', 'VULNID', 'CVE')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('improper handling', 'SECWORD', ''), ('type confusion', 'SECWORD', ''), ('memory corruption', 'SECWORD', ''), ('exploits', 'SECWORD', ''), ('fix', 'ACTION', ''), ('updates', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper handling', 'secword', ''), ('cwe-704', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+41,"{'CWE-787', 'CWE-131'}",GHSA-8c89-2vwr-chcq,"@@ -702,8 +702,14 @@ class QuantizedResizeBilinearOp : public OpKernel {
+   }
+ 
+   void Compute(OpKernelContext* context) override {
+-    const float in_min = context->input(2).flat<float>()(0);
+-    const float in_max = context->input(3).flat<float>()(0);
++    const auto& in_min_tensor = context->input(2);
++    OP_REQUIRES(context, TensorShapeUtils::IsScalar(in_min_tensor.shape()),
++                errors::InvalidArgument(""min must be a scalar""));
++    const float in_min = in_min_tensor.flat<float>()(0);
++    const auto& in_max_tensor = context->input(3);
++    OP_REQUIRES(context, TensorShapeUtils::IsScalar(in_max_tensor.shape()),
++                errors::InvalidArgument(""max must be a scalar""));
++    const float in_max = in_max_tensor.flat<float>()(0);
+ 
+     ImageResizerState st(align_corners_, false);
+     st.ValidateAndCreateOutput(context);","Validate min and max arguments to `QuantizedResizeBilinear`.
+
+PiperOrigin-RevId: 369765091
+Change-Id: I33be8b78273ab7d08b97541692fe05cb7f94963a","vuln-fix: Validate scalar inputs in QuantizedResizeBilinearOp
+
+The vulnerability was due to missing validation of input tensor shapes, allowing non-scalar tensors to be processed as scalars. This posed a security risk by enabling malformed inputs that could cause undefined behavior or memory corruption. The fix adds explicit checks to ensure inputs are scalars before accessing their values, preventing invalid memory access.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('validate', 'secword', ''), ('change', 'ACTION', ''), ('i33be8b78273ab7d08b97541692fe05cb7f94963a', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('missing validation', 'SECWORD', ''), ('security', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('preventing', 'ACTION', ''), ('invalid memory access', 'secword', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+42,"{'CWE-787', 'CWE-120'}",GHSA-44qp-9wwf-734r,"@@ -206,6 +206,23 @@ class SparseCount : public OpKernel {
+     OP_REQUIRES(context, shape.NumElements() > 0,
+                 errors::InvalidArgument(
+                     ""The shape argument requires at least one element.""));
++    // Validate indices: each index must be valid for the corresponding
++    // dimension. This could be possibly done better.
++    const auto indices_values = indices.matrix<int64_t>();
++    const auto shape_vector = shape.vec<int64_t>();
++    int num_values = values.NumElements();  // same as first dim of indices
++    int rank = indices.shape().dim_size(1);
++    for (int i = 0; i < num_values; ++i) {
++      for (int j = 0; j < rank; ++j) {
++        OP_REQUIRES(
++            context,
++            indices_values(i, j) >= 0 && indices_values(i, j) < shape_vector(j),
++            errors::InvalidArgument(
++                ""Invalid index value at "", i, "": dimension "", j, "" has value "",
++                indices_values(i, j), "" which is not in [0, "", shape_vector(j),
++                "") (as given by dense shape "", shape.DebugString()));
++      }
++    }
+ 
+     if (use_weights) {
+       OP_REQUIRES(
+@@ -217,11 +234,8 @@ class SparseCount : public OpKernel {
+     }
+ 
+     bool is_1d = shape.NumElements() == 1;
+-    auto shape_vector = shape.flat<int64_t>();
+     int num_batches = is_1d ? 1 : shape_vector(0);
+-    int num_values = values.NumElements();
+ 
+-    const auto indices_values = indices.matrix<int64_t>();
+     const auto values_values = values.flat<T>();
+     const auto weight_values = weights.flat<W>();","Further validate sparse tensor for `SparseCount`: indices must be valid within dense shape.
+
+PiperOrigin-RevId: 414888122
+Change-Id: I4552bd74c135ecd4bcb5448acc0a3ce9402d8286","vuln-fix: Validate sparse indices to prevent out-of-bounds access
+
+The vulnerability allowed sparse indices to reference out-of-bounds dimensions without validation, risking memory corruption or crashes during tensor operations. This is a security risk because attackers could exploit invalid indices to cause denial of service or potentially execute arbitrary code. The fix adds explicit checks ensuring each index is within valid bounds for its dimension, rejecting invalid inputs early with clear error messages.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.11764705882352941,"[('validate', 'secword', ''), ('change', 'ACTION', ''), ('i4552bd74c135ecd4bcb5448acc0a3ce9402d8286', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('out-of-bounds', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('security', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('exploit', 'secword', ''), ('denial of service', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+43,{'CWE-787'},GHSA-mqh2-9wrp-vx84,"@@ -527,6 +527,10 @@ inline Status SparseTensor::Split(const SparseTensor& input_tensor,
+   for (int i = 0; i < input_tensor.indices().dim_size(0); ++i) {
+     const int dim = input_tensor.indices().matrix<int64>()(i, split_dim);
+     int slice_index = GetSliceIndex(dim, split_size, residual);
++    if (slice_index >= num_values.size()) {
++      return errors::InvalidArgument(""Slice index "", slice_index,
++                                     "" is larger than num_split."");
++    }
+     num_values[slice_index]++;
+   }","Fix heap-buffer-overflow issue with `tf.raw_ops.SparseSplit`.
+
+PiperOrigin-RevId: 371242872
+Change-Id: I482bb3d12602c7c3cc9446f97fb9f584bb98e9a4","vuln-fix: Prevent out-of-bounds access in SparseTensor split
+
+The vulnerability is an unchecked slice index that can exceed the number of splits during SparseTensor splitting operations. This poses a security risk by potentially causing out-of-bounds memory access, leading to crashes or data corruption. The fix adds a boundary check that returns an error if the slice index is invalid, preventing unsafe memory access. 
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('overflow', 'SECWORD', ''), ('issue', 'FLAW', ''), ('tf.raw_ops.sparsesplit', 'URL', ''), ('change', 'ACTION', ''), ('i482bb3d12602c7c3cc9446f97fb9f584bb98e9a4', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('security', 'SECWORD', ''), ('out-of-bounds', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('boundary check', 'SECWORD', ''), ('error', 'FLAW', ''), ('preventing', 'ACTION', ''), ('unsafe', 'secword', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"

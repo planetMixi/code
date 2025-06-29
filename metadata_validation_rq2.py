@@ -35,11 +35,11 @@ def extract_vuln_id(text):
 
 # --------- load data entries in the right order ---------------
 file_order = [
-    "cwe-617_samples.json",
     "cwe-79_samples.json",
-    "cwe-125_samples.json",
-    "cwe-89_samples.json",
-    "cwe-918_samples.json"
+    "cwe-400_samples.json",
+    "cwe-787_samples.json",
+    "cwe-20_samples.json",
+    "cwe-125_samples.json"
 ]
 
 data_entries = []
@@ -51,7 +51,7 @@ entries_by_vuln_id = {entry["vuln_id"]: entry for entry in data_entries}
 
 
 # --- Load RQ2 generation output ---
-df = pd.read_csv("secom_zero_shot_rq2_results.csv")
+df = pd.read_csv("secom_few_shot_results.csv")
 
 # --- Validate metadata ---
 results = []
@@ -103,5 +103,5 @@ for _, row in df.iterrows():
 
 # --- Save validation output ---
 validation_df = pd.DataFrame(results)
-validation_df.to_csv("secom_zero_shot_rq2_results_validation.csv", index=False)
+validation_df.to_csv("secom_few_shot_results_validation.csv", index=False)
 print(f"Validation complete: {len(validation_df)} entries saved.")

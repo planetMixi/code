@@ -36,7 +36,7 @@ for i in range(1, 6):
 
 entries_by_vuln_id = {entry["vuln_id"]: entry for entry in data_entries}
 
-df = pd.read_csv("secom_zero_shot_rq2_subset1.csv")
+df = pd.read_csv("secom_zero_shot_results.csv")
 
 # --- Validate metadata ---
 results = []

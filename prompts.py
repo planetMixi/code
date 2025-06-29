@@ -219,35 +219,44 @@ few_shot_prompt = """Here are three examples of Git diffs and their correspondin
 Example 1
 Git Diff:
 ```diff
-@@ -87,7 +87,17 @@ class BinaryOp : public BinaryOpShared {
+@@ -513,13 +513,15 @@ Server.prototype.setContentHeaders = function (req, res, next) {
+   next();
+ };
 
-   void Compute(OpKernelContext* ctx) override {
-     const Tensor& input_0 = ctx->input(0);
-+    OP_REQUIRES(ctx, input_0.dtype() == DataTypeToEnum<Tin>::v(),
-+                errors::InvalidArgument(
-+                    "Expected tensor of type ",
-+                    DataTypeString(DataTypeToEnum<Tin>::v()), " but got type ",
-+                    DataTypeString(input_0.dtype())));
-     const Tensor& input_1 = ctx->input(1);
-+    OP_REQUIRES(ctx, input_1.dtype() == DataTypeToEnum<Tin>::v(),
-+                errors::InvalidArgument(
-+                    "Expected tensor of type ",
-+                    DataTypeString(DataTypeToEnum<Tin>::v()), " but got type ",
-+                    DataTypeString(input_1.dtype())));
-     const Device& eigen_device = ctx->eigen_device<Device>();
+-Server.prototype.checkHost = function (headers) {
++Server.prototype.checkHost = function (headers, headerToCheck) {
+   // allow user to opt-out this security check, at own risk
+   if (this.disableHostCheck) return true;
+
++  if (!headerToCheck) headerToCheck = "host";
++
+   // get the Host header and extract hostname
+   // we don't care about port not matching
+-  const hostHeader = headers.host;
++  const hostHeader = headers[headerToCheck];
+   if (!hostHeader) return false;
+...
++      if (!this.checkHost(conn.headers, "origin")) {
++        this.sockWrite([conn], 'error', 'Invalid Origin header');
++        conn.close();
++        return;
++      }
+
 ```
 Expected Output:
-vuln-fix: Validate tensor types in binary operation
+vuln-fix: Validate origin header in websocket connections
 
-The binary operation function did not verify that input tensor types matched the expected type, allowing malformed SavedModel inputs to cause type confusion.
-This led to runtime crashes via CHECK failures when mismatched types were interpreted incorrectly, resulting in denial-of-service scenarios.
-The patch validates that both input tensors match the expected data type using TensorFlow's OP_REQUIRES and DataTypeToEnum checks.
+The WebSocket server did not validate the Origin header of incoming connection requests, allowing unauthorized websites to initiate socket communication with development servers.
+This exposed applications to cross-origin attacks where malicious websites could hijack WebSocket sessions and access sensitive development data without user consent.
+The patch introduces strict Origin header validation to reject unauthorized sources before any socket activity is established.
 
-Weakness: CWE-617
-Severity: Medium
-CVSS: 6.5
+Weakness: CWE-20
+Severity: High
+CVSS: 7.5
 
-# CWE-617 is used because the patch prevents reachable assertion failures caused by inconsistent internal tensor states, a form of type confusion exploitable for denial of service.
+# CWE-20 is used because the vulnerability results from missing validation of external input — specifically the Origin header — allowing untrusted input to pass unchecked into security-critical logic.
+# This is not a memory safety issue or bounds violation, but a classic case of improper input validation allowing unauthorized access.
+
 
 Example 2
 Git Diff:
@@ -289,68 +298,79 @@ Git Diff:
 Expected Output:
 vuln-fix: Check for empty input tensors in evaluation
 
-The implementation did not check for empty input tensors before accessing their data.
-This could cause out-of-bounds memory reads, leading to crashes or information leaks.
-The patch short-circuits execution when any input tensor is empty.
+The evaluation function failed to check whether input tensors contained any elements before dereferencing them during computation.
+This allowed attackers to trigger out-of-bounds memory reads by passing empty tensors, potentially exposing adjacent memory or causing crashes.
+The patch adds early checks to short-circuit evaluation when either input tensor has zero elements, preventing invalid read access.
 
 Weakness: CWE-125
 Severity: Low
 CVSS: 2.5
 
-# CWE-125 applies because the patch prevents reading beyond array/tensor bounds
-# by checking if input arrays are empty.
+# CWE-125 is used because the vulnerability allowed attackers to read memory beyond the bounds of an empty tensor,
+# resulting in exposure of uninitialized or adjacent memory through out-of-bounds access.
+
 
 Example 4
 Git Diff:
 ```diff
-@@ -152,6 +152,7 @@ public static function delete(int $id): void
-     public static function deleteData(array $ids): void
-     {
-         $database = BackendModel::getContainer()->get('database');
-+        $ids = array_map('intval', $ids);
+@@ -962,7 +962,8 @@ PropertySymOpnd::IsObjectHeaderInlined() const
+ bool
+ PropertySymOpnd::ChangesObjectLayout() const
+ {
+-    JITTypeHolder cachedType = this->IsMono() ? this->GetType() : this->GetFirstEquivalentType();
++    JITTypeHolder cachedType = this->HasInitialType() ? this->GetInitialType() :
++        this->IsMono() ? this->GetType() : this->GetFirstEquivalentType();
 
-         $database->delete('forms_data', 'id IN(' . implode(',', $ids) . ')');
-         $database->delete('forms_data_fields', 'data_id IN(' . implode(',', $ids) . ')');
+     JITTypeHolder finalType = this->GetFinalType();
+...
+-        return cachedTypeHandler->GetInlineSlotCapacity() != initialTypeHandler->GetInlineSlotCapacity() ||
+-            cachedTypeHandler->GetOffsetOfInlineSlots() != initialTypeHandler->GetOffsetOfInlineSlots();
++        // If the initial type is object-header-inlined, assume that the layout may change.
++        return initialTypeHandler->IsObjectHeaderInlinedTypeHandler();
+
 ```
 Expected Output:
-vuln-fix: Sanitize ID array input in deleteData method
+vuln-fix: Prevent invalid memory writes from type confusion in JIT
 
-The original implementation directly inserted raw input from the ids array into a SQL IN() clause.
-This allowed attackers to inject malicious values via the URL or request body, potentially manipulating or leaking database records.
-The patch mitigates this by sanitizing each ID using array_map('intval', $ids) to ensure only integers are passed into the query.
+The ChakraCore JIT engine made incorrect assumptions about object layout transitions, leading to type confusion during optimized property access.
+This allowed attacker-controlled JavaScript to cause out-of-bounds memory writes by corrupting internal object fields, potentially enabling remote code execution through memory corruption.
+The patch corrects type resolution logic to ensure safe object layout derivation and prevents unsafe memory writes caused by invalid type assumptions.
 
-Weakness: CWE-89
+Weakness: CWE-787
 Severity: High
 CVSS: 7.5
 
-# CWE-89 is used because the patch prevents SQL injection by converting untrusted array input into integers before embedding it into SQL.
+# CWE-787 is used because the patch fixes an out-of-bounds **write** vulnerability caused by JIT engine logic that incorrectly resolved object types,
+# resulting in memory corruption due to overwritten slots beyond the intended object layout.
+
+
 
 Example 5
 Git Diff:
 ```diff
-@@ -341,6 +341,8 @@ public FormValidation doValidateProxy(
-                 @QueryParameter("userName") String userName, @QueryParameter("password") String password,
-                 @QueryParameter("noProxyHost") String noProxyHost) {
+@@ -54,7 +54,7 @@ class PreviousMap {
+   }
 
-+            Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
-+
-             if (Util.fixEmptyAndTrim(testUrl) == null) {
-                 return FormValidation.error(Messages.ProxyConfiguration_TestUrlRequired());
-             }
+   loadAnnotation(css) {
+-    let annotations = css.match(/\/\*\s*# sourceMappingURL=.*\s*\*\/gm)
++    let annotations = css.match(/\/\*\s*# sourceMappingURL=.*\*\/gm)
+
+     if (annotations && annotations.length > 0) {
+       // Locate the last sourceMappingURL to avoid picking up
+
 ```
-Expected Output:
-vuln-fix: Restrict access to proxy validation endpoint
+vuln-fix: Prevent ReDoS via unsafe source map regex
 
-The proxy validation method allowed any user to trigger server-side HTTP requests without restriction.
-This enabled potential SSRF attacks by letting untrusted users probe internal systems or exfiltrate metadata via crafted test URLs.
-The patch introduces a permission check to ensure only administrators can initiate proxy validation.
+The source map annotation parser used an overly permissive regular expression vulnerable to catastrophic backtracking with crafted input.
+This exposed systems parsing user-controlled CSS to Regular Expression Denial of Service (ReDoS), potentially stalling servers during CSS compilation.
+The patch tightens the regex by removing redundant whitespace matching, reducing complexity and preventing exponential execution time.
 
-Weakness: CWE-918
+Weakness: CWE-400
 Severity: Medium
 CVSS: 5.3
 
-# CWE-918 is used because the patch restricts internal server requests that could otherwise be controlled by external input — a classic server-side request forgery vector.
-
+# CWE-400 is used because the patch mitigates uncontrolled resource consumption caused by inefficient regular expressions,
+# which could allow attackers to exhaust server CPU time via crafted input triggering exponential backtracking.
 
 The above examples illustrate how to generate SECOM-style commit messages for different types of vulnerabilities.
 Now, based on the following code diff, generate a new commit message that adapts to the specific weakness it addresses. Use the same structure, but reason from the patch content and generate a SECOM-compliant commit message.

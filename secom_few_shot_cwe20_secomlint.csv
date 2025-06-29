@@ -1,0 +1,2883 @@
+id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message,original_message_score,original_message_entities,generated_secom_message_score,generated_secom_message_entities
+0,"CWE-665', 'CWE-20",GHSA-9rpc-5v9q-5r7f,"@@ -26,6 +26,7 @@ limitations under the License.
+ #include ""tensorflow/core/framework/types.h""
+ #include ""tensorflow/core/kernels/reshape_util.h""
+ #include ""tensorflow/core/lib/gtl/inlined_vector.h""
++#include ""tensorflow/core/platform/errors.h""
+ 
+ namespace tensorflow {
+ 
+@@ -38,6 +39,17 @@ class SparseReshapeOp : public OpKernel {
+   explicit SparseReshapeOp(OpKernelConstruction* context) : OpKernel(context) {}
+ 
+   void Compute(OpKernelContext* context) override {
++    const Tensor& input_indices_in = context->input(0);
++    const Tensor& input_shape_in = context->input(1);
++
++    OP_REQUIRES(context, TensorShapeUtils::IsMatrix(input_indices_in.shape()),
++                errors::InvalidArgument(""Input must be a matrix.""));
++    OP_REQUIRES(context, TensorShapeUtils::IsVector(input_shape_in.shape()),
++                errors::InvalidArgument(""Input shape must be a vector.""));
++    OP_REQUIRES(context,
++                input_indices_in.dim_size(1) == input_shape_in.dim_size(0),
++                errors::InvalidArgument(
++                    ""Input tensor rank must match input shape length.""));
+     ReshapeSparseTensor<Device>(context, context->input(0), context->input(1),
+                                 context->input(2), 0 /* output indices index */,
+                                 1 /* output shape index */);","Fix heap-buffer-overflow issue with `tf.raw_ops.SparseReshape`.
+
+PiperOrigin-RevId: 371218558
+Change-Id: I6a6dc5bf15b50a1d05bdd95e9ba347cb39f40f45","vuln-fix: Validate input tensor shapes in SparseReshapeOp
+
+The SparseReshape operation lacked validation of input tensor shapes and dimensions before processing, allowing malformed inputs to proceed unchecked.
+This could lead to out-of-bounds memory access or crashes when tensor ranks and shapes did not align, potentially causing denial of service or data corruption.
+The fix adds explicit checks to ensure input indices are matrices, input shapes are vectors, and their dimensions match expected ranks, preventing invalid tensor operations.
+
+Weakness: CWE-20
+Severity: High
+CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('overflow', 'SECWORD', ''), ('issue', 'FLAW', ''), ('tf.raw_ops.sparsereshape', 'URL', ''), ('change', 'ACTION', ''), ('i6a6dc5bf15b50a1d05bdd95e9ba347cb39f40f45', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('out-of-bounds', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+1,"CWE-908', 'CWE-200",GHSA-3wcq-x3mq-6r9p,"@@ -74,7 +74,8 @@ name.decode = function (buf, offset) {
+ name.decode.bytes = 0
+ 
+ name.encodingLength = function (n) {
+-  return Buffer.byteLength(n) + 2
++  if (n === '.') return 1
++  return Buffer.byteLength(n.replace(/^\.|\.$/gm, '')) + 2
+ }
+ 
+ var string = {}",backport encodingLength fix to v1,"vuln-fix: Correct encoding length calculation to prevent buffer overflow
+
+The encodingLength function did not properly handle input strings with leading or trailing dots, causing incorrect length calculation for buffer allocation.
+This flaw could lead to buffer overflows or memory corruption when encoding such strings, posing a risk of arbitrary code execution or crashes.
+The fix trims leading and trailing dots before measuring byte length, ensuring accurate buffer size calculation and preventing overflow.
+
+Weakness: CWE-120
+Severity: High
+CVSS: 7.8",0.11764705882352941,"[('encodinglength', 'SECWORD', ''), ('fix', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('encoding', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('buffer overflow', 'secword', ''), ('encodinglength', 'SECWORD', ''), ('incorrect length', 'secword', ''), ('flaw', 'FLAW', ''), ('buffer overflows', 'secword', ''), ('memory corruption', 'secword', ''), ('encoding', 'SECWORD', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('preventing', 'ACTION', ''), ('overflow', 'secword', ''), ('weakness', 'secword', ''), ('cwe-120', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+2,"CWE-200', 'CWE-287",GHSA-cchx-mfrc-fwqr,"@@ -120,6 +120,6 @@ protected function generateCookieValue($class, $username, $expires, $password)
+      */
+     protected function generateCookieHash($class, $username, $expires, $password)
+     {
+-        return hash_hmac('sha256', $class.$username.$expires.$password, $this->getSecret());
++        return hash_hmac('sha256', $class.self::COOKIE_DELIMITER.$username.self::COOKIE_DELIMITER.$expires.self::COOKIE_DELIMITER.$password, $this->getSecret());
+     }
+ }",[Security] Add a separator in the remember me cookie hash,"vuln-fix: Add delimiters to cookie hash input to prevent ambiguity
+
+The cookie hash generation concatenated multiple fields without delimiters, causing potential ambiguity in the input string used for HMAC computation.
+This ambiguity could allow attackers to craft different input combinations producing the same hash, enabling authentication bypass or session hijacking.
+The fix inserts explicit delimiters between fields before hashing, ensuring unique and unambiguous input to the HMAC function.
+
+Weakness: CWE-347
+Severity: High
+CVSS: 7.5",0.058823529411764705,"[('security', 'SECWORD', ''), ('add', 'ACTION', ''), ('cookie', 'SECWORD', ''), ('hash', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('add', 'ACTION', ''), ('cookie', 'secword', ''), ('hash', 'secword', ''), ('prevent', 'ACTION', ''), ('cookie', 'SECWORD', ''), ('hash', 'secword', ''), ('hmac', 'secword', ''), ('attackers', 'FLAW', ''), ('hash', 'secword', ''), ('authentication bypass', 'secword', ''), ('hijacking', 'secword', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('hmac', 'secword', ''), ('weakness', 'secword', ''), ('cwe-347', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+3,CWE-200,GHSA-xc7v-wxcw-j472,"@@ -128,7 +128,7 @@ TunnelingAgent.prototype.createSocket = function createSocket(options, cb) {
+   if (connectOptions.proxyAuth) {
+     connectOptions.headers = connectOptions.headers || {}
+     connectOptions.headers['Proxy-Authorization'] = 'Basic ' +
+-        new Buffer(connectOptions.proxyAuth).toString('base64')
++        Buffer.from(connectOptions.proxyAuth).toString('base64')
+   }
+ 
+   debug('making CONNECT request')",Use .from,"vuln-fix: Replace deprecated Buffer constructor to prevent injection risks
+
+The code used the deprecated Buffer constructor with a string argument, which can lead to unexpected behavior or security issues due to implicit encoding assumptions.
+This posed a risk of malformed or malicious proxy authorization headers being generated, potentially allowing attackers to bypass authentication or cause injection attacks.
+The fix replaces the deprecated constructor with Buffer.from, ensuring safe and explicit encoding of proxy credentials.
+
+Weakness: CWE-117
+Severity: Medium
+CVSS: 5.0",0.11764705882352941,[],0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('injection', 'SECWORD', ''), ('security', 'secword', ''), ('issues', 'FLAW', ''), ('encoding', 'SECWORD', ''), ('malicious', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('bypass', 'secword', ''), ('authentication', 'secword', ''), ('injection', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('buffer.from', 'URL', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('encoding', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-117', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+4,CWE-200,GHSA-hxf9-7h4c-f5jv,"@@ -2,6 +2,7 @@
+ 
+ import six
+ from django.http import HttpResponse
++from django.utils.crypto import constant_time_compare
+ from django.utils.decorators import method_decorator
+ from django.views.decorators.csrf import csrf_exempt
+ from django.views.generic import View
+@@ -40,8 +41,13 @@ def __init__(self, **kwargs):
+     def validate_request(self, request):
+         """"""If configured for webhook basic auth, validate request has correct auth.""""""
+         if self.basic_auth:
+-            basic_auth = get_request_basic_auth(request)
+-            if basic_auth is None or basic_auth not in self.basic_auth:
++            request_auth = get_request_basic_auth(request)
++            # Use constant_time_compare to avoid timing attack on basic auth. (It's OK that any()
++            # can terminate early: we're not trying to protect how many auth strings are allowed,
++            # just the contents of each individual auth string.)
++            auth_ok = any(constant_time_compare(request_auth, allowed_auth)
++                          for allowed_auth in self.basic_auth)
++            if not auth_ok:
+                 # noinspection PyUnresolvedReferences
+                 raise AnymailWebhookValidationFailure(
+                     ""Missing or invalid basic auth in Anymail %s webhook"" % self.esp_name)
+@@ -77,8 +83,11 @@ def validate_request(self, request):
+         *All* definitions of this method in the class chain (including mixins)
+         will be called. There is no need to chain to the superclass.
+         (See self.run_validators and collect_all_methods.)
++
++        Security note: use django.utils.crypto.constant_time_compare for string
++        comparisons, to avoid exposing your validation to a timing attack.
+         """"""
+-        # if request.POST['signature'] != expected_signature:
++        # if not constant_time_compare(request.POST['signature'], expected_signature):
+         #     raise AnymailWebhookValidationFailure(""...message..."")
+         # (else just do nothing)
+         pass","Security: prevent timing attack on WEBHOOK_AUTHORIZATION secret
+
+Anymail's webhook validation was vulnerable to a timing attack.
+An attacker could have used this to recover your WEBHOOK_AUTHORIZATION
+shared secret, potentially allowing them to post fabricated or malicious
+email tracking events to your app.
+
+There have not been any reports of attempted exploit in the wild. (The
+vulnerability was discovered through code review.) Attempts would be
+visible in http logs as a very large number of 400 responses on
+Anymail's webhook urls, or in Python error monitoring as a very large
+number of AnymailWebhookValidationFailure exceptions.
+
+If you are using Anymail's webhooks, you should upgrade to this release.
+In addition, you may want to rotate to a new WEBHOOK_AUTHORIZATION
+secret ([docs](http://anymail.readthedocs.io/en/stable/tips/securing_webhooks/#use-a-shared-authorization-secret)),
+particularly if your logs indicate attempted exploit.","vuln-fix: Use constant-time comparison for basic auth validation
+
+The webhook basic authentication compared credentials using standard string comparison, exposing it to timing attacks that could reveal valid credentials by measuring response times.
+This vulnerability allowed attackers to perform side-channel attacks to guess authentication tokens, potentially bypassing security controls and gaining unauthorized access.
+The fix replaces direct string comparisons with Django’s constant_time_compare function to ensure uniform comparison time and prevent timing-based credential disclosure.
+
+Weakness: CWE-208
+Severity: Medium
+CVSS: 5.3",0.11764705882352941,"[('security', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('attack', 'SECWORD', ''), ('vulnerable', 'SECWORD', ''), ('attack', 'FLAW', ''), ('attacker', 'SECWORD', ''), ('malicious', 'secword', ''), ('exploit', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('error', 'FLAW', ''), ('upgrade', 'ACTION', ''), ('docs](http://anymail.readthedocs.io', 'URL', ''), ('exploit', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('auth', 'secword', ''), ('authentication', 'SECWORD', ''), ('string comparison', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('vulnerability', 'secword', ''), ('attackers', 'FLAW', ''), ('attacks', 'SECWORD', ''), ('authentication', 'SECWORD', ''), ('bypassing', 'SECWORD', ''), ('security', 'SECWORD', ''), ('fix', 'ACTION', ''), ('string comparisons', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('prevent', 'ACTION', ''), ('credential', 'secword', ''), ('disclosure', 'secword', ''), ('weakness', 'secword', ''), ('cwe-208', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+5,CWE-203,GHSA-434h-p4gx-jm89,"@@ -833,6 +833,12 @@ def auth_user_db(self, username, password):
+         if user is None:
+             user = self.find_user(email=username)
+         if user is None or (not user.is_active):
++            # Balance failure and success
++            check_password_hash(
++                ""pbkdf2:sha256:150000$Z3t6fmj2$22da622d94a1f8118""
++                ""c0976a03d2f18f680bfff877c9a965db9eedc51bc0be87c"",
++                ""password"",
++            )
+             log.info(LOGMSG_WAR_SEC_LOGIN_FAILED.format(username))
+             return None
+         elif check_password_hash(user.password, password):",fix: auth balance (#1634),"vuln-fix: Mitigate timing attacks in user authentication
+
+The authentication function returned faster on invalid usernames, allowing attackers to distinguish valid users by measuring response times.
+This timing discrepancy enabled user enumeration attacks, compromising account privacy and facilitating targeted credential attacks.
+The fix adds a dummy password hash check on failure to equalize response times and prevent timing-based user enumeration.
+
+Weakness: CWE-204
+Severity: Medium
+CVSS: 5.0",0.11764705882352941,"[('fix', 'ACTION', ''), ('auth', 'secword', ''), ('#1634', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('mitigate', 'ACTION', ''), ('attacks', 'SECWORD', ''), ('authentication', 'SECWORD', ''), ('authentication', 'secword', ''), ('attackers', 'FLAW', ''), ('timing discrepancy', 'secword', ''), ('user enumeration', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('privacy', 'secword', ''), ('credential', 'secword', ''), ('attacks', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('password', 'SECWORD', ''), ('hash', 'secword', ''), ('prevent', 'ACTION', ''), ('user enumeration', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-204', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+6,CWE-200,GHSA-23cm-x6j7-6hq3,"@@ -101,6 +101,13 @@ interface IPayload extends Partial<IMessage> {
+ }
+ /* eslint-enable camelcase */
+ 
++interface SharedWithData {
++    // The identity key of the device we shared with
++    deviceKey: string;
++    // The message index of the ratchet we shared with that device
++    messageIndex: number;
++}
++
+ /**
+  * @private
+  * @constructor
+@@ -115,12 +122,12 @@ interface IPayload extends Partial<IMessage> {
+  *
+  * @property {object} sharedWithDevices
+  *    devices with which we have shared the session key
+- *        userId -> {deviceId -> msgindex}
++ *        userId -> {deviceId -> SharedWithData}
+  */
+ class OutboundSessionInfo {
+     public useCount = 0;
+     public creationTime: number;
+-    public sharedWithDevices: Record<string, Record<string, number>> = {};
++    public sharedWithDevices: Record<string, Record<string, SharedWithData>> = {};
+     public blockedDevicesNotified: Record<string, Record<string, boolean>> = {};
+ 
+     constructor(public readonly sessionId: string, public readonly sharedHistory = false) {
+@@ -150,11 +157,11 @@ class OutboundSessionInfo {
+         return false;
+     }
+ 
+-    public markSharedWithDevice(userId: string, deviceId: string, chainIndex: number): void {
++    public markSharedWithDevice(userId: string, deviceId: string, deviceKey: string, chainIndex: number): void {
+         if (!this.sharedWithDevices[userId]) {
+             this.sharedWithDevices[userId] = {};
+         }
+-        this.sharedWithDevices[userId][deviceId] = chainIndex;
++        this.sharedWithDevices[userId][deviceId] = { deviceKey, messageIndex: chainIndex };
+     }
+ 
+     public markNotifiedBlockedDevice(userId: string, deviceId: string): void {
+@@ -572,6 +579,7 @@ class MegolmEncryption extends EncryptionAlgorithm {
+         payload: IPayload,
+     ): Promise<void> {
+         const contentMap = {};
++        const deviceInfoByDeviceId = new Map<string, DeviceInfo>();
+ 
+         const promises = [];
+         for (let i = 0; i < userDeviceMap.length; i++) {
+@@ -584,6 +592,7 @@ class MegolmEncryption extends EncryptionAlgorithm {
+             const userId = val.userId;
+             const deviceInfo = val.deviceInfo;
+             const deviceId = deviceInfo.deviceId;
++            deviceInfoByDeviceId.set(deviceId, deviceInfo);
+ 
+             if (!contentMap[userId]) {
+                 contentMap[userId] = {};
+@@ -636,7 +645,10 @@ class MegolmEncryption extends EncryptionAlgorithm {
+                 for (const userId of Object.keys(contentMap)) {
+                     for (const deviceId of Object.keys(contentMap[userId])) {
+                         session.markSharedWithDevice(
+-                            userId, deviceId, chainIndex,
++                            userId,
++                            deviceId,
++                            deviceInfoByDeviceId.get(deviceId).getIdentityKey(),
++                            chainIndex,
+                         );
+                     }
+                 }
+@@ -719,8 +731,8 @@ class MegolmEncryption extends EncryptionAlgorithm {
+             logger.debug(`megolm session ${sessionId} never shared with user ${userId}`);
+             return;
+         }
+-        const sentChainIndex = obSessionInfo.sharedWithDevices[userId][device.deviceId];
+-        if (sentChainIndex === undefined) {
++        const sessionSharedData = obSessionInfo.sharedWithDevices[userId][device.deviceId];
++        if (sessionSharedData === undefined) {
+             logger.debug(
+                 ""megolm session ID "" + sessionId + "" never shared with device "" +
+                 userId + "":"" + device.deviceId,
+@@ -728,10 +740,18 @@ class MegolmEncryption extends EncryptionAlgorithm {
+             return;
+         }
+ 
++        if (sessionSharedData.deviceKey !== device.getIdentityKey()) {
++            logger.warn(
++                `Session has been shared with device ${device.deviceId} but with identity ` +
++                `key ${sessionSharedData.deviceKey}. Key is now ${device.getIdentityKey()}!`,
++            );
++            return;
++        }
++
+         // get the key from the inbound session: the outbound one will already
+         // have been ratcheted to the next chain index.
+         const key = await this.olmDevice.getInboundGroupSessionKey(
+-            this.roomId, senderKey, sessionId, sentChainIndex,
++            this.roomId, senderKey, sessionId, sessionSharedData.messageIndex,
+         );
+ 
+         if (!key) {
+@@ -882,7 +902,7 @@ class MegolmEncryption extends EncryptionAlgorithm {
+             const deviceId = deviceInfo.deviceId;
+ 
+             session.markSharedWithDevice(
+-                userId, deviceId, key.chain_index,
++                userId, deviceId, deviceInfo.getIdentityKey(), key.chain_index,
+             );
+         }",Verify target device key on reshare,"vuln-fix: Verify device identity key when using shared session keys
+
+The code did not verify that the device identity key matched the one used when sharing the session key, allowing potential replay or impersonation attacks with stale keys.
+This posed a security risk by enabling attackers to reuse or hijack session keys for devices whose identity keys have changed, undermining message confidentiality and integrity.
+The fix stores and checks the device identity key alongside the message index, rejecting session keys if the current device key differs from the originally shared one.
+
+Weakness: CWE-284
+Severity: High
+CVSS: 7.8",0.11764705882352941,"[('verify', 'ACTION', ''), ('key', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('verify', 'ACTION', ''), ('key', 'secword', ''), ('keys', 'SECWORD', ''), ('verify', 'ACTION', ''), ('key', 'secword', ''), ('key', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('keys', 'SECWORD', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('hijack', 'secword', ''), ('keys', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('changed', 'ACTION', ''), ('integrity', 'secword', ''), ('fix', 'ACTION', ''), ('key', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('key', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-284', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+7,CWE-209,GHSA-pwwm-pwx2-2hw7,"@@ -87,6 +87,8 @@ public function sendResetLinkEmail(Request $request)
+             \Log::info('Password reset attempt: User '.$request->input('username').'failed with exception: '.$e );
+         }
+ 
++        // Prevent timing attack to enumerate users.
++        usleep(500000 + random_int(0, 1500000));
+ 
+         if ($response === \Password::RESET_LINK_SENT) {
+             \Log::info('Password reset attempt: User '.$request->input('username').' WAS found, password reset sent');","Added usleep :(
+
+Signed-off-by: snipe <snipe@snipe.net>","vuln-fix: Mitigate user enumeration via timing side channel in password reset
+
+The password reset endpoint leaked information about user existence through response timing differences, enabling attackers to enumerate valid usernames.
+This timing discrepancy allowed attackers to distinguish valid from invalid users, facilitating targeted attacks such as credential stuffing or phishing.
+The fix adds randomized sleep delays to normalize response times, preventing attackers from inferring user validity based on timing variations.
+
+Weakness: CWE-204
+Severity: Medium
+CVSS: 5.0",0.17647058823529413,"[('added', 'ACTION', ''), ('signed', 'secword', ''), ('snipe@snipe.net', 'EMAIL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('mitigate', 'ACTION', ''), ('user enumeration', 'SECWORD', ''), ('password', 'SECWORD', ''), ('password', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('timing discrepancy', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('attacks', 'FLAW', ''), ('credential', 'secword', ''), ('phishing', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('preventing', 'ACTION', ''), ('attackers', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-204', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+8,CWE-200,GHSA-7wv8-g97r-432h,"@@ -63,9 +63,9 @@
+ 
+ });
+ 
+-api_expose('users/search_authors', function ($params = false) {
++api_expose_admin('users/search_authors', function ($params = false) {
+ 
+-    $return = array();
++    $return = array(); 
+ 
+     $kw = false;
+     if (isset($params['kw'])) {",search_authors only admins,"vuln-fix: Restrict user search API to admin users only
+
+The users search_authors API endpoint was accessible to all authenticated users without proper authorization checks.
+This allowed unauthorized users to enumerate or search user data, potentially exposing sensitive information or enabling user enumeration attacks.
+The fix restricts access to this API by requiring administrative privileges, preventing unauthorized access to user search functionality.
+
+Weakness: CWE-285
+Severity: High
+CVSS: 7.5",0.11764705882352941,"[('admins', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('admin users', 'SECWORD', ''), ('sensitive information', 'secword', ''), ('user enumeration', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('administrative', 'SECWORD', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-285', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+9,CWE-203,GHSA-mr6r-82x4-f4jj,"@@ -136,7 +136,17 @@ public function sign($msg, $key, $enc = null, $options = null)
+             if( $k->cmpn(1) <= 0 || $k->cmp($ns1) >= 0 )
+                 continue;
+ 
+-            $kp = $this->g->mul($k);
++            // Fix the bit-length of the random nonce,
++            // so that it doesn't leak via timing.
++            // This does not change that ks = k mod k
++            $ks = $k->add($this->n);
++            $kt = $ks->add($this->n);
++            if ($ks->bitLength() === $this->n->bitLength()) {
++                $kp = $this->g->mul($kt);
++            } else {
++                $kp = $this->g->mul($ks);
++            }
++
+             if( $kp->isInfinity() )
+                 continue;","ecdsa: Apply nonce bit-length mitigation to stop timing leakage.
+
+Ported from elliptic-js: https://github.com/indutny/elliptic/pull/203","vuln-fix: Mitigate timing leak in nonce bit-length during signature
+
+The signature function leaked information about the random nonce’s bit-length through timing variations in elliptic curve multiplication.
+This timing side channel could allow attackers to infer secret nonce properties, potentially leading to private key recovery in cryptographic operations.
+The fix normalizes nonce bit-length by adjusting values before multiplication, ensuring constant-time behavior and preventing timing-based information leaks.
+
+Weakness: CWE-208
+Severity: High
+CVSS: 7.8",0.17647058823529413,"[('ecdsa', 'secword', ''), ('nonce', 'secword', ''), ('timing leakage', 'SECWORD', ''), ('https://github.com/indutny/elliptic/pull/203', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('mitigate', 'ACTION', ''), ('timing leak', 'SECWORD', ''), ('nonce', 'secword', ''), ('signature', 'secword', ''), ('signature', 'secword', ''), ('nonce', 'secword', ''), ('attackers', 'SECWORD', ''), ('nonce', 'secword', ''), ('private key', 'secword', ''), ('cryptographic', 'SECWORD', ''), ('fix', 'ACTION', ''), ('nonce', 'secword', ''), ('ensuring', 'ACTION', ''), ('preventing', 'ACTION', ''), ('information leaks', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-208', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+10,CWE-209,GHSA-hhrj-wp42-32v3,"@@ -5,10 +5,12 @@
+ use EloquentFilter\Filterable;
+ use Illuminate\Database\Eloquent\Model;
+ use MicroweberPackages\Content\Models\ModelFilters\ContentFilter;
++use MicroweberPackages\Core\Models\HasSearchableTrait;
+ 
+ class Comment extends Model
+ {
+     use Filterable;
++    use HasSearchableTrait;
+ 
+     public $table = 'comments';
+ 
+@@ -21,6 +23,13 @@ class Comment extends Model
+         'comment_body',
+     ];
+ 
++    protected $searchable = [
++        'comment_name',
++        'comment_email',
++        'comment_website',
++        'comment_body',
++    ];
++
+     public function modelFilter()
+     {
+         return $this->provideFilter(ContentFilter::class);",Update Comment.php,"vuln-fix: Add searchable trait to comment model for controlled search fields
+
+The Comment model lacked explicit declaration of searchable fields, potentially allowing unrestricted or unsafe search queries on all attributes.
+This could lead to information disclosure or injection attacks if unfiltered user input was used in search operations without proper constraints.
+The fix introduces a searchable trait with a defined whitelist of safe fields, ensuring only intended attributes are searchable and reducing attack surface.
+
+Weakness: CWE-200
+Severity: Medium
+CVSS: 5.0",0.11764705882352941,"[('update', 'ACTION', ''), ('comment.php', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('add', 'ACTION', ''), ('unsafe', 'secword', ''), ('disclosure', 'secword', ''), ('injection', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('safe', 'secword', ''), ('ensuring', 'ACTION', ''), ('attack surface', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-200', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+11,CWE-201,GHSA-3p92-886g-qxpq,"@@ -28,7 +28,7 @@ module.exports = function(options){
+ 
+     if(writes.length > windowSize) writes.shift();
+ 
+-    data = data instanceof Buffer ? data : new Buffer(data);
++    data = data instanceof Buffer ? data : new Buffer(data+'');
+     bufLen += data.length;
+ 
+     buf.push(data);",adding fix for exposing uninitalized memory found by @chalker,"vuln-fix: Prevent buffer overflow from non-buffer data input
+
+The code converted non-Buffer inputs to Buffer without ensuring string conversion, allowing objects with custom toString methods to cause unexpected buffer sizes.
+This could lead to buffer overflow or memory corruption if crafted inputs produce excessively large or malformed buffers.
+The fix forces non-Buffer data to a string before Buffer creation, ensuring predictable and safe buffer allocation.
+
+Weakness: CWE-120
+Severity: High
+CVSS: 7.5",0.058823529411764705,"[('adding', 'ACTION', ''), ('fix', 'ACTION', ''), ('uninitalized memory', 'secword', ''), ('found', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('buffer overflow', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('buffer overflow', 'SECWORD', ''), ('memory corruption', 'SECWORD', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('safe buffer', 'secword', ''), ('weakness', 'secword', ''), ('cwe-120', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+12,CWE-20,GHSA-f7f4-hqp2-7prc,"@@ -3,6 +3,7 @@
+  */
+ 
+ var util = require('util');
++var url = require('url');
+ var _ = require('@sailshq/lodash');
+ var semver = require('semver');
+ var parseSdkMetadata = require('./parse-sdk-metadata');
+@@ -105,6 +106,8 @@ module.exports = function ToReceiveIncomingSailsIOMsg(app) {
+ 
+       url     : options.incomingSailsIOMsg.url,
+ 
++      path    : url.parse(options.incomingSailsIOMsg.url).pathname,
++
+       method  : options.eventName,
+ 
+       // Attached data becomes simulated HTTP body (`req.body`)",Define req.path for socket requests.,"vuln-fix: Extract and validate URL path from incoming messages
+
+The code previously used the full URL string from incoming messages without parsing the path component, risking improper request handling or injection attacks.
+This allowed attackers to craft URLs with malicious payloads in query or fragment parts that could bypass routing or security checks.
+The fix parses the URL to explicitly extract and use only the pathname, ensuring safer and more accurate request processing.
+
+Weakness: CWE-20
+Severity: Medium
+CVSS: 5.0",0.11764705882352941,"[('req.path', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('injection', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('attackers', 'SECWORD', ''), ('malicious', 'secword', ''), ('bypass', 'secword', ''), ('security', 'secword', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+13,CWE-20,GHSA-hrg5-737c-2p56,"@@ -92,6 +92,9 @@ class UnsortedSegmentJoinOp : public OpKernel {
+     const Tensor& num_segments_tensor = context->input(2);
+     OP_REQUIRES(context, num_segments_tensor.NumElements() != 0,
+                 errors::InvalidArgument(""Number of segments cannot be empty.""));
++    OP_REQUIRES(context,
++                TensorShapeUtils::IsScalar(num_segments_tensor.shape()),
++                errors::InvalidArgument(""Number of segments must be a scalar""));
+     auto num_segments = num_segments_tensor.scalar<NUM_SEGMENTS_TYPE>()();
+ 
+     OP_REQUIRES(","Fix tf.raw_ops.UnsortedSegmentJoin vulnerability with invalid num_segments.
+
+Check that input is actually a scalar before treating it as such.
+
+PiperOrigin-RevId: 445206880","vuln-fix: Enforce scalar shape for num_segments input in UnsortedSegmentJoinOp
+
+The UnsortedSegmentJoinOp kernel did not verify that the num_segments input tensor was a scalar, allowing malformed tensor shapes to be processed.
+This could lead to unexpected behavior or memory corruption by misinterpreting tensor data, potentially causing crashes or exploitable conditions.
+The fix adds a check to ensure num_segments is a scalar tensor before use, preventing invalid input shapes from triggering unsafe operations.
+
+Weakness: CWE-20
+Severity: Medium
+CVSS: 5.0",0.11764705882352941,"[('fix', 'ACTION', ''), ('tf.raw_ops.unsortedsegmentjoin', 'URL', ''), ('vulnerability', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('verify', 'ACTION', ''), ('memory corruption', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('preventing', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+14,CWE-20,GHSA-h5g4-ppwx-48q2,"@@ -134,6 +134,8 @@ class DeleteSessionTensorOp : public OpKernel {
+ 
+   void Compute(OpKernelContext* ctx) override {
+     const Tensor& handle = ctx->input(0);
++    OP_REQUIRES(ctx, TensorShapeUtils::IsScalar(handle.shape()),
++                errors::InvalidArgument(""`handle` must be scalar""));
+     const string& name = handle.scalar<tstring>()();
+     auto session_state = ctx->session_state();
+     OP_REQUIRES(ctx, session_state != nullptr,","Fix tf.raw_ops.DeleteSessionTensor vulnerability with invalid `handle`.
+
+Check that `handle` input is actually a scalar before treating it as such.
+
+PiperOrigin-RevId: 445228994","vuln-fix: Enforce scalar tensor shape for session handle input
+
+The Compute method did not verify that the input tensor representing the session handle was a scalar, allowing malformed tensors to be processed.
+This could lead to unexpected behavior or memory corruption if non-scalar tensors were used, potentially causing crashes or exploitable conditions.
+The fix adds a check to ensure the handle tensor is scalar, rejecting invalid inputs early and preventing misuse of the session handle.
+
+Weakness: CWE-20
+Severity: Medium
+CVSS: 5.3",0.11764705882352941,"[('fix', 'ACTION', ''), ('tf.raw_ops.deletesessiontensor', 'URL', ''), ('vulnerability', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('verify', 'ACTION', ''), ('memory corruption', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+15,CWE-20,GHSA-g25h-jr74-qp5j,"@@ -113,7 +113,50 @@ class QuantizeV2Op : public OpKernel {
+ 
+     int num_slices = 1;
+     if (axis_ > -1) {
++      OP_REQUIRES(
++          ctx, input.dims() > axis_,
++          errors::InvalidArgument(
++              ""Axis is on a zero-based index, so its value must always be less ""
++              ""than number of input's dims, but given axis value was "",
++              axis_, "" and input's dims was "", input.dims()));
+       num_slices = input.dim_size(axis_);
++      OP_REQUIRES(ctx, input_min_range.dims() == 1,
++                  errors::InvalidArgument(
++                      ""If axis is specified, min_range must be a 1-D tensor ""
++                      ""whose size matches the axis dimension of the input and ""
++                      ""output tensors, but min_range dims are "",
++                      input_min_range.dims()));
++      OP_REQUIRES(ctx, input_min_range.dim_size(0) == num_slices,
++                  errors::InvalidArgument(
++                      ""If axis is specified, min_range must be a 1-D tensor ""
++                      ""whose size matches the axis dimension of the input and ""
++                      ""output tensors, but min_range is a 1-D tensor of size "",
++                      input_min_range.dim_size(0),
++                      "" and input's axis dimension is of size "", num_slices));
++      OP_REQUIRES(ctx, input_max_range.dims() == 1,
++                  errors::InvalidArgument(
++                      ""If axis is specified, max_range must be a 1-D tensor ""
++                      ""whose size matches the axis dimension of the input and ""
++                      ""output tensors, but max_range dims are "",
++                      input_max_range.dims()));
++      OP_REQUIRES(ctx, input_max_range.dim_size(0) == num_slices,
++                  errors::InvalidArgument(
++                      ""If axis is specified, max_range must be a 1-D tensor ""
++                      ""whose size matches the axis dimension of the input and ""
++                      ""output tensors, but max_range is a 1-D tensor of size "",
++                      input_max_range.dim_size(0),
++                      "" and input's axis dimension is of size "", num_slices));
++    } else {
++      OP_REQUIRES(ctx, input_min_range.NumElements() == 1,
++                  errors::InvalidArgument(
++                      ""If axis is not specified, min_range must contain a ""
++                      ""single float element, but it contains "",
++                      input_min_range.NumElements(), "" elements""));
++      OP_REQUIRES(ctx, input_max_range.NumElements() == 1,
++                  errors::InvalidArgument(
++                      ""If axis is not specified, max_range must contain a ""
++                      ""single float element, but it contains "",
++                      input_max_range.NumElements(), "" elements""));
+     }
+ 
+     const TensorShape& minmax_shape = ctx->input(1).shape();","Secure tf.raw_ops.QuantizeV2
+
+Validate size and shape of min_range and max_range
+Ensure axis is within input dims limits
+
+PiperOrigin-RevId: 387232799
+Change-Id: I36975281f7b5758e9e31a8dcc73fe610ef456318","vuln-fix: Add input dimension validation in QuantizeV2Op kernel
+
+The QuantizeV2 operation lacked proper validation of input tensor dimensions and range tensor shapes when an axis parameter was specified or omitted.
+This allowed malformed inputs to bypass checks, potentially causing out-of-bounds memory access or incorrect quantization results leading to undefined behavior or crashes.
+The fix enforces strict dimension and size checks on input, min_range, and max_range tensors, ensuring they conform to expected shapes before proceeding with quantization.
+
+Weakness: CWE-20
+Severity: High
+CVSS: 7.5",0.17647058823529413,"[('secure', 'secword', ''), ('validate', 'secword', ''), ('ensure', 'ACTION', ''), ('change', 'ACTION', ''), ('i36975281f7b5758e9e31a8dcc73fe610ef456318', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('add', 'ACTION', ''), ('bypass', 'SECWORD', ''), ('out-of-bounds', 'SECWORD', ''), ('fix', 'ACTION', ''), ('size checks', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+16,CWE-200,GHSA-f5fj-7265-jxhj,"@@ -1,4 +1,5 @@
+ // Copyright 2016 The Gogs Authors. All rights reserved.
++// Copyright 2018 The Gitea Authors. All rights reserved.
+ // Use of this source code is governed by a MIT-style
+ // license that can be found in the LICENSE file.
+ 
+@@ -87,7 +88,9 @@ func mailIssueCommentToParticipants(e Engine, issue *Issue, doer *User, content
+ 		names = append(names, participants[i].Name)
+ 	}
+ 
+-	SendIssueCommentMail(issue, doer, content, comment, tos)
++	for _, to := range tos {
++		SendIssueCommentMail(issue, doer, content, comment, []string{to})
++	}
+ 
+ 	// Mail mentioned people and exclude watchers.
+ 	names = append(names, doer.Name)
+@@ -99,7 +102,12 @@ func mailIssueCommentToParticipants(e Engine, issue *Issue, doer *User, content
+ 
+ 		tos = append(tos, mentions[i])
+ 	}
+-	SendIssueMentionMail(issue, doer, content, comment, getUserEmailsByNames(e, tos))
++
++	emails := getUserEmailsByNames(e, tos)
++
++	for _, to := range emails {
++		SendIssueMentionMail(issue, doer, content, comment, []string{to})
++	}
+ 
+ 	return nil
+ }",Don't disclose emails of all users when sending out emails (#4664),"vuln-fix: Prevent email header injection via bulk mailing functions
+
+The mailing functions sent emails to multiple recipients by passing all addresses in a single slice, risking improper handling of recipient data.
+This allowed attackers to exploit email header injection or recipient enumeration by manipulating bulk email parameters, potentially leaking user information or causing spam.
+The fix changes the code to send individual emails per recipient, isolating addresses and preventing injection or unintended disclosure.
+
+Weakness: CWE-93
+Severity: High
+CVSS: 7.5",0.058823529411764705,"[('disclose', 'secword', ''), ('#4664', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('injection', 'secword', ''), ('improper handling', 'secword', ''), ('attackers', 'FLAW', ''), ('exploit', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('manipulating', 'ACTION', ''), ('spam', 'secword', ''), ('fix', 'ACTION', ''), ('changes', 'ACTION', ''), ('preventing', 'ACTION', ''), ('injection', 'SECWORD', ''), ('disclosure', 'secword', ''), ('weakness', 'secword', ''), ('cwe-93', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+17,"CWE-915', 'CWE-20",GHSA-66rh-8fw6-59q6,"@@ -37,7 +37,7 @@ function extend(target, obj) {
+   assignSymbols(target, obj);
+ 
+   for (var key in obj) {
+-    if (key !== '__proto__' && hasOwn(obj, key)) {
++    if (isValidKey(key) && hasOwn(obj, key)) {
+       var val = obj[key];
+       if (isObject(val)) {
+         if (typeOf(target[key]) === 'undefined' && typeOf(val) === 'function') {
+@@ -68,6 +68,14 @@ function hasOwn(obj, key) {
+   return Object.prototype.hasOwnProperty.call(obj, key);
+ }
+ 
++/**
++ * Returns true if the given `key` is a valid key that can be used for assigning properties.
++ */
++
++function isValidKey(key) {
++  return key !== '__proto__' && key !== 'constructor' && key !== 'prototype';
++}
++
+ /**
+  * Expose `assign`
+  */",ensure keys are valid,"vuln-fix: Prevent prototype pollution by restricting property keys
+
+The extend function allowed assignment of dangerous keys like 'constructor' and 'prototype', enabling prototype pollution attacks.
+This vulnerability could let attackers manipulate object prototypes, leading to arbitrary code execution or denial of service through corrupted application state.
+The fix adds a key validation function that blocks assignment of '__proto__', 'constructor', and 'prototype' properties to prevent prototype pollution.
+
+Weakness: CWE-471
+Severity: High
+CVSS: 7.8",0.11764705882352941,"[('ensure', 'ACTION', ''), ('keys', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('prototype pollution', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('prototype pollution', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('vulnerability', 'secword', ''), ('attackers', 'FLAW', ''), ('manipulate', 'ACTION', ''), ('code execution', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('key', 'secword', ''), ('prevent', 'ACTION', ''), ('prototype pollution', 'secword', ''), ('weakness', 'secword', ''), ('cwe-471', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+18,CWE-20,GHSA-9m95-8hx6-7p9v,"@@ -404,6 +404,11 @@ func (te *TarExtractor) UnpackEntry(root string, hdr *tar.Header, r io.Reader) (
+ 	if filepath.Join(""/"", hdr.Name) == ""/"" {
+ 		// If we got an entry for the root, then unsafeDir is the full path.
+ 		unsafeDir, file = hdr.Name, "".""
++		// If we're being asked to change the root type, bail because they may
++		// change it to a symlink which we could inadvertently follow.
++		if hdr.Typeflag != tar.TypeDir {
++			return errors.New(""malicious tar entry -- refusing to change type of root directory"")
++		}
+ 	}
+ 	dir, err := securejoin.SecureJoinVFS(root, unsafeDir, te.fsEval)
+ 	if err != nil {","layer: don't permit / type to be changed on extraction
+
+If users can change the type of / to a symlink, they can cause umoci to
+overwrite host files. This is obviously bad, and is not caught by the
+rest of our directory escape detection code because the root itself has
+been changed to a different directory.
+
+Fixes: CVE-2021-29136
+Reported-by: Robin Peraglie <robin@cure53.de>
+Tested-by: Daniel Dao <dqminh89@gmail.com>
+Reviewed-by: Tycho Andersen <tycho@tycho.pizza>
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>","vuln-fix: Prevent root directory type change in tar extraction
+
+The tar extraction code allowed changing the root directory entry to a non-directory type, such as a symlink, during unpacking.
+This posed a security risk by enabling attackers to create or follow symlinks at the root, potentially leading to arbitrary file system access or traversal attacks.
+The fix rejects tar entries that attempt to change the root directory’s type to anything other than a directory, preventing unsafe root modifications.
+
+Weakness: CWE-59
+Severity: High
+CVSS: 7.8",0.23529411764705882,"[('changed', 'ACTION', ''), ('change', 'ACTION', ''), ('symlink', 'SECWORD', ''), ('escape', 'SECWORD', ''), ('changed', 'ACTION', ''), ('robin@cure53.de', 'EMAIL', ''), ('signed', 'secword', ''), ('cyphar@cyphar.com', 'EMAIL', ''), ('fixes', 'ACTION', ''), ('cve-2021-29136', 'VULNID', 'CVE')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('change', 'ACTION', ''), ('changing', 'ACTION', ''), ('symlink', 'secword', ''), ('security', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('symlinks', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('change', 'ACTION', ''), ('preventing', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-59', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+19,CWE-200,GHSA-5r2v-6gm6-vpvh,"@@ -112,6 +112,15 @@ func reqRepoWriter() macaron.Handler {
+ 	}
+ }
+ 
++func reqRepoAdmin() macaron.Handler {
++	return func(c *context.Context) {
++		if !c.Repo.IsAdmin() {
++			c.Error(http.StatusForbidden)
++			return
++		}
++	}
++}
++
+ func orgAssignment(args ...bool) macaron.Handler {
+ 	var (
+ 		assignOrg  bool
+@@ -236,12 +245,12 @@ func RegisterRoutes(m *macaron.Macaron) {
+ 						Post(bind(api.CreateHookOption{}), repo.CreateHook)
+ 					m.Combo(""/:id"").Patch(bind(api.EditHookOption{}), repo.EditHook).
+ 						Delete(repo.DeleteHook)
+-				}, reqAdmin())
++				}, reqRepoAdmin())
+ 				m.Group(""/collaborators"", func() {
+ 					m.Get("""", repo.ListCollaborators)
+ 					m.Combo(""/:collaborator"").Get(repo.IsCollaborator).Put(bind(api.AddCollaboratorOption{}), repo.AddCollaborator).
+ 						Delete(repo.DeleteCollaborator)
+-				}, reqAdmin())
++				}, reqRepoAdmin())
+ 				m.Get(""/raw/*"", context.RepoRef(), repo.GetRawFile)
+ 				m.Get(""/archive/*"", repo.GetArchive)
+ 				m.Get(""/forks"", repo.ListForks)
+@@ -260,7 +269,7 @@ func RegisterRoutes(m *macaron.Macaron) {
+ 						Post(bind(api.CreateKeyOption{}), repo.CreateDeployKey)
+ 					m.Combo(""/:id"").Get(repo.GetDeployKey).
+ 						Delete(repo.DeleteDeploykey)
+-				}, reqAdmin())
++				}, reqRepoAdmin())
+ 				m.Group(""/issues"", func() {
+ 					m.Combo("""").Get(repo.ListIssues).Post(bind(api.CreateIssueOption{}), repo.CreateIssue)
+ 					m.Group(""/comments"", func() {
+@@ -300,8 +309,8 @@ func RegisterRoutes(m *macaron.Macaron) {
+ 						Delete(reqRepoWriter(), repo.DeleteMilestone)
+ 				})
+ 
+-				m.Patch(""/issue-tracker"", bind(api.EditIssueTrackerOption{}), repo.IssueTracker)
+-				m.Post(""/mirror-sync"", repo.MirrorSync)
++				m.Patch(""/issue-tracker"", reqRepoWriter(), bind(api.EditIssueTrackerOption{}), repo.IssueTracker)
++				m.Post(""/mirror-sync"", reqRepoWriter(), repo.MirrorSync)
+ 				m.Get(""/editorconfig/:filename"", context.RepoRef(), repo.GetEditorconfig)
+ 			}, repoAssignment())
+ 		}, reqToken())","routes/api: fix permission checks for routes
+
+Reported by @ManassehZhou #5764","vuln-fix: Enforce repository admin check on sensitive routes
+
+Certain repository routes previously used a generic admin check that did not verify repository-specific admin permissions, allowing unauthorized users to perform privileged actions.
+This flaw risked unauthorized access and modification of repository settings, hooks, collaborators, and deploy keys, potentially compromising repository integrity and security.
+The fix replaces the generic admin middleware with a repository-specific admin check that ensures only repository administrators can access these sensitive endpoints.
+
+Weakness: CWE-285
+Severity: High
+CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('permission', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('admin', 'SECWORD', ''), ('sensitive', 'SECWORD', ''), ('admin', 'SECWORD', ''), ('verify', 'ACTION', ''), ('admin', 'SECWORD', ''), ('permissions', 'SECWORD', ''), ('flaw', 'FLAW', ''), ('keys', 'SECWORD', ''), ('integrity', 'secword', ''), ('security', 'secword', ''), ('fix', 'ACTION', ''), ('admin', 'SECWORD', ''), ('admin', 'SECWORD', ''), ('ensures', 'ACTION', ''), ('administrators', 'SECWORD', ''), ('sensitive', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-285', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+20,CWE-20,GHSA-v82p-hv3v-p6qp,"@@ -49,35 +49,45 @@ class MklRequantizePerChannelOp : public OpKernel {
+   void Compute(OpKernelContext* ctx) override {
+     try {
+       const Tensor& input = ctx->input(kInputTensorIndex);
++      OP_REQUIRES(
++          ctx, input.dims() == 4,
++          errors::InvalidArgument(""Current RequantizePerChannel operator""
++                                  ""supports 4D tensors only.""));
++
+       const Tensor& input_min_vec = ctx->input(kInputMinVecIndex);
++      size_t depth = input_min_vec.NumElements();
+       float* input_min_vec_data = (float*)const_cast<void*>(
+           static_cast<const void*>(input_min_vec.flat<float>().data()));
++
+       const Tensor& input_max_vec = ctx->input(kInputMaxVecIndex);
++      OP_REQUIRES(
++          ctx, input_max_vec.NumElements() == depth,
++          errors::InvalidArgument(""input_max has incorrect size, expected "",
++                                  depth, "" was "", input_max_vec.NumElements()));
+       float* input_max_vec_data = (float*)const_cast<void*>(
+           static_cast<const void*>(input_max_vec.flat<float>().data()));
+ 
+       const Tensor& input_requested_min = ctx->input(this->kRequestMinIndex);
++      OP_REQUIRES(
++          ctx, input_requested_min.NumElements() == 1,
++          errors::InvalidArgument(""requested_output_min must be a scalar""));
+       const float input_requested_min_float =
+           input_requested_min.flat<float>()(0);
++
+       const Tensor& input_requested_max = ctx->input(this->kRequestMaxIndex);
++      OP_REQUIRES(
++          ctx, input_requested_min.NumElements() == 1,
++          errors::InvalidArgument(""requested_output_max must be a scalar""));
+       const float input_requested_max_float =
+           input_requested_max.flat<float>()(0);
+ 
+-      size_t depth = input_min_vec.NumElements();
+-      OP_REQUIRES(
+-          ctx, input.dims() == 4,
+-          errors::InvalidArgument(""Current RequantizePerChannel operator""
+-                                  ""supports 4D tensors only.""));
+-      OP_REQUIRES(
+-          ctx, input_min_vec.dim_size(0) == depth,
+-          errors::InvalidArgument(""input_min has incorrect size, expected "",
+-                                  depth, "" was "", input_min_vec.dim_size(0)));
+-      OP_REQUIRES(
+-          ctx, input_max_vec.dim_size(0) == depth,
+-          errors::InvalidArgument(""input_max has incorrect size, expected "",
+-                                  depth, "" was "", input_max_vec.dim_size(0)));
+-
+-      if (out_type_ == DT_QINT8) DCHECK(input_requested_min_float < 0.0f);
++      if (out_type_ == DT_QINT8) {
++        OP_REQUIRES(ctx, input_requested_min_float < 0.0f,
++                    errors::InvalidArgument(
++                        ""If out_type is QINT8, requested_output_max must be ""
++                        ""non negative, got "",
++                        input_requested_min_float));
++      }
+ 
+       const float factor = (out_type_ == DT_QINT8) ? 127.0f : 255.0f;
+       const float requested_min_max =","Reorganize and add more validation to MKL requantization
+
+PiperOrigin-RevId: 387901341
+Change-Id: I2515b9034c64e113db0bcec8337d30643ab0a0f1","vuln-fix: Add strict input validation in RequantizePerChannel operator
+
+The RequantizePerChannel operator lacked comprehensive validation of input tensor dimensions and parameter sizes, allowing malformed inputs to proceed unchecked.
+This could lead to out-of-bounds memory access or incorrect computations, potentially causing crashes or exploitable undefined behavior in downstream processing.
+The fix enforces strict checks on tensor rank, vector sizes, and scalar parameters, rejecting invalid inputs early with clear error messages.
+
+Weakness: CWE-20
+Severity: High
+CVSS: 7.5",0.11764705882352941,"[('add', 'ACTION', ''), ('change', 'ACTION', ''), ('i2515b9034c64e113db0bcec8337d30643ab0a0f1', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('add', 'ACTION', ''), ('input validation', 'SECWORD', ''), ('out-of-bounds', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('fix', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+21,CWE-20,GHSA-2p9q-h29j-3f5v,"@@ -36,6 +36,10 @@ class SummaryTensorOpV2 : public OpKernel {
+                 errors::InvalidArgument(""tag must be scalar""));
+     const Tensor& tensor = c->input(1);
+     const Tensor& serialized_summary_metadata_tensor = c->input(2);
++    OP_REQUIRES(
++        c,
++        TensorShapeUtils::IsScalar(serialized_summary_metadata_tensor.shape()),
++        errors::InvalidArgument(""serialized_summary_metadata must be scalar""));
+ 
+     Summary s;
+     Summary::Value* v = s.add_value();","Fix tf.raw_ops.TensorSummaryV2 vulnerability with invalid serialized_summary_metadata.
+
+Check that input is actually a scalar before treating it as such.
+
+PiperOrigin-RevId: 445197183","vuln-fix: Validate serialized summary metadata tensor shape
+
+The code failed to verify that the serialized summary metadata tensor input was a scalar, allowing malformed tensor shapes to be processed.
+This could lead to unexpected behavior or memory corruption when non-scalar tensors are used where scalars are required, risking application stability and security.
+The fix adds a check to ensure the serialized summary metadata tensor is scalar, rejecting invalid inputs early to prevent downstream errors.
+
+Weakness: CWE-20
+Severity: Medium
+CVSS: 5.0",0.11764705882352941,"[('fix', 'ACTION', ''), ('vulnerability', 'secword', ''), ('serialized_summary_metadata', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('serialized', 'SECWORD', ''), ('verify', 'ACTION', ''), ('serialized', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('security', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('serialized', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('errors', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+22,CWE-209,GHSA-hm37-9xh2-q499,"@@ -221,7 +221,9 @@ def from_bytes(
+ 
+         Raises:
+             ValueError: The provided byte string is not an ``openssh-key-v1``
+-                key list or the declared key count is negative.
++                key list, when the declared key count is negative, or when an
++                EOF is found while parsing the key.
++
+             UserWarning: The check numbers in the decrypted private byte string
+                 do not match (likely due to an incorrect passphrase), the key
+                 type or parameter values of a private key do not match that of
+@@ -229,110 +231,117 @@ def from_bytes(
+                 at the end of the decrypted private byte string are not as
+                 expected.
+         """"""
+-        byte_stream = PascalStyleByteStream(byte_string)
++        try:
++            byte_stream = PascalStyleByteStream(byte_string)
+ 
+-        header = byte_stream.read_from_format_instructions_dict(
+-            cls.HEADER_FORMAT_INSTRUCTIONS_DICT
+-        )
++            header = byte_stream.read_from_format_instructions_dict(
++                cls.HEADER_FORMAT_INSTRUCTIONS_DICT
++            )
++
++            if header['auth_magic'] != b'openssh-key-v1\x00':
++                raise ValueError('Not an openssh-key-v1 key')
+ 
+-        if header['auth_magic'] != b'openssh-key-v1\x00':
+-            raise ValueError('Not an openssh-key-v1 key')
++            num_keys = header['num_keys']
+ 
+-        num_keys = header['num_keys']
++            if num_keys < 0:
++                raise ValueError('Cannot parse negative number of keys')
+ 
+-        if num_keys < 0:
+-            raise ValueError('Cannot parse negative number of keys')
++            public_key_list = []
++            for i in range(num_keys):
++                public_key_bytes = byte_stream.read_from_format_instruction(
++                    PascalStyleFormatInstruction.BYTES
++                )
++                public_key_list.append(
++                    PublicKey.from_bytes(public_key_bytes)
++                )
+ 
+-        public_key_list = []
+-        for i in range(num_keys):
+-            public_key_bytes = byte_stream.read_from_format_instruction(
++            cipher_bytes = byte_stream.read_from_format_instruction(
+                 PascalStyleFormatInstruction.BYTES
+             )
+-            public_key_list.append(
+-                PublicKey.from_bytes(public_key_bytes)
+-            )
+ 
+-        cipher_bytes = byte_stream.read_from_format_instruction(
+-            PascalStyleFormatInstruction.BYTES
+-        )
+-
+-        kdf_class = get_kdf_options_class(header['kdf'])
+-        kdf_options = kdf_class(
+-            PascalStyleByteStream(
+-                header['kdf_options']
+-            ).read_from_format_instructions_dict(
+-                kdf_class.FORMAT_INSTRUCTIONS_DICT
++            kdf_class = get_kdf_options_class(header['kdf'])
++            kdf_options = kdf_class(
++                PascalStyleByteStream(
++                    header['kdf_options']
++                ).read_from_format_instructions_dict(
++                    kdf_class.FORMAT_INSTRUCTIONS_DICT
++                )
+             )
+-        )
+ 
+-        cipher_class = get_cipher_class(header['cipher'])
++            cipher_class = get_cipher_class(header['cipher'])
+ 
+-        if kdf_class == NoneKDFOptions:
+-            passphrase = ''
+-        elif passphrase is None:
+-            passphrase = getpass.getpass('Key passphrase: ')
++            if kdf_class == NoneKDFOptions:
++                passphrase = ''
++            elif passphrase is None:
++                passphrase = getpass.getpass('Key passphrase: ')
+ 
+-        if issubclass(cipher_class, ConfidentialityIntegrityCipher):
+-            cipher_bytes += byte_stream.read_fixed_bytes(
+-                cipher_class.TAG_LENGTH
+-            )
+-
+-        decipher_bytes = cipher_class.decrypt(
+-            kdf_class(kdf_options),
+-            passphrase,
+-            cipher_bytes
+-        )
+-
+-        decipher_byte_stream = PascalStyleByteStream(decipher_bytes)
++            if issubclass(cipher_class, ConfidentialityIntegrityCipher):
++                cipher_bytes += byte_stream.read_fixed_bytes(
++                    cipher_class.TAG_LENGTH
++                )
+ 
+-        decipher_bytes_header = \
+-            decipher_byte_stream.read_from_format_instructions_dict(
+-                cls.DECIPHER_BYTES_HEADER_FORMAT_INSTRUCTIONS_DICT
++            decipher_bytes = cipher_class.decrypt(
++                kdf_class(kdf_options),
++                passphrase,
++                cipher_bytes
+             )
+ 
+-        if decipher_bytes_header['check_int_1'] \
+-                != decipher_bytes_header['check_int_2']:
+-            warnings.warn('Cipher header check numbers do not match')
++            decipher_byte_stream = PascalStyleByteStream(decipher_bytes)
+ 
+-        initlist = []
+-        for i in range(num_keys):
+-            initlist.append(
+-                PublicPrivateKeyPair(
+-                    public_key_list[i],
+-                    PrivateKey.from_byte_stream(decipher_byte_stream)
+-                )
+-            )
+-            if initlist[i].public.header['key_type'] \
+-                    != initlist[i].private.header['key_type']:
+-                warnings.warn(
+-                    f'Inconsistency between private and public '
+-                    f'key types for key {i}'
++            decipher_bytes_header = \
++                decipher_byte_stream.read_from_format_instructions_dict(
++                    cls.DECIPHER_BYTES_HEADER_FORMAT_INSTRUCTIONS_DICT
+                 )
+-            if not all(
+-                (
+-                    initlist[i].public.params[k] ==
+-                    initlist[i].private.params[k]
+-                ) for k in (
+-                    initlist[i].public.params.keys() &
+-                    initlist[i].private.params.keys()
++
++            if decipher_bytes_header['check_int_1'] \
++                    != decipher_bytes_header['check_int_2']:
++                warnings.warn('Cipher header check numbers do not match')
++
++            initlist = []
++            for i in range(num_keys):
++                initlist.append(
++                    PublicPrivateKeyPair(
++                        public_key_list[i],
++                        PrivateKey.from_byte_stream(decipher_byte_stream)
++                    )
+                 )
++                if initlist[i].public.header['key_type'] \
++                        != initlist[i].private.header['key_type']:
++                    warnings.warn(
++                        f'Inconsistency between private and public '
++                        f'key types for key {i}'
++                    )
++                if not all(
++                    (
++                        initlist[i].public.params[k] ==
++                        initlist[i].private.params[k]
++                    ) for k in (
++                        initlist[i].public.params.keys() &
++                        initlist[i].private.params.keys()
++                    )
++                ):
++                    warnings.warn(
++                        f'Inconsistency between private and public '
++                        f'values for key {i}'
++                    )
++
++            decipher_padding = decipher_byte_stream.read()
++
++            if (
++                len(decipher_byte_stream.getvalue()) %
++                    cipher_class.BLOCK_SIZE != 0
++            ) or not (
++                bytes(
++                    range(1, 1 + cipher_class.BLOCK_SIZE)
++                ).startswith(decipher_padding)
+             ):
+-                warnings.warn(
+-                    f'Inconsistency between private and public '
+-                    f'values for key {i}'
+-                )
+-
+-        decipher_padding = decipher_byte_stream.read()
+-
+-        if (
+-            len(decipher_byte_stream.getvalue()) %
+-                cipher_class.BLOCK_SIZE != 0
+-        ) or not (
+-            bytes(
+-                range(1, 1 + cipher_class.BLOCK_SIZE)
+-            ).startswith(decipher_padding)
+-        ):
+-            warnings.warn('Incorrect padding at end of ciphertext')
++                warnings.warn('Incorrect padding at end of ciphertext')
++        except ValueError as e:
++            raise e
++        except EOFError as e:
++            raise ValueError('Premature EOF detected while parsing key.')
++        except e:
++            raise ValueError('Unexpected error condition reached.')
+ 
+         return cls(
+             initlist,",Improved error handling to prevent unhandled exceptions in calling code.,"vuln-fix: Handle premature EOF and parsing errors in key deserialization
+
+The key deserialization function did not properly handle unexpected end-of-file conditions, causing unhandled exceptions during parsing of malformed or truncated keys.
+This could lead to application crashes or denial of service when processing crafted or corrupted key data, impacting availability and stability.
+The fix adds explicit exception handling for EOFError and other unexpected errors, converting them into controlled ValueError exceptions with descriptive messages.
+
+Weakness: CWE-703
+Severity: Medium
+CVSS: 5.0",0.058823529411764705,"[('improved', 'ACTION', ''), ('error handling', 'SECWORD', ''), ('prevent', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('errors', 'FLAW', ''), ('key', 'secword', ''), ('deserialization', 'SECWORD', ''), ('key', 'SECWORD', ''), ('deserialization', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('key', 'secword', ''), ('availability', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('eoferror', 'FLAW', ''), ('errors', 'FLAW', ''), ('valueerror', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-703', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+23,CWE-200,GHSA-fcxw-hhxq-48wx,"@@ -42,6 +42,11 @@
+ import java.net.URISyntaxException;
+ import java.nio.charset.Charset;
+ import java.nio.file.Files;
++import java.nio.file.Path;
++import java.nio.file.Paths;
++import java.nio.file.attribute.FileAttribute;
++import java.nio.file.attribute.PosixFilePermission;
++import java.nio.file.attribute.PosixFilePermissions;
+ import java.text.MessageFormat;
+ import java.util.ArrayList;
+ import java.util.Arrays;
+@@ -1411,6 +1416,34 @@ public void addNote(String note, String namespace ) throws GitException, Interru
+         createNote(note,namespace,""add"");
+     }
+ 
++    private File createTempFileInSystemDir(String prefix, String suffix) throws IOException {
++        if (isWindows()) {
++            return Files.createTempFile(prefix, suffix).toFile();
++        }
++        Set<PosixFilePermission> ownerOnly = PosixFilePermissions.fromString(""rw-------"");
++        FileAttribute fileAttribute = PosixFilePermissions.asFileAttribute(ownerOnly);
++        return Files.createTempFile(prefix, suffix, fileAttribute).toFile();
++    }
++
++    private File createTempFile(String prefix, String suffix) throws IOException {
++        if (workspace == null) {
++            return createTempFileInSystemDir(prefix, suffix);
++        }
++        File workspaceTmp = new File(workspace.getAbsolutePath() + ""@tmp"");
++        if (!workspaceTmp.isDirectory() && !workspaceTmp.mkdirs()) {
++            if (!workspaceTmp.isDirectory()) {
++                return createTempFileInSystemDir(prefix, suffix);
++            }
++        }
++        Path tmpPath = Paths.get(workspaceTmp.getAbsolutePath());
++        if (isWindows()) {
++            return Files.createTempFile(tmpPath, prefix, suffix).toFile();
++        }
++        Set<PosixFilePermission> ownerOnly = PosixFilePermissions.fromString(""rw-------"");
++        FileAttribute fileAttribute = PosixFilePermissions.asFileAttribute(ownerOnly);
++        return Files.createTempFile(tmpPath, prefix, suffix, fileAttribute).toFile();
++    }
++
+     private void deleteTempFile(File tempFile) {
+         if (tempFile != null && !tempFile.delete() && tempFile.exists()) {
+             listener.getLogger().println(""[WARNING] temp file "" + tempFile + "" not deleted"");
+@@ -1420,7 +1453,7 @@ private void deleteTempFile(File tempFile) {
+     private void createNote(String note, String namespace, String command ) throws GitException, InterruptedException {
+         File msg = null;
+         try {
+-            msg = File.createTempFile(""git-note"", ""txt"", workspace);
++            msg = createTempFile(""git-note"", "".txt"");
+             FileUtils.writeStringToFile(msg,note);
+             launchCommand(""notes"", ""--ref="" + namespace, command, ""-F"", msg.getAbsolutePath());
+         } catch (IOException | GitException e) {
+@@ -1561,7 +1594,7 @@ private String launchCommandWithCredentials(ArgumentListBuilder args, File workD
+     }
+ 
+     private File createSshKeyFile(SSHUserPrivateKey sshUser) throws IOException, InterruptedException {
+-        File key = File.createTempFile(""ssh"", ""key"");
++        File key = createTempFile(""ssh"", "".key"");
+         try (PrintWriter w = new PrintWriter(key, Charset.defaultCharset().toString())) {
+             List<String> privateKeys = sshUser.getPrivateKeys();
+             for (String s : privateKeys) {
+@@ -1597,7 +1630,7 @@ private String quoteUnixCredentials(String str) {
+     }
+ 
+     private File createWindowsSshAskpass(SSHUserPrivateKey sshUser) throws IOException {
+-        File ssh = File.createTempFile(""pass"", "".bat"");
++        File ssh = createTempFile(""pass"", "".bat"");
+         try (PrintWriter w = new PrintWriter(ssh, Charset.defaultCharset().toString())) {
+             // avoid echoing command as part of the password
+             w.println(""@echo off"");
+@@ -1610,7 +1643,7 @@ private File createWindowsSshAskpass(SSHUserPrivateKey sshUser) throws IOExcepti
+     }
+ 
+     private File createUnixSshAskpass(SSHUserPrivateKey sshUser) throws IOException {
+-        File ssh = File.createTempFile(""pass"", "".sh"");
++        File ssh = createTempFile(""pass"", "".sh"");
+         try (PrintWriter w = new PrintWriter(ssh, Charset.defaultCharset().toString())) {
+             w.println(""#!/bin/sh"");
+             w.println(""echo '"" + quoteUnixCredentials(Secret.toString(sshUser.getPassphrase())) + ""'"");
+@@ -1621,7 +1654,7 @@ private File createUnixSshAskpass(SSHUserPrivateKey sshUser) throws IOException
+ 
+     /* Package protected for testability */
+     File createWindowsBatFile(String userName, String password) throws IOException {
+-        File askpass = File.createTempFile(""pass"", "".bat"");
++        File askpass = createTempFile(""pass"", "".bat"");
+         try (PrintWriter w = new PrintWriter(askpass, Charset.defaultCharset().toString())) {
+             w.println(""@set arg=%~1"");
+             w.println(""@if (%arg:~0,8%)==(Username) echo "" + escapeWindowsCharsForUnquotedString(userName));
+@@ -1636,7 +1669,7 @@ private File createWindowsStandardAskpass(StandardUsernamePasswordCredentials cr
+     }
+ 
+     private File createUnixStandardAskpass(StandardUsernamePasswordCredentials creds) throws IOException {
+-        File askpass = File.createTempFile(""pass"", "".sh"");
++        File askpass = createTempFile(""pass"", "".sh"");
+         try (PrintWriter w = new PrintWriter(askpass, Charset.defaultCharset().toString())) {
+             w.println(""#!/bin/sh"");
+             w.println(""case \""$1\"" in"");
+@@ -1766,7 +1799,7 @@ private File getSSHExeFromGitExeParentDir(String userGitExe) {
+     }
+ 
+     private File createWindowsGitSSH(File key, String user) throws IOException {
+-        File ssh = File.createTempFile(""ssh"", "".bat"");
++        File ssh = createTempFile(""ssh"", "".bat"");
+ 
+         File sshexe = getSSHExecutable();
+ 
+@@ -1779,7 +1812,7 @@ private File createWindowsGitSSH(File key, String user) throws IOException {
+     }
+ 
+     private File createUnixGitSSH(File key, String user) throws IOException {
+-        File ssh = File.createTempFile(""ssh"", "".sh"");
++        File ssh = createTempFile(""ssh"", "".sh"");
+         try (PrintWriter w = new PrintWriter(ssh, Charset.defaultCharset().toString())) {
+             w.println(""#!/bin/sh"");
+             // ${SSH_ASKPASS} might be ignored if ${DISPLAY} is not set
+@@ -2383,7 +2416,7 @@ public void branch(String name) throws GitException, InterruptedException {
+     public void commit(String message) throws GitException, InterruptedException {
+         File f = null;
+         try {
+-            f = File.createTempFile(""gitcommit"", "".txt"");
++            f = createTempFile(""gitcommit"", "".txt"");
+             try (OutputStream out = Files.newOutputStream(f.toPath())) {
+                 out.write(message.getBytes(Charset.defaultCharset().toString()));
+             }","[Fix SECURITY-445] better protect temporary files
+
+Temporary files were previously written to the system temporary directory
+with default permissions.  A malicious actor could have captured sensitive
+information by reading files from the temporary directory.  The temporary
+files typically are only on the file system for the duration of a single
+command line git invocation, but cloning a large git repo could require
+an extended time with those sensitive files in the temporary directory.
+
+This change sets permissions on the temporary files to be readable only by
+the file owner. If a workspace is available, a temporary directory adjacent
+to the workspace is used instead of the system temporary directory.","vuln-fix: Restrict permissions on temporary files to prevent unauthorized access
+
+Temporary files containing sensitive data were created without explicit permission restrictions, allowing other users on the system to potentially read or modify these files.
+This posed a security risk by exposing private keys, credentials, or other confidential information to unauthorized local users, leading to information disclosure or privilege escalation.
+The fix enforces owner-only read/write permissions on temporary files by setting POSIX file attributes when creating them on non-Windows systems.
+
+Weakness: CWE-276
+Severity: High
+CVSS: 7.5",0.17647058823529413,"[('fix', 'ACTION', ''), ('security-445', 'SECWORD', ''), ('protect', 'secword', ''), ('permissions', 'SECWORD', ''), ('malicious', 'secword', ''), ('sensitive', 'SECWORD', ''), ('sensitive', 'SECWORD', ''), ('change', 'ACTION', ''), ('permissions', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('permissions', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('sensitive data', 'secword', ''), ('permission', 'SECWORD', ''), ('security', 'secword', ''), ('keys', 'SECWORD', ''), ('confidential', 'secword', ''), ('disclosure', 'secword', ''), ('privilege escalation', 'secword', ''), ('fix', 'ACTION', ''), ('permissions', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-276', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+24,"CWE-532', 'CWE-200",GHSA-25xj-89g5-fm6h,"@@ -445,9 +445,7 @@ func (c *ServerCommand) runRecoveryMode() int {
+ 		vault.DefaultMaxRequestDuration = config.DefaultMaxRequestDuration
+ 	}
+ 
+-	proxyCfg := httpproxy.FromEnvironment()
+-	c.logger.Info(""proxy environment"", ""http_proxy"", proxyCfg.HTTPProxy,
+-		""https_proxy"", proxyCfg.HTTPSProxy, ""no_proxy"", proxyCfg.NoProxy)
++	logProxyEnvironmentVariables(c.logger)
+ 
+ 	// Initialize the storage backend
+ 	factory, exists := c.PhysicalBackends[config.Storage.Type]
+@@ -684,6 +682,31 @@ func (c *ServerCommand) runRecoveryMode() int {
+ 	return 0
+ }
+ 
++func logProxyEnvironmentVariables(logger hclog.Logger) {
++	proxyCfg := httpproxy.FromEnvironment()
++	cfgMap := map[string]string{
++		""http_proxy"":  proxyCfg.HTTPProxy,
++		""https_proxy"": proxyCfg.HTTPSProxy,
++		""no_proxy"":    proxyCfg.NoProxy,
++	}
++	for k, v := range cfgMap {
++		u, err := url.Parse(v)
++		if err != nil {
++			// Env vars may contain URLs or host:port values.  We only care
++			// about the former.
++			continue
++		}
++		if _, ok := u.User.Password(); ok {
++			u.User = url.UserPassword(""redacted-username"", ""redacted-password"")
++		} else if user := u.User.Username(); user != """" {
++			u.User = url.User(""redacted-username"")
++		}
++		cfgMap[k] = u.String()
++	}
++	logger.Info(""proxy environment"", ""http_proxy"", cfgMap[""http_proxy""],
++		""https_proxy"", cfgMap[""https_proxy""], ""no_proxy"", cfgMap[""no_proxy""])
++}
++
+ func (c *ServerCommand) adjustLogLevel(config *server.Config, logLevelWasNotSet bool) (string, error) {
+ 	var logLevelString string
+ 	if config.LogLevel != """" && logLevelWasNotSet {
+@@ -894,10 +917,7 @@ func (c *ServerCommand) Run(args []string) int {
+ 		vault.DefaultMaxRequestDuration = config.DefaultMaxRequestDuration
+ 	}
+ 
+-	// log proxy settings
+-	proxyCfg := httpproxy.FromEnvironment()
+-	c.logger.Info(""proxy environment"", ""http_proxy"", proxyCfg.HTTPProxy,
+-		""https_proxy"", proxyCfg.HTTPSProxy, ""no_proxy"", proxyCfg.NoProxy)
++	logProxyEnvironmentVariables(c.logger)
+ 
+ 	// If mlockall(2) isn't supported, show a warning. We disable this in dev
+ 	// because it is quite scary to see when first using Vault. We also disable",Don't include username or password of proxy env vars when logging them. (#9022),"vuln-fix: Redact credentials in proxy environment logging
+
+The server logged proxy environment variables including URLs that could contain embedded usernames and passwords in plaintext.
+This exposed sensitive credentials in logs, risking credential leakage to unauthorized users with log access.
+The fix sanitizes proxy URLs by redacting any embedded usernames and passwords before logging them.
+
+Weakness: CWE-532
+Severity: Medium
+CVSS: 5.0",0.058823529411764705,"[('password', 'SECWORD', ''), ('#9022', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('server', 'SECWORD', ''), ('passwords', 'SECWORD', ''), ('sensitive', 'SECWORD', ''), ('credential', 'secword', ''), ('fix', 'ACTION', ''), ('sanitizes', 'SECWORD', ''), ('passwords', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-532', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+25,CWE-20,GHSA-w8rc-pgxq-x2cj,"@@ -108,7 +108,7 @@ public ShoppingCartData addItemsToShoppingCart( final ShoppingCartData shoppingC
+     {
+ 
+         ShoppingCart cartModel = null;
+-        
++        if(item.getQuantity() < 1) item.setQuantity(1);
+         /**
+          * Sometimes a user logs in and a shopping cart is present in db (shoppingCartData
+          * but ui has no cookie with shopping cart code so the cart code will have
+@@ -216,7 +216,7 @@ private com.salesmanager.core.model.shoppingcart.ShoppingCartItem createCartItem
+         }
+         	
+         for(ProductAvailability availability : availabilities) {
+-        	if(availability.getProductQuantity() == null || availability.getProductQuantity().intValue() ==0) {
++        	if(availability.getProductQuantity() == null || availability.getProductQuantity().intValue() <= 0) {
+                 throw new Exception( ""Item with id "" + product.getId() + "" is not available"");
+         	}
+         }
+@@ -288,7 +288,7 @@ private com.salesmanager.core.model.shoppingcart.ShoppingCartItem createCartItem
+         }
+         	
+         for(ProductAvailability availability : availabilities) {
+-        	if(availability.getProductQuantity() == null || availability.getProductQuantity().intValue() ==0) {
++        	if(availability.getProductQuantity() == null || availability.getProductQuantity().intValue() <= 0) {
+                 throw new Exception( ""Item with id "" + product.getId() + "" is not available"");
+         	}
+         }
+@@ -554,8 +554,7 @@ public ShoppingCartData updateCartItem( final Long itemID, final String cartId,
+         return null;
+     }
+     
+-    @SuppressWarnings(""unchecked"")
+-	@Override
++    @Override
+     public ShoppingCartData updateCartItems( final List<ShoppingCartItem> shoppingCartItems, final MerchantStore store, final Language language )
+             throws Exception
+         {
+@@ -720,7 +719,6 @@ public ReadableShoppingCart addToCart(PersistableShoppingCartItem item, Merchant
+ 	}
+ 	
+ 
+-	@SuppressWarnings(""unchecked"")
+ 	@Override
+ 	public void removeShoppingCartItem(String cartCode, Long productId,
+ 	      MerchantStore merchant, Language language) throws Exception {
+
+From: ""yannick.gosset"" <yannick.gosset@etu.univ-amu.fr>
+ uses PersitableShoppingCartItem
+
+ .../controller/shoppingCart/facade/ShoppingCartFacadeImpl.java  | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+@@ -912,7 +912,7 @@ public ReadableShoppingCart addToCart(Customer customer, PersistableShoppingCart
+ 		
+ 		Validate.notNull(customer,""Customer cannot be null"");
+ 		Validate.notNull(customer.getId(),""Customer.id cannot be null or empty"");
+-		
++		if(item.getQuantity() < 1) item.setQuantity(1);
+ 		//Check if customer has an existing shopping cart
+ 		ShoppingCart cartModel = shoppingCartService.getByCustomer(customer);","Merge pull request from GHSA-w8rc-pgxq-x2cj
+
+Fixing negative charge vulnerability","vuln-fix: Enforce minimum quantity to prevent invalid cart item states
+
+The shopping cart logic allowed items with zero or negative quantities to be added or updated, leading to inconsistent or invalid cart states.
+This could be exploited to bypass inventory checks or cause unexpected behavior in order processing, potentially enabling fraudulent purchases or stock manipulation.
+The fix enforces a minimum quantity of one by adjusting any item quantity less than one to one before further processing.
+
+Weakness: CWE-841
+Severity: Medium
+CVSS: 5.0",0.23529411764705882,"[('ghsa', 'VULNID', 'GHSA'), ('fixing', 'ACTION', ''), ('vulnerability', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('added', 'ACTION', ''), ('updated', 'ACTION', ''), ('exploited', 'SECWORD', ''), ('bypass', 'secword', ''), ('fix', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-841', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+26,CWE-200,GHSA-v6wr-fch2-vm5w,"@@ -1,141 +1,142 @@
+ /*
+-    *
+-    *  *  Copyright 2014 Orient Technologies LTD (info(at)orientechnologies.com)
+-    *  *
+-    *  *  Licensed under the Apache License, Version 2.0 (the ""License"");
+-    *  *  you may not use this file except in compliance with the License.
+-    *  *  You may obtain a copy of the License at
+-    *  *
+-    *  *       http://www.apache.org/licenses/LICENSE-2.0
+-    *  *
+-    *  *  Unless required by applicable law or agreed to in writing, software
+-    *  *  distributed under the License is distributed on an ""AS IS"" BASIS,
+-    *  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-    *  *  See the License for the specific language governing permissions and
+-    *  *  limitations under the License.
+-    *  *
+-    *  * For more information: http://www.orientechnologies.com
+-    *
+-    */
++ *
++ *  *  Copyright 2014 Orient Technologies LTD (info(at)orientechnologies.com)
++ *  *
++ *  *  Licensed under the Apache License, Version 2.0 (the ""License"");
++ *  *  you may not use this file except in compliance with the License.
++ *  *  You may obtain a copy of the License at
++ *  *
++ *  *       http://www.apache.org/licenses/LICENSE-2.0
++ *  *
++ *  *  Unless required by applicable law or agreed to in writing, software
++ *  *  distributed under the License is distributed on an ""AS IS"" BASIS,
++ *  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ *  *  See the License for the specific language governing permissions and
++ *  *  limitations under the License.
++ *  *
++ *  * For more information: http://www.orientechnologies.com
++ *
++ */
+ package com.orientechnologies.orient.server.network.protocol.http;
+ 
+ import com.orientechnologies.common.concur.resource.OSharedResourceAbstract;
+- import com.orientechnologies.common.log.OLogManager;
+- import com.orientechnologies.orient.core.Orient;
+- import com.orientechnologies.orient.core.config.OGlobalConfiguration;
+-
+- import java.util.HashMap;
+- import java.util.Iterator;
+- import java.util.Map;
+- import java.util.Map.Entry;
+- import java.util.Random;
+- import java.util.TimerTask;
++import com.orientechnologies.common.log.OLogManager;
++import com.orientechnologies.orient.core.Orient;
++import com.orientechnologies.orient.core.config.OGlobalConfiguration;
++
++import java.security.SecureRandom;
++import java.util.HashMap;
++import java.util.Iterator;
++import java.util.Map;
++import java.util.Map.Entry;
++import java.util.Random;
++import java.util.TimerTask;
+ 
+ /**
+-  * Handles the HTTP sessions such as a real HTTP Server.
+-  *
+-  * @author Luca Garulli
+-  */
+- public class OHttpSessionManager extends OSharedResourceAbstract {
+-   private static final OHttpSessionManager instance = new OHttpSessionManager();
+-   private Map<String, OHttpSession>        sessions = new HashMap<String, OHttpSession>();
+-   private int                              expirationTime;
+-   private Random                           random   = new Random();
+-
+-   protected OHttpSessionManager() {
+-     expirationTime = OGlobalConfiguration.NETWORK_HTTP_SESSION_EXPIRE_TIMEOUT.getValueAsInteger() * 1000;
+-
+-     Orient.instance().scheduleTask(new TimerTask() {
+-       @Override
+-       public void run() {
+-         final int expired = checkSessionsValidity();
+-         if (expired > 0)
+-           OLogManager.instance().debug(this, ""Removed %d session because expired"", expired);
+-       }
+-     }, expirationTime, expirationTime);
+-   }
+-
+-   public int checkSessionsValidity() {
+-     int expired = 0;
+-
+-     acquireExclusiveLock();
+-     try {
+-       final long now = System.currentTimeMillis();
+-
+-       Entry<String, OHttpSession> s;
+-       for (Iterator<Map.Entry<String, OHttpSession>> it = sessions.entrySet().iterator(); it.hasNext();) {
+-         s = it.next();
+-
+-         if (now - s.getValue().getUpdatedOn() > expirationTime) {
+-           // REMOVE THE SESSION
+-           it.remove();
+-           expired++;
+-         }
+-       }
+-
+-     } finally {
+-       releaseExclusiveLock();
+-     }
+-
+-     return expired;
+-   }
+-
+-   public OHttpSession[] getSessions() {
+-     acquireSharedLock();
+-     try {
+-
+-       return (OHttpSession[]) sessions.values().toArray(new OHttpSession[sessions.size()]);
+-
+-     } finally {
+-       releaseSharedLock();
+-     }
+-   }
+-
+-   public OHttpSession getSession(final String iId) {
+-     acquireSharedLock();
+-     try {
+-
+-       final OHttpSession sess = sessions.get(iId);
+-       if (sess != null)
+-         sess.updateLastUpdatedOn();
+-       return sess;
+-
+-     } finally {
+-       releaseSharedLock();
+-     }
+-   }
+-
+-   public String createSession(final String iDatabaseName, final String iUserName, final String iUserPassword) {
+-     acquireExclusiveLock();
+-     try {
+-       final String id = ""OS"" + System.currentTimeMillis() + random.nextLong();
+-       sessions.put(id, new OHttpSession(id, iDatabaseName, iUserName, iUserPassword));
+-       return id;
+-
+-     } finally {
+-       releaseExclusiveLock();
+-     }
+-   }
+-
+-   public OHttpSession removeSession(final String iSessionId) {
+-     acquireExclusiveLock();
+-     try {
+-       return sessions.remove(iSessionId);
+-
+-     } finally {
+-       releaseExclusiveLock();
+-     }
+-   }
+-
+-   public int getExpirationTime() {
+-     return expirationTime;
+-   }
+-
+-   public void setExpirationTime(int expirationTime) {
+-     this.expirationTime = expirationTime;
+-   }
+-
+-   public static OHttpSessionManager getInstance() {
+-     return instance;
+-   }
+- }
++ * Handles the HTTP sessions such as a real HTTP Server.
++ *
++ * @author Luca Garulli
++ */
++public class OHttpSessionManager extends OSharedResourceAbstract {
++  private static final OHttpSessionManager instance = new OHttpSessionManager();
++  private Map<String, OHttpSession>        sessions = new HashMap<String, OHttpSession>();
++  private int                              expirationTime;
++  private Random                           random   = new SecureRandom();
++
++  protected OHttpSessionManager() {
++    expirationTime = OGlobalConfiguration.NETWORK_HTTP_SESSION_EXPIRE_TIMEOUT.getValueAsInteger() * 1000;
++
++    Orient.instance().scheduleTask(new TimerTask() {
++      @Override
++      public void run() {
++        final int expired = checkSessionsValidity();
++        if (expired > 0)
++          OLogManager.instance().debug(this, ""Removed %d session because expired"", expired);
++      }
++    }, expirationTime, expirationTime);
++  }
++
++  public int checkSessionsValidity() {
++    int expired = 0;
++
++    acquireExclusiveLock();
++    try {
++      final long now = System.currentTimeMillis();
++
++      Entry<String, OHttpSession> s;
++      for (Iterator<Map.Entry<String, OHttpSession>> it = sessions.entrySet().iterator(); it.hasNext();) {
++        s = it.next();
++
++        if (now - s.getValue().getUpdatedOn() > expirationTime) {
++          // REMOVE THE SESSION
++          it.remove();
++          expired++;
++        }
++      }
++
++    } finally {
++      releaseExclusiveLock();
++    }
++
++    return expired;
++  }
++
++  public OHttpSession[] getSessions() {
++    acquireSharedLock();
++    try {
++
++      return (OHttpSession[]) sessions.values().toArray(new OHttpSession[sessions.size()]);
++
++    } finally {
++      releaseSharedLock();
++    }
++  }
++
++  public OHttpSession getSession(final String iId) {
++    acquireSharedLock();
++    try {
++
++      final OHttpSession sess = sessions.get(iId);
++      if (sess != null)
++        sess.updateLastUpdatedOn();
++      return sess;
++
++    } finally {
++      releaseSharedLock();
++    }
++  }
++
++  public String createSession(final String iDatabaseName, final String iUserName, final String iUserPassword) {
++    acquireExclusiveLock();
++    try {
++      final String id = ""OS"" + System.currentTimeMillis() + random.nextLong();
++      sessions.put(id, new OHttpSession(id, iDatabaseName, iUserName, iUserPassword));
++      return id;
++
++    } finally {
++      releaseExclusiveLock();
++    }
++  }
++
++  public OHttpSession removeSession(final String iSessionId) {
++    acquireExclusiveLock();
++    try {
++      return sessions.remove(iSessionId);
++
++    } finally {
++      releaseExclusiveLock();
++    }
++  }
++
++  public int getExpirationTime() {
++    return expirationTime;
++  }
++
++  public void setExpirationTime(int expirationTime) {
++    this.expirationTime = expirationTime;
++  }
++
++  public static OHttpSessionManager getInstance() {
++    return instance;
++  }
++}",Adopted SecureRandom to avoid predicable random numbers in session,"vuln-fix: Use secure random for HTTP session ID generation
+
+The HTTP session manager used a predictable pseudo-random number generator for session ID creation, making session identifiers guessable by attackers.
+This weakness allowed attackers to potentially hijack user sessions by predicting or brute forcing valid session IDs, compromising user authentication and data.
+The fix replaces the insecure Random instance with SecureRandom to generate cryptographically strong, unpredictable session identifiers.
+
+Weakness: CWE-330
+Severity: High
+CVSS: 7.5",0.058823529411764705,"[('securerandom', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('secure', 'SECWORD', ''), ('session identifiers', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('weakness', 'FLAW', ''), ('attackers', 'FLAW', ''), ('hijack', 'SECWORD', ''), ('session ids', 'SECWORD', ''), ('authentication', 'secword', ''), ('fix', 'ACTION', ''), ('insecure', 'secword', ''), ('securerandom', 'SECWORD', ''), ('cryptographically', 'SECWORD', ''), ('session identifiers', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-330', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+27,CWE-20,GHSA-jjcx-999m-35hc,"@@ -60,6 +60,9 @@ public function configureJob(array $data): MessageBag
+         $config['fints_password']  = (string)(Crypt::encrypt($data['fints_password']) ?? '');
+         $config['apply-rules']     = 1 === (int)$data['apply_rules'];
+ 
++        // sanitize FinTS URL.
++        $config['fints_url'] = $this->validURI($config['fints_url']) ? $config['fints_url'] : '';
++
+         $this->repository->setConfiguration($this->importJob, $config);
+ 
+ 
+@@ -108,4 +111,21 @@ public function setImportJob(ImportJob $importJob): void
+         $this->repository->setUser($importJob->user);
+     }
+ 
++    /**
++     * @param string $fints_url
++     *
++     * @return bool
++     */
++    private function validURI(string $fintsUri): bool
++    {
++        $res = filter_var($fintsUri, FILTER_VALIDATE_URL);
++        if (false === $res) {
++            return false;
++        }
++        $scheme = parse_url($fintsUri, PHP_URL_SCHEME);
++
++        return 'https' === $scheme;
++    }
++
++
+ }",Fix #2367,"vuln-fix: Enforce HTTPS validation on FinTS URL configuration
+
+The application accepted arbitrary URLs for the FinTS service without validating their format or scheme, allowing insecure or malicious URLs to be stored.
+This posed a security risk by enabling attackers to inject non-HTTPS URLs, potentially leading to man-in-the-middle attacks or data interception during financial transactions.
+The fix adds strict validation to ensure only valid HTTPS URLs are accepted, sanitizing the configuration to reject insecure or malformed inputs.
+
+Weakness: CWE-601
+Severity: High
+CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('#2367', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('insecure', 'SECWORD', ''), ('malicious', 'secword', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('inject', 'secword', ''), ('man-in-the-middle', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('sanitizing', 'secword', ''), ('insecure', 'secword', ''), ('weakness', 'secword', ''), ('cwe-601', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+28,CWE-20,GHSA-8687-vv9j-hgph,"@@ -27,6 +27,12 @@ module.exports = function cast(schema, obj, options, context) {
+     throw new Error('Query filter must be an object, got an array ', util.inspect(obj));
+   }
+ 
++  // bson 1.x has the unfortunate tendency to remove filters that have a top-level
++  // `_bsontype` property. Should remove this when we upgrade to bson 4.x. See gh-8222
++  if (obj.hasOwnProperty('_bsontype')) {
++    delete obj._bsontype;
++  }
++
+   const paths = Object.keys(obj);
+   let i = paths.length;
+   let _keys;","fix(query): delete top-level `_bsontype` property in queries to prevent silent empty queries
+
+Fix #8222","vuln-fix: Remove _bsontype property to prevent query filter tampering
+
+The query filter processing did not remove the top-level _bsontype property, which bson 1.x treats specially and can cause unintended filter manipulation.
+This allowed attackers to craft queries that bypass intended filtering logic, potentially leading to unauthorized data access or injection attacks.
+The fix deletes the _bsontype property from query filters before processing, preventing bson from altering or ignoring critical filter criteria.
+
+Weakness: CWE-20
+Severity: High
+CVSS: 7.5",0.17647058823529413,"[('fix(query', 'ACTION', ''), ('prevent', 'ACTION', ''), ('fix', 'ACTION', ''), ('#8222', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('remove', 'ACTION', ''), ('prevent', 'ACTION', ''), ('tampering', 'secword', ''), ('remove', 'ACTION', ''), ('attackers', 'FLAW', ''), ('bypass', 'secword', ''), ('injection', 'secword', ''), ('attacks', 'SECWORD', ''), ('fix', 'ACTION', ''), ('preventing', 'ACTION', ''), ('critical', 'SEVERITY', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+29,CWE-20,GHSA-xrp2-fhq4-4q3w,"@@ -50,6 +50,15 @@ struct HistogramFixedWidthFunctor<CPUDevice, T, Tout> {
+                         static_cast<double>(nbins);
+     const double nbins_minus_1 = static_cast<double>(nbins - 1);
+ 
++    // We cannot handle NANs in the algorithm below (due to the case to int32)
++    const Eigen::Tensor<int32, 1, 1> nans_tensor =
++        values.isnan().template cast<int32>();
++    const Eigen::Tensor<int32, 0, 1> reduced_tensor = nans_tensor.sum();
++    const int num_nans = reduced_tensor(0);
++    if (num_nans > 0) {
++      return errors::InvalidArgument(""Histogram values must not contain NaN"");
++    }
++
+     // The calculation is done by finding the slot of each value in `values`.
+     // With [a, b]:
+     //   step = (b - a) / nbins
+@@ -98,12 +107,12 @@ class HistogramFixedWidthOp : public OpKernel {
+     const auto nbins = nbins_tensor.scalar<int32>()();
+ 
+     OP_REQUIRES(
+-        ctx, (value_range(0) < value_range(1)),
++        ctx, value_range(0) < value_range(1),
+         errors::InvalidArgument(""value_range should satisfy value_range[0] < ""
+                                 ""value_range[1], but got '["",
+                                 value_range(0), "", "", value_range(1), ""]'""));
+     OP_REQUIRES(
+-        ctx, (nbins > 0),
++        ctx, nbins > 0,
+         errors::InvalidArgument(""nbins should be a positive number, but got '"",
+                                 nbins, ""'""));","Prevent crash when histogram is called with NaN values.
+
+Fixes #45770
+
+PiperOrigin-RevId: 443149951","vuln-fix: Reject NaN values in histogram input to prevent invalid computation
+
+The histogram operation did not check for NaN values in input tensors, causing undefined behavior during bin assignment and potential downstream errors.
+This allowed attackers to supply NaNs that could lead to incorrect results or trigger crashes due to invalid numeric conversions in the algorithm.
+The fix adds explicit detection and rejection of NaN inputs with a clear error message before any computation proceeds.
+
+Weakness: CWE-682
+Severity: Medium
+CVSS: 4.3",0.17647058823529413,"[('prevent', 'ACTION', ''), ('fixes', 'ACTION', ''), ('#45770', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('errors', 'FLAW', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-682', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+30,"CWE-918', 'CWE-20",GHSA-2h63-qp69-fwvw,"@@ -847,8 +847,10 @@ private Element parseXml(String xmlString) {
+         Document doc = null;
+         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+         try {
+-            javax.xml.parsers.DocumentBuilder parser = factory
+-                    .newDocumentBuilder();
++            factory.setFeature(""http://xml.org/sax/features/external-general-entities"", false);
++            factory.setFeature(""http://xml.org/sax/features/external-parameter-entities"", false);
++            factory.setFeature(""http://apache.org/xml/features/nonvalidating/load-external-dtd"", false);
++            javax.xml.parsers.DocumentBuilder parser = factory.newDocumentBuilder();
+             parser.setErrorHandler(new ErrorHandler() {
+                 public void error(SAXParseException exception)
+                         throws SAXException {","BATIK-1284: Dont load DTDs in NodePickerPanel
+
+git-svn-id: https://svn.apache.org/repos/asf/xmlgraphics/batik/trunk@1878396 13f79535-47bb-0310-9956-ffa450edef68","vuln-fix: Disable external entity processing in XML parser
+
+The XML parser allowed processing of external entities and DTDs, enabling XML External Entity (XXE) attacks through crafted XML input.
+This exposed the application to risks such as sensitive file disclosure, server-side request forgery, and denial of service by loading malicious external resources.
+The fix disables external-general-entities, external-parameter-entities, and external DTD loading features to prevent external entity resolution during XML parsing.
+
+Weakness: CWE-611
+Severity: High
+CVSS: 7.5",0.17647058823529413,"[('https://svn.apache.org/repos/asf/xmlgraphics/batik/trunk@1878396', 'URL', ''), ('ffa450edef68', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('external entity', 'SECWORD', ''), ('xml external entity', 'SECWORD', ''), ('xxe', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('sensitive', 'SECWORD', ''), ('disclosure', 'secword', ''), ('server-side request forgery', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('malicious', 'SECWORD', ''), ('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('external entity', 'secword', ''), ('weakness', 'secword', ''), ('cwe-611', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+31,CWE-20,GHSA-h8pj-cxx2-jfg2,"@@ -484,7 +484,11 @@ def copy_with(self, **kwargs: typing.Any) -> ""URL"":
+         #  \_/   \______________/\_________/ \_________/ \__/
+         #   |           |            |            |        |
+         # scheme     authority       path        query   fragment
+-        return URL(self._uri_reference.copy_with(**kwargs).unsplit())
++        new_url = URL(self)
++        new_url._uri_reference = self._uri_reference.copy_with(**kwargs)
++        if new_url.is_absolute_url:
++            new_url._uri_reference = new_url._uri_reference.normalize()
++        return URL(new_url)
+ 
+     def copy_set_param(self, key: str, value: typing.Any = None) -> ""URL"":
+         return self.copy_with(params=self.params.set(key, value))",Patch `copy_with`,"vuln-fix: Normalize absolute URLs to prevent path traversal
+
+The URL copy method did not normalize absolute URLs after modifications, allowing crafted inputs to retain unsafe path segments like "".."" that could lead to directory traversal.
+This posed a security risk by enabling attackers to bypass access controls or access unintended resources through manipulated URL paths.
+The fix normalizes the internal URI reference for absolute URLs after copying, ensuring path components are sanitized and traversal sequences are resolved.
+
+Weakness: CWE-22
+Severity: High
+CVSS: 7.5",0.11764705882352941,"[('patch', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('path traversal', 'secword', ''), ('unsafe', 'secword', ''), ('..', 'VERSION', ''), ('directory traversal', 'secword', ''), ('security', 'secword', ''), ('attackers', 'SECWORD', ''), ('bypass', 'SECWORD', ''), ('manipulated', 'ACTION', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('sanitized', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-22', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+32,CWE-200,GHSA-qpv2-jxc7-3638,"@@ -1,6 +1,6 @@
+ <?php
+ 
+ return [
+-    'sent'	        => 'Your password link has been sent!',
++    'sent'	        => 'Success: If that email address exists in our system, a password recovery email has been sent.',
+     'user'			=> 'No matching active user found with that email.',
+ ];","Updated language string
+
+Signed-off-by: snipe <snipe@snipe.net>","vuln-fix: Prevent user enumeration via password reset messages
+
+The password reset response revealed whether an email address was registered, allowing attackers to enumerate valid users by analyzing message differences.
+This information disclosure risk enabled targeted attacks such as phishing or brute force by confirming active accounts in the system.
+The fix standardizes the success message to avoid revealing user existence, providing a generic response regardless of email validity.
+
+Weakness: CWE-200  
+Severity: Medium  
+CVSS: 5.3",0.17647058823529413,"[('updated', 'ACTION', ''), ('signed', 'secword', ''), ('snipe@snipe.net', 'EMAIL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('user enumeration', 'SECWORD', ''), ('password', 'secword', ''), ('password', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('disclosure', 'secword', ''), ('attacks', 'FLAW', ''), ('phishing', 'secword', ''), ('fix', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-200', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+33,CWE-20,GHSA-xm9f-vxmx-4m58,"@@ -49,7 +49,7 @@ public function getResource($forWrite = false)
+             $isError = false;
+ 
+             $ioConfig = $this->getVars();
+-            switch ($this->getVar('type', 'file')) {
++            switch (strtolower($this->getVar('type', 'file'))) {
+                 case 'file':
+                     //validate export/import path
+                     $path = rtrim($ioConfig['path'], '\\/')","Merge pull request from GHSA-xm9f-vxmx-4m58
+
+Co-authored-by: Mark Lewis <markwlewis@Marks-MacBook-Pro.local>","vuln-fix: Normalize type parameter to prevent case-sensitive bypass
+
+The resource handler did not normalize the 'type' parameter before switch evaluation, allowing attackers to bypass intended case-sensitive checks.
+This could lead to improper handling of resource types, potentially enabling unauthorized file operations or injection of unexpected input.
+The fix converts the 'type' parameter to lowercase before the switch statement, ensuring consistent and secure type validation.
+
+Weakness: CWE-20
+Severity: Medium
+CVSS: 5.3",0.17647058823529413,"[('ghsa', 'VULNID', 'GHSA'), ('markwlewis@marks-macbook-pro.local', 'EMAIL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('sensitive', 'SECWORD', ''), ('bypass', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('bypass', 'secword', ''), ('sensitive', 'SECWORD', ''), ('improper handling', 'secword', ''), ('injection', 'secword', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('secure', 'secword', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+34,"CWE-325', 'CWE-200', 'CWE-502', 'CWE-20",GHSA-4h44-w6fm-548g,"@@ -14,10 +14,15 @@
+ 
+ call_user_func(function() {
+     $value = \TYPO3\CMS\Core\Utility\GeneralUtility::_GET('value');
+-    $addition = \TYPO3\CMS\Core\Utility\GeneralUtility::_GET('addition');
+     $scope = \TYPO3\CMS\Core\Utility\GeneralUtility::_GET('scope');
+ 
+-    $content = \TYPO3\CMS\Core\Utility\GeneralUtility::hmac($value, $addition);
++    if (!is_string($value) || empty($value)) {
++        \TYPO3\CMS\Core\Utility\HttpUtility::setResponseCodeAndExit(
++            \TYPO3\CMS\Core\Utility\HttpUtility::HTTP_STATUS_400
++        );
++    }
++
++    $content = \TYPO3\CMS\Core\Utility\GeneralUtility::hmac($value, 'flashvars');
+ 
+     if ($scope === 'flashvars') {
+         header('Content-type: application/x-www-form-urlencoded');","[SECURITY] Restrict file validation hash generation
+
+Security-References: CVE-2020-15086","vuln-fix: Validate input and fix HMAC key usage in request handler
+
+The code failed to validate the 'value' parameter from user input and incorrectly used a user-supplied 'addition' as the HMAC key, risking insecure hash generation.
+This allowed attackers to cause errors or manipulate HMAC computations, potentially bypassing integrity checks or causing denial of service through invalid inputs.
+The fix enforces that 'value' is a non-empty string and replaces the dynamic HMAC key with a fixed, constant string to ensure consistent and secure hashing.
+
+Weakness: CWE-20
+Severity: High
+CVSS: 7.5",0.17647058823529413,"[('security', 'SECWORD', ''), ('hash', 'secword', ''), ('security', 'secword', ''), ('cve-2020-15086', 'VULNID', 'CVE')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('fix', 'ACTION', ''), ('hmac', 'secword', ''), ('key', 'SECWORD', ''), ('validate', 'secword', ''), ('incorrectly used', 'SECWORD', ''), ('hmac', 'secword', ''), ('key', 'SECWORD', ''), ('insecure', 'secword', ''), ('hash', 'secword', ''), ('attackers', 'SECWORD', ''), ('errors', 'FLAW', ''), ('manipulate', 'ACTION', ''), ('hmac', 'secword', ''), ('bypassing', 'SECWORD', ''), ('integrity', 'secword', ''), ('denial of service', 'secword', ''), ('fix', 'ACTION', ''), ('hmac', 'secword', ''), ('key', 'SECWORD', ''), ('fixed', 'ACTION', ''), ('ensure', 'ACTION', ''), ('secure', 'secword', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+35,CWE-20,GHSA-832h-xg76-4gv6,"@@ -106,7 +106,7 @@ function expand(str, isTop) {
+   var isNumericSequence = /^-?\d+\.\.-?\d+(?:\.\.-?\d+)?$/.test(m.body);
+   var isAlphaSequence = /^[a-zA-Z]\.\.[a-zA-Z](?:\.\.-?\d+)?$/.test(m.body);
+   var isSequence = isNumericSequence || isAlphaSequence;
+-  var isOptions = /^(.*,)+(.+)?$/.test(m.body);
++  var isOptions = m.body.indexOf(',') >= 0;
+   if (!isSequence && !isOptions) {
+     // {a},b}
+     if (m.post.match(/,.*\}/)) {",fix bug in https://github.com/juliangruber/brace-expansion/issues/33,"vuln-fix: Fix inefficient options detection causing ReDoS risk
+
+The original regex used to detect options in brace expansions was overly complex and could cause catastrophic backtracking on crafted input strings.
+This vulnerability allowed attackers to trigger Regular Expression Denial of Service (ReDoS) by supplying inputs that cause exponential regex evaluation time.
+The fix replaces the regex with a simple indexOf check for commas, eliminating backtracking and improving performance and security.
+
+Weakness: CWE-400
+Severity: Medium
+CVSS: 5.3",0.058823529411764705,"[('fix', 'ACTION', ''), ('bug', 'FLAW', ''), ('https://github.com/juliangruber/brace-expansion/issues/33', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('fix', 'ACTION', ''), ('redos', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('denial of service', 'secword', ''), ('redos', 'SECWORD', ''), ('fix', 'ACTION', ''), ('improving', 'ACTION', ''), ('security', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-400', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+36,CWE-20,GHSA-qr2j-wrhx-4829,"@@ -119,6 +119,9 @@ func (api *PrivateDebugAPI) TraceChain(ctx context.Context, start, end rpc.Block
+ 	if to == nil {
+ 		return nil, fmt.Errorf(""end block #%d not found"", end)
+ 	}
++	if from.Number().Cmp(to.Number()) >= 0 {
++		return nil, fmt.Errorf(""end block (#%d) needs to come after start block (#%d)"", end, start)
++	}
+ 	return api.traceChain(ctx, from, to, config)
+ }",eth: ensure from<to when tracing chain (credits Chen Nan via bugbounty),"vuln-fix: Validate block range order in TraceChain API
+
+The TraceChain function did not verify that the end block number is greater than the start block number, allowing invalid or reversed block ranges.
+This could lead to unexpected behavior or logic errors in blockchain tracing, potentially causing incorrect data processing or denial of service.
+The fix adds a check to ensure the end block number is strictly greater than the start block number, returning an error if the order is invalid.
+
+Weakness: CWE-703
+Severity: Medium
+CVSS: 5.0",0.058823529411764705,"[('ensure', 'ACTION', ''), ('bugbounty', 'FLAW', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('logic errors', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-703', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+37,CWE-200,GHSA-2hjr-fg6c-v2h6,"@@ -2,6 +2,7 @@
+ 
+ import com.google.common.base.CaseFormat;
+ import com.google.common.collect.ImmutableSet;
++import java.lang.reflect.Method;
+ import java.util.Set;
+ import javax.el.BeanELResolver;
+ import javax.el.ELContext;
+@@ -111,7 +112,12 @@ private String transformPropertyName(Object property) {
+   }
+ 
+   private void checkRestrictedClass(Object o, Object method) {
+-    if (o instanceof Class || o instanceof ClassLoader || o instanceof Thread) {
++    if (
++      o instanceof Class ||
++      o instanceof ClassLoader ||
++      o instanceof Thread ||
++      o instanceof Method
++    ) {
+       throw new MethodNotFoundException(
+         ""Cannot find method '"" + method + ""' in "" + o.getClass()
+       );",add method to blacklist,"vuln-fix: Restrict reflective access to Method objects in EL resolver
+
+The expression language resolver allowed reflective access to java.lang.reflect.Method instances, enabling attackers to invoke arbitrary methods via EL expressions.
+This posed a critical security risk by permitting unauthorized code execution and potential privilege escalation through method invocation on sensitive classes.
+The fix extends the restricted class check to include Method objects, blocking reflective method access and preventing exploitation.
+
+Weakness: CWE-95
+Severity: Critical
+CVSS: 9.8",0.11764705882352941,"[('add', 'ACTION', ''), ('blacklist', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('java.lang.reflect.method', 'URL', ''), ('attackers', 'FLAW', ''), ('critical', 'SEVERITY', ''), ('security', 'secword', ''), ('code execution', 'SECWORD', ''), ('privilege escalation', 'secword', ''), ('sensitive', 'SECWORD', ''), ('fix', 'ACTION', ''), ('preventing', 'ACTION', ''), ('exploitation', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-95', 'CWEID', ''), ('critical', 'SEVERITY', '')]"
+38,"CWE-178', 'CWE-200",GHSA-24m3-w8g9-jwpq,"@@ -259,7 +259,7 @@ function ($val) {
+             throw new Error\NotFound('The URL wasn\'t found in the module.');
+         }
+ 
+-        if (substr($path, -4) === '.php') {
++        if (mb_strtolower(substr($path, -4), 'UTF-8') === '.php') {
+             // PHP file - attempt to run it
+ 
+             /* In some environments, $_SERVER['SCRIPT_NAME'] is already set with $_SERVER['PATH_INFO']. Check for that","Fix source code disclosure on case-insensitive file systems
+
+If the file system containing the PHP code is case-insensitive, a
+request containing an uppercase file extension will return the
+contents of the PHP file to the browser instead of executing it.
+
+E.g. a request for this URL will return the source code:
+
+  https:/sp.example.org/simplesaml/module.php/core/frontpage_welcome.PHP
+
+Fix that by converting the path to lowercase before checking the file
+extension.
+
+See the following page for details:
+
+  https://github.com/simplesamlphp/simplesamlphp/security/advisories/GHSA-24m3-w8g9-jwpq","vuln-fix: Normalize file extension check to prevent bypass
+
+The code checked file extensions using a case-sensitive substring comparison, allowing attackers to bypass PHP file detection with uppercase or mixed-case extensions.
+This could lead to execution of unintended files, increasing the risk of remote code execution or unauthorized script execution.
+The fix applies a UTF-8 aware lowercase conversion before comparison, ensuring consistent and secure detection of "".php"" extensions regardless of case.
+
+Weakness: CWE-179
+Severity: Medium
+CVSS: 5.0",0.11764705882352941,"[('fix', 'ACTION', ''), ('disclosure', 'secword', ''), ('https:/sp.example.org', 'URL', ''), ('module.php', 'URL', ''), ('frontpage_welcome.php', 'URL', ''), ('fix', 'ACTION', ''), ('https://github.com/simplesamlphp/simplesamlphp/security/advisories/ghsa-24m3-w8g9-jwpq', 'VULNID', 'GHSA')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('bypass', 'SECWORD', ''), ('sensitive', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('bypass', 'secword', ''), ('remote code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('secure', 'secword', ''), ('weakness', 'secword', ''), ('cwe-179', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+39,CWE-200,GHSA-f2rp-4rv7-fc95,"@@ -1,3 +1,3 @@
+ # frozen_string_literal: true
+ 
+-attributes :url, :user, :password, :ssl_verify_peer, :ssl_certs, :renew
++attributes :url, :user, :ssl_verify_peer, :ssl_certs, :renew",Fix clean API result,"vuln-fix: Remove password attribute to prevent accidental exposure
+
+The code included a password attribute that could be inadvertently serialized or logged, risking exposure of sensitive credentials.
+This posed a security risk by potentially leaking passwords through logs, API responses, or debugging output accessible to unauthorized users.
+The fix removes the password attribute from the exposed attributes list, preventing accidental disclosure of sensitive authentication data.
+
+Weakness: CWE-200
+Severity: High
+CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('remove', 'ACTION', ''), ('password', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('password', 'SECWORD', ''), ('serialized', 'SECWORD', ''), ('sensitive', 'SECWORD', ''), ('security', 'secword', ''), ('passwords', 'SECWORD', ''), ('fix', 'ACTION', ''), ('removes', 'ACTION', ''), ('password', 'secword', ''), ('preventing', 'ACTION', ''), ('disclosure', 'secword', ''), ('sensitive', 'SECWORD', ''), ('authentication', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-200', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+40,CWE-20,GHSA-v82p-hv3v-p6qp,"@@ -57,6 +57,20 @@ class MklRequantizationRangePerChannelOp : public OpKernel {
+         ctx, input_max.dim_size(0) == depth,
+         errors::InvalidArgument(""input_max has incorrect size, expected "",
+                                 depth, "" was "", input_max.dim_size(0)));
++    OP_REQUIRES(
++        ctx, input_min.NumElements() == depth,
++        errors::InvalidArgument(""input_min must have the same number of ""
++                                ""elements as input_max, got "",
++                                input_min.NumElements(), "" and "", depth));
++    OP_REQUIRES(ctx, input.NumElements() > 0,
++                errors::InvalidArgument(""input must not be empty""));
++    OP_REQUIRES(ctx, input.dims() == 4,
++                errors::InvalidArgument(""input must be in NHWC format""));
++    OP_REQUIRES(
++        ctx, input.dim_size(3) == depth,
++        errors::InvalidArgument(
++            ""input must have same number of channels as length of input_min: "",
++            input.dim_size(3), "" vs "", depth));
+ 
+     const float* input_min_data = input_min.flat<float>().data();
+     const float* input_max_data = input_max.flat<float>().data();","Add more validation to `RequantizationRangePerChannel`.
+
+PiperOrigin-RevId: 387693946
+Change-Id: Ife8dcbdb021bec4787eef6a4361dd08f17c14bd6","vuln-fix: Add input validation to prevent invalid tensor shapes
+
+The operator lacked comprehensive validation of input tensor dimensions and element counts, allowing malformed tensors to be processed without error.
+This could lead to out-of-bounds memory access or undefined behavior during computation, risking crashes or data corruption in the system.
+The fix enforces strict checks on input tensor shape, element count, and channel dimensions to ensure consistency and prevent invalid memory operations.
+
+Weakness: CWE-125  
+Severity: High  
+CVSS: 7.5",0.11764705882352941,"[('add', 'ACTION', ''), ('change', 'ACTION', ''), ('ife8dcbdb021bec4787eef6a4361dd08f17c14bd6', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('add', 'ACTION', ''), ('input validation', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('error', 'FLAW', ''), ('out-of-bounds', 'secword', ''), ('fix', 'ACTION', ''), ('ensure', 'ACTION', ''), ('prevent', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+41,CWE-20,GHSA-pm9p-9926-w68m,"@@ -52,9 +52,21 @@ var ecstatic = module.exports = function (dir, options) {
+   return function middleware (req, res, next) {
+ 
+     // Strip any null bytes from the url
++    // This was at one point necessary because of an old bug in url.parse
++    //
++    // See: https://github.com/jfhbrook/node-ecstatic/issues/16#issuecomment-3039914
++    // See: https://github.com/jfhbrook/node-ecstatic/commit/43f7e72a31524f88f47e367c3cc3af710e67c9f4
++    //
++    // But this opens up a regex dos attack vector! D:
++    //
++    // Based on some research (ie asking #node-dev if this is still an issue),
++    // it's *probably* not an issue. :)
++    /*
+     while(req.url.indexOf('%00') !== -1) {
+       req.url = req.url.replace(/\%00/g, '');
+     }
++    */
++
+     // Figure out the path for the file from the given url
+     var parsed = url.parse(req.url);
+     try {","Remove stripping of null bytes
+
+This was at one point necessary because of an old bug in url.parse
+
+See: https://github.com/jfhbrook/node-ecstatic/issues/16#issuecomment-3039914
+See: https://github.com/jfhbrook/node-ecstatic/commit/43f7e72a31524f88f47e367c3cc3af710e67c9f4
+
+But this opens up a regex dos attack vector! D:
+
+Based on some research (ie asking #node-dev if this is still an issue),
+it's *probably* not an issue. :)","vuln-fix: Remove null byte stripping to prevent ReDoS attack
+
+The middleware previously stripped null bytes from URLs using a loop with a global regex replace, which could be exploited to cause excessive CPU usage.
+This introduced a Regular Expression Denial of Service (ReDoS) vulnerability by allowing attackers to craft URLs that trigger catastrophic backtracking in the regex engine.
+The fix disables the null byte stripping code, as it is no longer necessary, thereby eliminating the ReDoS attack vector.
+
+Weakness: CWE-400
+Severity: Medium
+CVSS: 5.3",0.17647058823529413,"[('remove', 'ACTION', ''), ('bug', 'FLAW', ''), ('url.parse', 'URL', ''), ('https://github.com/jfhbrook/node-ecstatic/issues/16#issuecomment-3039914', 'URL', ''), ('https://github.com/jfhbrook/node-ecstatic/commit/43f7e72a31524f88f47e367c3cc3af710e67c9f4', 'URL', ''), ('dos', 'SECWORD', ''), ('attack vector', 'secword', ''), ('issue', 'FLAW', ''), ('issue', 'FLAW', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('remove', 'ACTION', ''), ('prevent', 'ACTION', ''), ('redos', 'SECWORD', ''), ('attack', 'secword', ''), ('exploited', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('redos', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('redos', 'SECWORD', ''), ('attack vector', 'secword', ''), ('weakness', 'secword', ''), ('cwe-400', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+42,"CWE-400', 'CWE-20",GHSA-cwpm-f78v-7m5c,"@@ -188,6 +188,9 @@ def _constant_value(ragged_factory, inner_factory, pylist, dtype, ragged_rank,
+     if max_depth > scalar_depth:
+       raise ValueError(""Invalid pylist=%r: empty list nesting is greater ""
+                        ""than scalar value nesting"" % pylist)
++    if ragged_rank is not None and max_depth < ragged_rank:
++      raise ValueError(f""Invalid pylist={pylist}, max depth smaller than ""
++                       f""ragged_rank={ragged_rank}"")
+ 
+   # If both inner_shape and ragged_rank were specified, then check that
+   # they are compatible with pylist.","Prevent denial of service in `tf.ragged.constant`
+
+Fixes #55199
+
+PiperOrigin-RevId: 442029525","vuln-fix: Validate ragged_rank against pylist nesting depth
+
+The function failed to verify that the specified ragged_rank does not exceed the maximum nesting depth of the input pylist.
+This could lead to inconsistent internal state or runtime errors when processing ragged tensors, potentially causing crashes or data corruption.
+The fix adds a check to raise an error if ragged_rank is greater than the pylist’s maximum depth, ensuring input consistency and preventing invalid tensor construction.
+
+Weakness: CWE-835
+Severity: Medium
+CVSS: 5.0",0.23529411764705882,"[('prevent', 'ACTION', ''), ('denial of service', 'secword', ''), ('tf.ragged.constant', 'URL', ''), ('fixes', 'ACTION', ''), ('#55199', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('errors', 'FLAW', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('ensuring', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-835', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+43,CWE-20,GHSA-j259-6c58-9m58,"@@ -545,10 +545,11 @@ PostgreSQL.prototype.buildExpression = function(columnName, operator,
+       return new ParameterizedSQL(columnName + regexOperator,
+         [operatorValue.source]);
+     case 'contains':
+-      return new ParameterizedSQL(columnName + ' @> array[' + operatorValue.map((v) => `'${v}'`) + ']::'
+-        + propertyDefinition.postgresql.dataType);
++      return new ParameterizedSQL(columnName + ' @> array[' + operatorValue.map(() => '?') + ']::'
++        + propertyDefinition.postgresql.dataType,
++        operatorValue);
+     case 'match':
+-      return new ParameterizedSQL(`to_tsvector(${columnName}) @@ to_tsquery('${operatorValue}')`);
++      return new ParameterizedSQL(`to_tsvector(${columnName}) @@ to_tsquery(?)`, [operatorValue]);
+     default:
+       // invoke the base implementation of `buildExpression`
+       return this.invokeSuper('buildExpression', columnName, operator,","fix: improve filter sanitisation
+
+Add sanitisation of user-input for `contains` LoopBack filter which may allow for arbitrary SQL injection.
+
+Signed-off-by: Rifa Achrinza <25147899+achrinza@users.noreply.github.com>","vuln-fix: Use parameterized queries to prevent SQL injection
+
+The database query builder directly interpolated user input into SQL strings without proper escaping, enabling injection of malicious SQL code.
+This allowed attackers to manipulate queries, potentially exposing or corrupting sensitive data through unauthorized database commands.
+The fix replaces string interpolation with parameterized queries, safely binding user inputs as query parameters to prevent injection attacks.
+
+Weakness: CWE-89
+Severity: Critical
+CVSS: 9.8",0.23529411764705882,"[('fix', 'ACTION', ''), ('improve', 'ACTION', ''), ('sanitisation', 'SECWORD', ''), ('add', 'ACTION', ''), ('sanitisation', 'SECWORD', ''), ('sql injection', 'SECWORD', ''), ('signed', 'secword', ''), ('25147899+achrinza@users.noreply.github.com', 'EMAIL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('sql injection', 'secword', ''), ('escaping', 'SECWORD', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('attackers', 'FLAW', ''), ('manipulate', 'ACTION', ''), ('sensitive data', 'SECWORD', ''), ('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('injection', 'secword', ''), ('attacks', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-89', 'CWEID', ''), ('critical', 'SEVERITY', '')]"
+44,"CWE-200', 'CWE-668",GHSA-hm3x-jwwf-jpr9,"@@ -163,7 +163,7 @@ outputs:
+             ironic::api::authtoken::user_domain_name: 'Default'
+             ironic::api::authtoken::project_domain_name: 'Default'
+             ironic::api::authtoken::username: 'ironic'
+-            ironic::api::authtoken::www_authenticate_uri: {get_param: [EndpointMap, KeystoneInternal, uri_no_suffix]}
++            ironic::api::authtoken::www_authenticate_uri: {get_param: [EndpointMap, KeystonePublic, uri_no_suffix]}
+             ironic::api::authtoken::auth_url: {get_param: [EndpointMap, KeystoneInternal, uri_no_suffix]}
+             ironic::api::authtoken::region_name: {get_param: KeystoneRegion}
+             ironic::api::authtoken::interface: 'internal'","Fix remaining usage of internal url for www_authenticate_uri
+
+This is follow-up of 160936df134a471cfd245bd60964046027a571ea and fixes
+remaining usage of internal endpoint url for [keystone_authtoken]
+www_authenticate_uri.
+
+Related-Bug: #1955397
+Change-Id: Ib2ee7295c7fcda276e4fcf011a9e427e041f4848","vuln-fix: Use public Keystone URI for WWW-Authenticate header
+
+The authentication configuration incorrectly used the internal Keystone URI for the WWW-Authenticate header, exposing internal endpoints to external clients.
+This misconfiguration risked leaking sensitive internal service URLs, which could aid attackers in reconnaissance or unauthorized access attempts.
+The fix changes the URI to the public Keystone endpoint, ensuring external clients receive only appropriate public authentication URLs.
+
+Weakness: CWE-200
+Severity: Medium
+CVSS: 5.0",0.11764705882352941,"[('fix', 'ACTION', ''), ('160936df134a471cfd245bd60964046027a571ea', 'SHA', ''), ('fixes', 'ACTION', ''), ('keystone_authtoken', 'SECWORD', ''), ('bug', 'FLAW', ''), ('#1955397', 'ISSUE', ''), ('change', 'ACTION', ''), ('ib2ee7295c7fcda276e4fcf011a9e427e041f4848', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('public keystone', 'SECWORD', ''), ('authentication', 'SECWORD', ''), ('incorrectly used', 'SECWORD', ''), ('keystone', 'SECWORD', ''), ('misconfiguration', 'SECWORD', ''), ('sensitive', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('changes', 'ACTION', ''), ('public keystone', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('authentication', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-200', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+45,CWE-200,GHSA-wh98-p28r-vrc9,"@@ -58,7 +58,7 @@ def self.reload!
+       prepare!
+     end
+ 
+-    def self.run! # :nodoc:
++    def self.run!(reset: false) # :nodoc:
+       if check!
+         super
+       else","Fix reloader to work with new Executor signature
+
+This is a follow up to [CVE-2022-23633].","vuln-fix: Add reset parameter to control run! method execution
+
+The run! method lacked a parameter to control its execution flow, potentially causing unintended repeated operations without explicit reset control.
+This could lead to inconsistent system states or resource exhaustion if the method was invoked multiple times without proper reset handling.
+The patch introduces a reset parameter to the run! method, enabling callers to explicitly manage execution resets and prevent unintended repeated runs.
+
+Weakness: CWE-704
+Severity: Medium
+CVSS: 5.0",0.23529411764705882,"[('fix', 'ACTION', ''), ('signature', 'secword', ''), ('cve-2022-23633', 'VULNID', 'CVE')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('add', 'ACTION', ''), ('patch', 'ACTION', ''), ('prevent', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-704', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+46,CWE-200,GHSA-cv3f-px9r-54hm,"@@ -721,7 +721,6 @@ class Spawner {
+ 		prepareChroot(info, options);
+ 		info.userSwitching = prepareUserSwitching(options);
+ 		prepareSwitchingWorkingDirectory(info, options);
+-		inferApplicationInfo(info);
+ 		return info;
+ 	}
+ 
+@@ -775,6 +774,7 @@ class Spawner {
+ 		assert(info.appRootPathsInsideChroot.back() == info.appRootInsideChroot);
+ 	}
+ 
++#ifdef false
+ 	void inferApplicationInfo(SpawnPreparationInfo &info) const {
+ 		info.codeRevision = readFromRevisionFile(info);
+ 		if (info.codeRevision.empty()) {
+@@ -817,6 +817,7 @@ class Spawner {
+ 			return string();
+ 		}
+ 	}
++#endif
+ 
+ 	bool shouldLoadShellEnvvars(const Options &options, const SpawnPreparationInfo &preparation) const {
+ 		if (options.loadShellEnvvars) {",Disable unused feature.,"vuln-fix: Disable insecure application info inference in spawner
+
+The spawner component included a function that inferred application information from potentially untrusted files without proper validation.
+This could allow attackers to manipulate application metadata, leading to incorrect execution contexts or privilege escalation risks.
+The fix disables the insecure inference function by removing its invocation and enclosing its definition in a disabled preprocessor block.
+
+Weakness: CWE-20
+Severity: Medium
+CVSS: 5.0",0.11764705882352941,[],0.4117647058823529,"[('fix', 'ACTION', ''), ('insecure', 'SECWORD', ''), ('untrusted', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('manipulate', 'ACTION', ''), ('privilege escalation', 'secword', ''), ('fix', 'ACTION', ''), ('insecure', 'secword', ''), ('removing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+47,"CWE-1321', 'CWE-20",GHSA-g6ww-v8xp-vmwg,"@@ -76,6 +76,9 @@ function parsePath(path) {
+   var str = path.replace(/([^\\])\[/g, '$1.[');
+   var parts = str.match(/(\\\.|[^.]+?)+/g);
+   return parts.map(function mapMatches(value) {
++    if (value === ""constructor"" || value === ""__proto__"" || value === ""prototype"") {
++      return {}
++    }
+     var regexp = /^\[(\d+)\]$/;
+     var mArr = regexp.exec(value);
+     var parsed = null;",fix: 🐛 fix prototype pollution,"vuln-fix: Prevent prototype pollution in path parsing function
+
+The parsePath function allowed special keys like ""constructor"", ""__proto__"", and ""prototype"" to be processed, enabling prototype pollution attacks.
+This vulnerability could let attackers manipulate object prototypes, leading to arbitrary code execution or denial of service through corrupted application state.
+The fix blocks these dangerous keys by returning empty objects, preventing them from modifying the prototype chain during path parsing.
+
+Weakness: CWE-471
+Severity: High
+CVSS: 7.8",0.11764705882352941,"[('fix', 'ACTION', ''), ('fix', 'ACTION', ''), ('prototype pollution', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('prototype pollution', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('prototype pollution', 'secword', ''), ('attacks', 'FLAW', ''), ('vulnerability', 'secword', ''), ('attackers', 'FLAW', ''), ('manipulate', 'ACTION', ''), ('code execution', 'SECWORD', ''), ('denial of service', 'secword', ''), ('fix', 'ACTION', ''), ('keys', 'SECWORD', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-471', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+48,"CWE-191', 'CWE-20",GHSA-hx9q-2mx4-m4pg,"@@ -94,8 +94,10 @@ class UnsortedSegmentJoinOp : public OpKernel {
+                 errors::InvalidArgument(""Number of segments cannot be empty.""));
+     auto num_segments = num_segments_tensor.scalar<NUM_SEGMENTS_TYPE>()();
+ 
+-    OP_REQUIRES(context, num_segments > 0,
+-                errors::InvalidArgument(""Number of segments must be positive""));
++    OP_REQUIRES(
++        context, num_segments >= 0,
++        errors::InvalidArgument(
++            ""Number of segments must be non-negative but got "", num_segments));
+     OP_REQUIRES(context, segment_dims != 0,
+                 errors::InvalidArgument(""Segment_id cannot have rank 0""));","Allow 0 for number of segments in `unsorted_segment_join_op.cc`
+
+Related to the fix for #55305
+
+PiperOrigin-RevId: 443157549","vuln-fix: Allow zero segments in unsorted segment join operation
+
+The operation incorrectly rejected zero as a valid number of segments, limiting input flexibility and causing unnecessary failures on legitimate edge cases.
+This could lead to denial of service or application errors when users legitimately specify zero segments, disrupting workflows or data processing.
+The fix relaxes the validation to accept zero or more segments, ensuring correct handling of empty segment scenarios without errors.
+
+Weakness: CWE-703
+Severity: Low
+CVSS: 3.3",0.17647058823529413,"[('unsorted_segment_join_op.cc', 'URL', ''), ('fix', 'ACTION', ''), ('#55305', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('denial of service', 'SECWORD', ''), ('errors', 'FLAW', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('errors', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-703', 'CWEID', ''), ('low', 'SEVERITY', '')]"
+49,CWE-200,GHSA-hxf9-7h4c-f5jv,"@@ -3,6 +3,7 @@
+ 
+ import six
+ from django.http import HttpResponse
++from django.utils.crypto import constant_time_compare
+ from django.utils.decorators import method_decorator
+ from django.views.decorators.csrf import csrf_exempt
+ from django.views.generic import View
+@@ -41,8 +42,13 @@ def __init__(self, **kwargs):
+     def validate_request(self, request):
+         """"""If configured for webhook basic auth, validate request has correct auth.""""""
+         if self.basic_auth:
+-            basic_auth = get_request_basic_auth(request)
+-            if basic_auth is None or basic_auth not in self.basic_auth:
++            request_auth = get_request_basic_auth(request)
++            # Use constant_time_compare to avoid timing attack on basic auth. (It's OK that any()
++            # can terminate early: we're not trying to protect how many auth strings are allowed,
++            # just the contents of each individual auth string.)
++            auth_ok = any(constant_time_compare(request_auth, allowed_auth)
++                          for allowed_auth in self.basic_auth)
++            if not auth_ok:
+                 # noinspection PyUnresolvedReferences
+                 raise AnymailWebhookValidationFailure(
+                     ""Missing or invalid basic auth in Anymail %s webhook"" % self.esp_name)
+@@ -78,8 +84,11 @@ def validate_request(self, request):
+         *All* definitions of this method in the class chain (including mixins)
+         will be called. There is no need to chain to the superclass.
+         (See self.run_validators and collect_all_methods.)
++
++        Security note: use django.utils.crypto.constant_time_compare for string
++        comparisons, to avoid exposing your validation to a timing attack.
+         """"""
+-        # if request.POST['signature'] != expected_signature:
++        # if not constant_time_compare(request.POST['signature'], expected_signature):
+         #     raise AnymailWebhookValidationFailure(""...message..."")
+         # (else just do nothing)
+         pass","Security: prevent timing attack on WEBHOOK_AUTHORIZATION secret
+
+Anymail's webhook validation was vulnerable to a timing attack.
+An attacker could have used this to recover your WEBHOOK_AUTHORIZATION
+shared secret, potentially allowing them to post fabricated or malicious
+email tracking events to your app.
+
+There have not been any reports of attempted exploit in the wild. (The
+vulnerability was discovered through code review.) Attempts would be
+visible in http logs as a very large number of 400 responses on
+Anymail's webhook urls, or in Python error monitoring as a very large
+number of AnymailWebhookValidationFailure exceptions.
+
+If you are using Anymail's webhooks, you should upgrade to this release.
+In addition, you may want to rotate to a new WEBHOOK_AUTHORIZATION
+secret ([docs](http://anymail.readthedocs.io/en/stable/tips/securing_webhooks/#use-a-shared-authorization-secret)),
+particularly if your logs indicate attempted exploit.
+
+(cherry picked from commit db586ede1fbb41dce21310ea28ae15a1cf1286c5)","vuln-fix: Use constant-time comparison for basic auth validation
+
+The webhook handler compared basic authentication strings using standard equality, exposing it to timing attacks that could reveal valid credentials by measuring response times.
+This vulnerability allowed attackers to incrementally guess authentication tokens, potentially bypassing security and gaining unauthorized webhook access.
+The fix replaces direct string comparisons with Django’s constant_time_compare function to ensure uniform comparison time and prevent timing side-channel leaks.
+
+Weakness: CWE-208
+Severity: High
+CVSS: 7.1",0.11764705882352941,"[('security', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('attack', 'SECWORD', ''), ('vulnerable', 'SECWORD', ''), ('attack', 'FLAW', ''), ('attacker', 'SECWORD', ''), ('malicious', 'secword', ''), ('exploit', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('error', 'FLAW', ''), ('upgrade', 'ACTION', ''), ('docs](http://anymail.readthedocs.io', 'URL', ''), ('exploit', 'SECWORD', ''), ('db586ede1fbb41dce21310ea28ae15a1cf1286c5', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('auth', 'secword', ''), ('authentication', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('vulnerability', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('authentication', 'secword', ''), ('bypassing', 'SECWORD', ''), ('security', 'SECWORD', ''), ('fix', 'ACTION', ''), ('string comparisons', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('prevent', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-208', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+50,CWE-20,GHSA-8948-ffc6-jg52,"@@ -252,6 +252,11 @@ ReverseProxy.prototype.setupHttpsProxy = function (proxy, websocketsUpgrade, log
+     key: getCertData(sslOpts.key),
+     cert: getCertData(sslOpts.cert)
+   };
++  
++  // Allows the option to disable older SSL/TLS versions
++  if(sslOpts.secureOptions) {
++    ssl.secureOptions = sslOpts.secureOptions;
++  }
+ 
+   if (sslOpts.ca) {
+     ssl.ca = getCertData(sslOpts.ca, true);","Adding option to disable older SSL/TLS versions
+
+Simply pass in ""secureOptions"" as you normally would to an https config object, and redbird will pass it along into the https proxy server.","vuln-fix: Enable disabling of insecure SSL/TLS protocol versions
+
+The HTTPS proxy setup did not allow disabling older, insecure SSL/TLS protocol versions, potentially permitting use of deprecated protocols.
+This exposed connections to downgrade attacks and cryptographic weaknesses inherent in legacy SSL/TLS versions, risking data interception or tampering.
+The patch adds support for passing secureOptions to explicitly disable insecure protocol versions, enhancing transport layer security.
+
+Weakness: CWE-310
+Severity: High
+CVSS: 7.5",0.17647058823529413,"[('adding', 'ACTION', ''), ('ssl', 'secword', ''), ('tls', 'secword', ''), ('secureoptions', 'SECWORD', ''), ('https proxy', 'SECWORD', ''), ('server', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('insecure', 'secword', ''), ('ssl', 'secword', ''), ('tls', 'SECWORD', ''), ('protocol', 'secword', ''), ('https proxy', 'SECWORD', ''), ('insecure', 'secword', ''), ('ssl', 'secword', ''), ('tls', 'SECWORD', ''), ('protocol', 'secword', ''), ('protocols', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('cryptographic', 'SECWORD', ''), ('weaknesses', 'FLAW', ''), ('ssl', 'secword', ''), ('tls', 'SECWORD', ''), ('tampering', 'secword', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('secureoptions', 'SECWORD', ''), ('insecure', 'SECWORD', ''), ('protocol', 'secword', ''), ('transport', 'secword', ''), ('security', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-310', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+51,"CWE-475', 'CWE-20",GHSA-5wpj-c6f7-24x8,"@@ -304,6 +304,9 @@ Status GetDeviceForInput(const EagerOperation& op, const EagerContext& ctx,
+     const Tensor* tensor;
+     // TODO(fishx): Avoid blocking here.
+     TF_RETURN_IF_ERROR(tensor_handle->Tensor(&tensor));
++    if (tensor->NumElements() == 0) {
++      return errors::InvalidArgument(""Empty resource handle"");
++    }
+     const ResourceHandle& handle = tensor->flat<ResourceHandle>()(0);
+     device_name = handle.device();","Fix empty resource handle vulnerability.
+
+Some ops that attempt to extract a resource handle from user input
+can lead to nullptr dereferences.  This returns an error in such
+a case.
+
+PiperOrigin-RevId: 445571938","vuln-fix: Reject empty tensors in resource handle retrieval
+
+The function failed to check for empty tensors before accessing elements, allowing invalid dereferencing of tensor data with zero elements.
+This could lead to out-of-bounds memory access or crashes when processing resource handles, potentially destabilizing the system or exposing memory.
+The fix adds a check to detect empty tensors and returns an error early, preventing invalid memory access during resource handle extraction.
+
+Weakness: CWE-125  
+Severity: Medium  
+CVSS: 5.3",0.17647058823529413,"[('fix', 'ACTION', ''), ('vulnerability', 'secword', ''), ('nullptr', 'SECWORD', ''), ('error', 'FLAW', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('preventing', 'ACTION', ''), ('invalid memory access', 'secword', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+52,CWE-20,GHSA-qfpc-5pjr-mh26,"@@ -2990,6 +2990,10 @@ REGISTER_OP(""Dequantize"")
+       if (!s.ok() && s.code() != error::NOT_FOUND) {
+         return s;
+       }
++      if (axis < -1) {
++        return errors::InvalidArgument(""axis should be at least -1, got "",
++                                       axis);
++      }
+       const int minmax_rank = (axis == -1) ? 0 : 1;
+       TF_RETURN_IF_ERROR(shape_inference::UnchangedShape(c));
+       ShapeHandle minmax;","Fix a shape inference issue leading to nullptr deref.
+
+PiperOrigin-RevId: 387712259
+Change-Id: I7e670772b259c068a501a187cd89f18773bb95a1","vuln-fix: Validate axis parameter to prevent invalid input errors
+
+The Dequantize operation lacked validation for the axis parameter, allowing values less than -1 to be processed without error.
+This could lead to undefined behavior or crashes due to invalid tensor shape inference, potentially causing denial of service or memory corruption.
+The fix adds a check to reject axis values below -1, ensuring only valid inputs proceed to shape inference.
+
+Weakness: CWE-20
+Severity: Medium
+CVSS: 5.3",0.11764705882352941,"[('fix', 'ACTION', ''), ('issue', 'FLAW', ''), ('nullptr', 'SECWORD', ''), ('change', 'ACTION', ''), ('i7e670772b259c068a501a187cd89f18773bb95a1', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('errors', 'FLAW', ''), ('error', 'FLAW', ''), ('denial of service', 'secword', ''), ('memory corruption', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+53,CWE-200,GHSA-2hjr-fg6c-v2h6,"@@ -2,6 +2,7 @@
+ 
+ import com.google.common.base.CaseFormat;
+ import com.google.common.collect.ImmutableSet;
++import com.hubspot.jinjava.interpret.JinjavaInterpreter;
+ import java.lang.reflect.Constructor;
+ import java.lang.reflect.Field;
+ import java.lang.reflect.Method;
+@@ -136,7 +137,8 @@ protected boolean isRestrictedClass(Object o) {
+       o instanceof Thread ||
+       o instanceof Method ||
+       o instanceof Field ||
+-      o instanceof Constructor
++      o instanceof Constructor ||
++      o instanceof JinjavaInterpreter
+     );
+   }
+ }",Add interpreter to blacklist,"vuln-fix: Restrict JinjavaInterpreter class access in security checks
+
+The security check method failed to restrict access to the JinjavaInterpreter class, allowing potential unauthorized reflection or manipulation of template interpreter internals.
+This omission could enable attackers to exploit the interpreter state or execute arbitrary code by bypassing class-based security restrictions.
+The fix adds JinjavaInterpreter to the restricted classes list, preventing its exposure through reflection or unsafe object access.
+
+Weakness: CWE-502
+Severity: High
+CVSS: 7.8",0.11764705882352941,"[('add', 'ACTION', ''), ('blacklist', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('security', 'SECWORD', ''), ('security', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('exploit', 'secword', ''), ('bypassing', 'SECWORD', ''), ('security', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('preventing', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-502', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+54,CWE-20,GHSA-gxg6-rc6c-v673,"@@ -118,6 +118,10 @@ interface from JDK1.2 VM...
+ 	*/
+ 	class Handler implements InvocationHandler
+ 	{
++		private Object readResolve() throws ObjectStreamException {
++			throw new NotSerializableException();
++		}
++
+ 		public Object invoke( Object proxy, Method method, Object[] args )
+ 			throws Throwable
+ 		{",Prevent deserialization of Handler,"vuln-fix: Prevent deserialization of dynamic proxy handler
+
+The Handler class allowed Java deserialization to reconstruct proxy handler instances without restriction, enabling potential injection of malicious objects.
+This posed a security risk by allowing attackers to exploit unsafe deserialization, leading to remote code execution or denial of service through crafted serialized data.
+The fix adds a readResolve method that throws NotSerializableException, blocking deserialization of the handler and preventing unsafe object reconstruction.
+
+Weakness: CWE-502
+Severity: High
+CVSS: 7.8",0.11764705882352941,"[('prevent', 'ACTION', ''), ('deserialization', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('deserialization', 'SECWORD', ''), ('deserialization', 'secword', ''), ('injection', 'SECWORD', ''), ('malicious', 'SECWORD', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('exploit', 'SECWORD', ''), ('unsafe', 'SECWORD', ''), ('deserialization', 'secword', ''), ('remote code execution', 'secword', ''), ('denial of service', 'secword', ''), ('serialized', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('notserializableexception', 'SECWORD', ''), ('deserialization', 'secword', ''), ('preventing', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-502', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+55,CWE-20,GHSA-m648-33qf-v3gp,"@@ -1468,7 +1468,9 @@ class CudnnRnnSequenceTensorDescriptor
+   static port::StatusOr<CudnnRnnSequenceTensorDescriptor> Create(
+       GpuExecutor* parent, int max_seq_length, int batch_size, int data_size,
+       cudnnDataType_t data_type) {
+-    CHECK_GT(max_seq_length, 0);
++    if (max_seq_length <= 0) {
++      return port::Status(port::error::INVALID_ARGUMENT, ""max_seq_length <= 0"");
++    }
+     int dims[] = {batch_size, data_size, 1};
+     int strides[] = {dims[1] * dims[2], dims[2], 1};
+     TensorDescriptor tensor_desc = CreateTensorDescriptor();
+@@ -1486,7 +1488,9 @@ class CudnnRnnSequenceTensorDescriptor
+       GpuExecutor* parent, int max_seq_length, int batch_size, int data_size,
+       const absl::Span<const int>& seq_lengths, bool time_major,
+       cudnnDataType_t data_type) {
+-    CHECK_GT(max_seq_length, 0);
++    if (max_seq_length <= 0) {
++      return port::Status(port::error::INVALID_ARGUMENT, ""max_seq_length <= 0"");
++    }
+     int dims[] = {batch_size, data_size, 1};
+     int strides[] = {dims[1] * dims[2], dims[2], 1};
+     TensorDescriptor tensor_desc = CreateTensorDescriptor();","Prevent CHECK-fail in LSTM/GRU with zero-length input.
+
+PiperOrigin-RevId: 346239181
+Change-Id: I5f233dbc076aab7bb4e31ba24f5abd4eaf99ea4f","vuln-fix: Validate max_seq_length to prevent invalid tensor descriptor creation
+
+The code did not validate that max_seq_length was greater than zero before creating tensor descriptors, allowing invalid or zero-length sequences.
+This could lead to undefined behavior or memory corruption when downstream code assumes valid positive sequence lengths for GPU operations.
+The fix adds explicit checks returning errors if max_seq_length is zero or negative, preventing creation of invalid tensor descriptors.
+
+Weakness: CWE-704
+Severity: Medium
+CVSS: 5.0",0.11764705882352941,"[('prevent', 'ACTION', ''), ('change', 'ACTION', ''), ('i5f233dbc076aab7bb4e31ba24f5abd4eaf99ea4f', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('validate', 'secword', ''), ('memory corruption', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('errors', 'FLAW', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-704', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+56,CWE-209,GHSA-hm37-9xh2-q499,"@@ -236,7 +236,8 @@ def read_fixed_bytes(self, num_bytes: int) -> bytes:
+         """"""
+         read_bytes = self.read(num_bytes)
+         if len(read_bytes) < num_bytes:
+-            raise EOFError(read_bytes)
++            raise EOFError(""Fewer than 'num_bytes' bytes remaining in the ""
++                    ""underlying bytestream"")
+         return read_bytes
+ 
+     def read_pascal_bytes(self, string_length_size: int) -> bytes:",Changed an exception message to prevent possible disclosures of keying material.,"vuln-fix: Improve error handling for incomplete byte reads
+
+The byte stream reader raised EOFError with raw data when fewer bytes than requested were available, exposing internal data in error messages.
+This risked leaking sensitive or partial data through exception outputs, potentially aiding attackers in information disclosure.
+The fix replaces raw data in the exception with a generic error message that does not reveal underlying byte content.
+
+Weakness: CWE-209
+Severity: Medium
+CVSS: 5.0",0.058823529411764705,"[('changed', 'ACTION', ''), ('prevent', 'ACTION', ''), ('keying', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('improve', 'ACTION', ''), ('error handling', 'SECWORD', ''), ('eoferror', 'FLAW', ''), ('error', 'FLAW', ''), ('sensitive', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('disclosure', 'secword', ''), ('fix', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-209', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+57,CWE-20,GHSA-f522-ffg8-j8r6,"@@ -11,4 +11,4 @@ exports['alpha'] = /^[a-zA-Z]+$/
+ exports['alphanumeric'] = /^[a-zA-Z0-9]+$/
+ exports['style'] = /\s*(.+?):\s*([^;]+);?/g
+ exports['phone'] = /^\+(?:[0-9] ?){6,14}[0-9]$/
+-exports['utc-millisec'] = /^[0-9]+(\.?[0-9]+)?$/
++exports['utc-millisec'] = /^[0-9]{1,15}\.?[0-9]{0,15}$/",fix utc-millisec regex to avoid a ddos attack,"vuln-fix: Restrict utc-millisec regex to prevent excessive input length
+
+The utc-millisec regular expression allowed arbitrarily long digit sequences, enabling attackers to supply excessively large inputs that could degrade performance.
+This exposed the system to potential denial-of-service attacks through resource exhaustion caused by processing overly long numeric strings.
+The fix limits the integer and fractional parts to a maximum of 15 digits each, preventing excessive input length and reducing processing overhead.
+
+Weakness: CWE-400  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('fix', 'ACTION', ''), ('ddos', 'secword', ''), ('attack', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('attackers', 'SECWORD', ''), ('denial-of-service', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-400', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+58,"CWE-434', 'CWE-20",GHSA-5gjh-5j4f-cpwv,"@@ -16,6 +16,7 @@ import (
+ 	""strings""
+ 	""time""
+ 
++	""github.com/pkg/errors""
+ 	gouuid ""github.com/satori/go.uuid""
+ 	""github.com/unknwon/com""
+ 
+@@ -23,9 +24,10 @@ import (
+ 
+ 	""gogs.io/gogs/internal/conf""
+ 	""gogs.io/gogs/internal/cryptoutil""
+-	""gogs.io/gogs/internal/db/errors""
++	dberrors ""gogs.io/gogs/internal/db/errors""
+ 	""gogs.io/gogs/internal/gitutil""
+ 	""gogs.io/gogs/internal/osutil""
++	""gogs.io/gogs/internal/pathutil""
+ 	""gogs.io/gogs/internal/process""
+ 	""gogs.io/gogs/internal/tool""
+ )
+@@ -134,7 +136,7 @@ func (repo *Repository) UpdateRepoFile(doer *User, opts UpdateRepoFileOptions) (
+ 	if opts.OldBranch != opts.NewBranch {
+ 		// Directly return error if new branch already exists in the server
+ 		if git.RepoHasBranch(repoPath, opts.NewBranch) {
+-			return errors.BranchAlreadyExists{Name: opts.NewBranch}
++			return dberrors.BranchAlreadyExists{Name: opts.NewBranch}
+ 		}
+ 
+ 		// Otherwise, delete branch from local copy in case out of sync
+@@ -449,11 +451,16 @@ func isRepositoryGitPath(path string) bool {
+ 	return strings.HasSuffix(path, "".git"") || strings.Contains(path, "".git""+string(os.PathSeparator))
+ }
+ 
+-func (repo *Repository) UploadRepoFiles(doer *User, opts UploadRepoFileOptions) (err error) {
++func (repo *Repository) UploadRepoFiles(doer *User, opts UploadRepoFileOptions) error {
+ 	if len(opts.Files) == 0 {
+ 		return nil
+ 	}
+ 
++	// Prevent uploading files into the "".git"" directory
++	if isRepositoryGitPath(opts.TreePath) {
++		return errors.Errorf(""bad tree path %q"", opts.TreePath)
++	}
++
+ 	uploads, err := GetUploadsByUUIDs(opts.Files)
+ 	if err != nil {
+ 		return fmt.Errorf(""get uploads by UUIDs[%v]: %v"", opts.Files, err)
+@@ -487,7 +494,9 @@ func (repo *Repository) UploadRepoFiles(doer *User, opts UploadRepoFileOptions)
+ 			continue
+ 		}
+ 
+-		// Prevent copying files into .git directory, see https://gogs.io/gogs/issues/5558.
++		upload.Name = pathutil.Clean(upload.Name)
++
++		// Prevent uploading files into the "".git"" directory
+ 		if isRepositoryGitPath(upload.Name) {
+ 			continue
+ 		}",repo_editor: check upload `TreePath` and file name (#6838),"vuln-fix: Prevent uploading files into .git directory in repository
+
+The file upload functionality allowed files to be placed inside the repository’s .git directory, bypassing intended path restrictions.
+This posed a security risk by enabling attackers to overwrite or corrupt Git metadata, potentially leading to repository compromise or arbitrary code execution.
+The fix adds explicit checks to reject uploads targeting paths within the .git directory, ensuring repository integrity is maintained.
+
+Weakness: CWE-22
+Severity: High
+CVSS: 7.5",0.058823529411764705,"[('#6838', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('bypassing', 'SECWORD', ''), ('security', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('integrity', 'secword', ''), ('weakness', 'secword', ''), ('cwe-22', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+59,CWE-20,GHSA-f7f4-hqp2-7prc,"@@ -106,7 +106,10 @@ module.exports = function ToReceiveIncomingSailsIOMsg(app) {
+ 
+       url     : options.incomingSailsIOMsg.url,
+ 
+-      path    : url.parse(options.incomingSailsIOMsg.url).pathname,
++      path    : url.parse(options.incomingSailsIOMsg.url).pathname || '/',
++      // ^^ Uses || '/' because otherwise url.parse returns `null`,
++      // which is not a string and thus bad when you try to check
++      // .match() of it.
+ 
+       method  : options.eventName,",Follow up to ff02114eaec090ee51db48435cc32d451662606e to ensure req.path is good and stringy.,"vuln-fix: Prevent null pathname causing runtime errors in URL parsing
+
+The code failed to handle cases where url.parse returns a null pathname, leading to runtime errors when string methods like .match() were called on null values.
+This caused potential application crashes or denial of service when processing malformed or unexpected URLs, impacting availability and stability.
+The fix ensures a default '/' pathname is assigned when url.parse yields null, preventing invalid method calls on non-string values.
+
+Weakness: CWE-682
+Severity: Medium
+CVSS: 5.0",0.058823529411764705,"[('ff02114eaec090ee51db48435cc32d451662606e', 'SHA', ''), ('ensure', 'ACTION', ''), ('req.path', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('errors', 'FLAW', ''), ('url.parse', 'URL', ''), ('errors', 'FLAW', ''), ('denial of service', 'SECWORD', ''), ('availability', 'secword', ''), ('fix', 'ACTION', ''), ('ensures', 'ACTION', ''), ('url.parse', 'URL', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-682', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+60,CWE-20,GHSA-x2mc-8fgj-3wmr,"@@ -261,7 +261,7 @@ exports.extract = function (cwd, opts) {
+     var onlink = function () {
+       if (win32) return next() // skip links on win for now before it can be tested
+       xfs.unlink(name, function () {
+-        var srcpath = path.resolve(cwd, header.linkname)
++        var srcpath = path.join(cwd, path.join('/', header.linkname))
+ 
+         xfs.link(srcpath, name, function (err) {
+           if (err && err.code === 'EPERM' && opts.hardlinkAsFilesFallback) {",force hardlink targets to be in the tar,"vuln-fix: Prevent directory traversal in hardlink extraction
+
+The extraction function resolved hardlink source paths using path.resolve, allowing crafted archive entries to escape the target directory via directory traversal.
+This exposed the system to arbitrary file overwrite or link creation outside the intended extraction folder, risking privilege escalation or data corruption.
+The fix replaces path resolution with a safe path join that anchors link targets within the extraction directory, preventing traversal outside the intended path.
+
+Weakness: CWE-22
+Severity: High
+CVSS: 7.5",0.11764705882352941,[],0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('directory traversal', 'SECWORD', ''), ('path.resolve', 'URL', ''), ('escape', 'secword', ''), ('directory traversal', 'secword', ''), ('privilege escalation', 'secword', ''), ('fix', 'ACTION', ''), ('safe', 'secword', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-22', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+61,"CWE-191', 'CWE-20",GHSA-hx9q-2mx4-m4pg,"@@ -94,6 +94,8 @@ class UnsortedSegmentJoinOp : public OpKernel {
+                 errors::InvalidArgument(""Number of segments cannot be empty.""));
+     auto num_segments = num_segments_tensor.scalar<NUM_SEGMENTS_TYPE>()();
+ 
++    OP_REQUIRES(context, num_segments > 0,
++                errors::InvalidArgument(""Number of segments must be positive""));
+     OP_REQUIRES(context, segment_dims != 0,
+                 errors::InvalidArgument(""Segment_id cannot have rank 0""));","Validate `num_segments > 0` in `unsorted_segment_join`
+
+Fixes #55305
+
+PiperOrigin-RevId: 442047005","vuln-fix: Enforce positive number of segments in UnsortedSegmentJoinOp
+
+The operation did not validate that the number of segments input was positive, allowing zero or negative values to proceed unchecked.
+This could lead to undefined behavior or memory corruption during segment processing, potentially causing crashes or data integrity issues.
+The fix adds a validation check that rejects non-positive segment counts with an appropriate error, preventing invalid inputs from causing downstream faults.
+
+Weakness: CWE-20
+Severity: High
+CVSS: 7.5",0.17647058823529413,"[('validate', 'secword', ''), ('fixes', 'ACTION', ''), ('#55305', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('integrity', 'secword', ''), ('issues', 'FLAW', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('preventing', 'ACTION', ''), ('faults', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+62,CWE-209,GHSA-m884-279h-32v2,"@@ -20,15 +20,15 @@
+                 <?php if ($exception['trace']) { ?>
+                 <pre class=""stacktrace"">
+ <?php
+-                    echo $exception['class']."":\n"";
++                    echo $this->escape($exception['class'])."":\n"";
+                     if ($exception['message']) {
+-                        echo $exception['message'].""\n"";
++                        echo $this->escape($exception['message']).""\n"";
+                     }
+ 
+                     foreach ($exception['trace'] as $trace) {
+                         echo ""\n  "";
+                         if ($trace['function']) {
+-                            echo 'at '.$trace['class'].$trace['type'].$trace['function'].'('.(isset($trace['args']) ? $this->formatArgsAsText($trace['args']) : '').')';
++                            echo $this->escape('at '.$trace['class'].$trace['type'].$trace['function']).'('.(isset($trace['args']) ? $this->formatArgsAsText($trace['args']) : '').')';
+                         }
+                         if ($trace['file'] && $trace['line']) {
+                             echo($trace['function'] ? ""\n     ("" : 'at ').strtr(strip_tags($this->formatFile($trace['file'], $trace['line'])), [' at line '.$trace['line'] => '']).':'.$trace['line'].($trace['function'] ? ')' : '');",Escape variable in Exception Template,"vuln-fix: Escape exception output to prevent XSS in error pages
+
+Exception class names, messages, and trace function details were output without escaping, allowing injection of malicious HTML or scripts in error pages.
+This exposed users to cross-site scripting attacks where crafted exception data could execute arbitrary JavaScript in the browser context.
+The fix applies proper escaping to all exception output fields before rendering, ensuring safe display of error information.
+
+Weakness: CWE-79
+Severity: High
+CVSS: 7.4",0.11764705882352941,"[('escape', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('error', 'FLAW', ''), ('escaping', 'SECWORD', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('error', 'FLAW', ''), ('cross-site scripting', 'SECWORD', ''), ('attacks', 'SECWORD', ''), ('fix', 'ACTION', ''), ('escaping', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+63,"CWE-915', 'CWE-20",GHSA-f98m-q3hr-p5wq,"@@ -74,6 +74,10 @@ module.exports = function parse_str (str, array) { // eslint-disable-line camelc
+     key = _fixStr(tmp[0])
+     value = (tmp.length < 2) ? '' : _fixStr(tmp[1])
+ 
++    if (key.includes('__proto__') || key.includes('constructor') || key.includes('prototype')) {
++      break;
++    }
++
+     while (key.charAt(0) === ' ') {
+       key = key.slice(1)
+     }",fixed prototype pollution,"vuln-fix: Prevent prototype pollution in query string parsing
+
+The parser did not block keys that could modify object prototypes, allowing attackers to inject properties like __proto__, constructor, or prototype.
+This vulnerability enabled prototype pollution, which can lead to arbitrary code execution or denial of service by tampering with object behavior.
+The fix adds a check to break parsing when dangerous prototype-related keys are detected, preventing prototype chain modification.
+
+Weakness: CWE-1321
+Severity: High
+CVSS: 7.8",0.11764705882352941,"[('fixed', 'ACTION', ''), ('prototype pollution', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('prototype pollution', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('inject', 'secword', ''), ('vulnerability', 'secword', ''), ('prototype pollution', 'secword', ''), ('code execution', 'SECWORD', ''), ('denial of service', 'secword', ''), ('tampering', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('keys', 'SECWORD', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-1321', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+64,CWE-20,GHSA-278g-rq84-9hmg,"@@ -527,6 +527,8 @@ class MapStageOp : public OpKernel {
+     OP_REQUIRES_OK(ctx, ctx->input(""key"", &key_tensor));
+     OP_REQUIRES_OK(ctx, ctx->input(""indices"", &indices_tensor));
+     OP_REQUIRES_OK(ctx, ctx->input_list(""values"", &values_tensor));
++    OP_REQUIRES(ctx, key_tensor->NumElements() > 0,
++                errors::InvalidArgument(""key must not be empty""));
+ 
+     // Create copy for insertion into Staging Area
+     Tensor key(*key_tensor);","Prevent a CHECK-fail due to empty tensor input in `map_stage_op.cc`
+
+PiperOrigin-RevId: 387737906
+Change-Id: Idc52df0c71c7ed6e2dd633b651a581932f277c8a","vuln-fix: Reject empty keys in MapStageOp inputs
+
+The MapStageOp kernel did not validate that the key tensor contained elements, allowing empty keys to be processed.
+This could lead to undefined behavior or logic errors in downstream operations relying on non-empty keys, potentially causing crashes or data corruption.
+The fix adds a check to ensure the key tensor is not empty, returning an error if this condition is violated.
+
+Weakness: CWE-703
+Severity: Medium
+CVSS: 5.0",0.11764705882352941,"[('prevent', 'ACTION', ''), ('map_stage_op.cc', 'URL', ''), ('change', 'ACTION', ''), ('idc52df0c71c7ed6e2dd633b651a581932f277c8a', 'SHA', '')]",0.47058823529411764,"[('fix', 'ACTION', ''), ('keys', 'SECWORD', ''), ('validate', 'secword', ''), ('key', 'secword', ''), ('keys', 'SECWORD', ''), ('logic errors', 'secword', ''), ('keys', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('key', 'secword', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-703', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+65,CWE-20,GHSA-j7c4-2xj8-wm7r,"@@ -61,6 +61,7 @@ def __str__(self):
+ 
+ 
+ class Application:
++    MAX_LENGTH = 128 * 1024
+     SOCKTYPES = {
+         ""tcp"": socket.SOCK_STREAM,
+         ""udp"": socket.SOCK_DGRAM,
+@@ -180,7 +181,11 @@ def __call__(self, env, start_response):
+             try:
+                 length = int(env[""CONTENT_LENGTH""])
+             except AttributeError:
+-                length = -1
++                raise HTTPException(411, ""Length required."")
++            if length < 0:
++                raise HTTPException(411, ""Length required."")
++            if length > self.MAX_LENGTH:
++                raise HTTPException(413, ""Request entity too large."")
+             try:
+                 pr = codec.decode(env[""wsgi.input""].read(length))
+             except codec.ParsingError as e:","Enforce a maximum packet length
+
+Permanently fixes CVE-2015-5159 for all applications.","vuln-fix: Enforce content length limits to prevent oversized requests
+
+The application did not properly validate the Content-Length header, allowing requests with missing or excessively large bodies to be processed.
+This exposed the server to resource exhaustion and denial of service attacks by accepting arbitrarily large payloads that could overwhelm memory or processing capacity.
+The fix enforces a required positive Content-Length and rejects requests exceeding a defined maximum size with appropriate HTTP error responses.
+
+Weakness: CWE-770
+Severity: High
+CVSS: 7.5",0.23529411764705882,"[('fixes', 'ACTION', ''), ('cve-2015-5159', 'VULNID', 'CVE')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('validate', 'secword', ''), ('server', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('attacks', 'SECWORD', ''), ('fix', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-770', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+66,CWE-200,GHSA-37q6-576q-vgr7,"@@ -17,7 +17,17 @@ class HMRServer {
+         this.server = https.createServer(await getCertificate(options.https));
+       }
+ 
+-      this.wss = new WebSocket.Server({server: this.server});
++      let websocketOptions = {
++        server: this.server
++      };
++
++      if (options.hmrHostname) {
++        websocketOptions.origin = `${options.https ? 'https' : 'http'}://${
++          options.hmrHostname
++        }`;
++      }
++
++      this.wss = new WebSocket.Server(websocketOptions);
+       this.server.listen(options.hmrPort, resolve);
+     });",fix security vuln (#1794),"vuln-fix: Restrict WebSocket origins to configured hostname
+
+The WebSocket server accepted connections from any origin without restriction, allowing unauthorized cross-origin clients to establish WebSocket connections.
+This exposed the server to cross-site WebSocket hijacking attacks, potentially leaking sensitive hot module replacement data to malicious origins.
+The fix enforces origin checking by configuring the WebSocket server to accept connections only from the specified hostname, preventing unauthorized cross-origin access.
+
+Weakness: CWE-942
+Severity: High
+CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('security', 'SECWORD', ''), ('#1794', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('hostname', 'SECWORD', ''), ('server', 'SECWORD', ''), ('server', 'secword', ''), ('hijacking', 'SECWORD', ''), ('attacks', 'SECWORD', ''), ('sensitive', 'SECWORD', ''), ('malicious', 'secword', ''), ('fix', 'ACTION', ''), ('server', 'secword', ''), ('hostname', 'SECWORD', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-942', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+67,CWE-20,GHSA-c9g6-9335-x697,"@@ -45,9 +45,6 @@ fake_response = (req, res) ->
+             try
+                 res.write(r.join('\r\n'))
+             catch x
+-            try
+-                res.end()
+-            catch x
+         res.setHeader = (k, v) -> headers[k] = v","Merge pull request #266 from cakoose/backport-writeHead-fix
+
+writeHead: Don't end() response","vuln-fix: Remove unsafe nested error handling in response writing
+
+The code contained nested try-catch blocks that attempted to call res.end() inside a catch, risking inconsistent response states on write failures.
+This could lead to incomplete or corrupted HTTP responses, potentially exposing sensitive data or causing denial of service through improper error recovery.
+The fix removes the inner try-catch and res.end() call to simplify error handling and avoid unsafe operations during response writes.
+
+Weakness: CWE-703
+Severity: Medium
+CVSS: 5.0",0.17647058823529413,"[('#266', 'ISSUE', ''), ('fix', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('remove', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('error handling', 'SECWORD', ''), ('res.end', 'URL', ''), ('sensitive data', 'SECWORD', ''), ('denial of service', 'secword', ''), ('error', 'FLAW', ''), ('fix', 'ACTION', ''), ('removes', 'ACTION', ''), ('res.end', 'URL', ''), ('error handling', 'SECWORD', ''), ('unsafe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-703', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+68,CWE-20,GHSA-fv25-wrff-wf86,"@@ -98,6 +98,8 @@ class GetSessionTensorOp : public OpKernel {
+ 
+   void Compute(OpKernelContext* ctx) override {
+     const Tensor& handle = ctx->input(0);
++    OP_REQUIRES(ctx, TensorShapeUtils::IsScalar(handle.shape()),
++                errors::InvalidArgument(""handle must be scalar""));
+     const string& name = handle.scalar<tstring>()();
+     Tensor val;
+     auto session_state = ctx->session_state();","Fix tf.raw_ops.GetSessionTensor vulnerability with invalid handle.
+
+Check that input is actually a scalar before treating it as such.
+
+PiperOrigin-RevId: 445218701","vuln-fix: Enforce scalar tensor shape for session handle input
+
+The Compute method did not verify that the input tensor handle was a scalar, allowing malformed tensors to be processed unexpectedly.
+This could lead to out-of-bounds memory access or undefined behavior when non-scalar tensors are interpreted as scalar handles, risking memory corruption.
+The fix adds a shape check that requires the handle tensor to be scalar, rejecting invalid inputs early to ensure safe tensor handling.
+
+Weakness: CWE-125  
+Severity: Medium  
+CVSS: 5.9",0.11764705882352941,"[('fix', 'ACTION', ''), ('tf.raw_ops.getsessiontensor', 'URL', ''), ('vulnerability', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('verify', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+69,CWE-20,GHSA-x9rg-q5fx-fx66,"@@ -124,7 +124,7 @@ public UnixUser authenticate(String username, String password) throws PAMExcepti
+             check(libpam.pam_authenticate(pht,0),""pam_authenticate failed"");
+             check(libpam.pam_setcred(pht,0),""pam_setcred failed"");
+             // several different error code seem to be used to represent authentication failures
+-//            check(libpam.pam_acct_mgmt(pht,0),""pam_acct_mgmt failed"");
++            check(libpam.pam_acct_mgmt(pht,0),""pam_acct_mgmt failed"");
+ 
+             PointerByReference r = new PointerByReference();
+             check(libpam.pam_get_item(pht,PAM_USER,r),""pam_get_item failed"");","call pam_acct_mgmt to verify whether the user account is valid.
+
+This fixes issue #18 and thus CVE-2017-12197","vuln-fix: Enforce account management check in PAM authentication
+
+The authentication flow previously skipped the pam_acct_mgmt call, omitting critical account status verification after password validation.
+This allowed users with expired, disabled, or otherwise invalid accounts to authenticate successfully, bypassing intended access restrictions.
+The fix reinstates the pam_acct_mgmt check to ensure account validity is confirmed before granting authentication.
+
+Weakness: CWE-285
+Severity: High
+CVSS: 7.5",0.17647058823529413,"[('verify', 'ACTION', ''), ('user account', 'secword', ''), ('fixes', 'ACTION', ''), ('#18', 'ISSUE', ''), ('cve-2017-12197', 'VULNID', 'CVE')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('authentication', 'SECWORD', ''), ('authentication', 'SECWORD', ''), ('critical', 'SEVERITY', ''), ('password', 'secword', ''), ('bypassing', 'SECWORD', ''), ('fix', 'ACTION', ''), ('ensure', 'ACTION', ''), ('authentication', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-285', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+70,CWE-20,GHSA-f7f6-xrwc-9c57,"@@ -588,7 +588,7 @@ THE SOFTWARE.
+     <dependency>
+       <groupId>commons-fileupload</groupId>
+       <artifactId>commons-fileupload</artifactId>
+-      <version>1.3.1-jenkins-1</version>
++      <version>1.3.1-jenkins-2</version> 
+     </dependency>
+ 
+     <!-- offline profiler API to put in the classpath if we need it -->",[SECURITY-490] Patch Commons File Upload 1.3.x.,"vuln-fix: Upgrade commons-fileupload to fix known vulnerabilities
+
+The project used an outdated version of commons-fileupload with known security flaws that could be exploited via crafted file uploads.
+This posed risks of arbitrary file write, remote code execution, or denial of service attacks through malicious multipart requests.
+The fix updates the dependency to a patched version that addresses these vulnerabilities and improves overall file upload security.
+
+Weakness: CWE-434
+Severity: High
+CVSS: 7.8",0.11764705882352941,"[('security-490', 'SECWORD', ''), ('patch', 'ACTION', ''), ('1.3.x', 'VERSION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('upgrade', 'ACTION', ''), ('fix', 'ACTION', ''), ('known vulnerabilities', 'secword', ''), ('security', 'SECWORD', ''), ('flaws', 'SECWORD', ''), ('exploited', 'SECWORD', ''), ('remote code execution', 'secword', ''), ('denial of service', 'secword', ''), ('attacks', 'SECWORD', ''), ('malicious', 'secword', ''), ('fix', 'ACTION', ''), ('updates', 'ACTION', ''), ('patched', 'ACTION', ''), ('vulnerabilities', 'SECWORD', ''), ('improves', 'ACTION', ''), ('security', 'secword', ''), ('weakness', 'secword', ''), ('cwe-434', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+71,"CWE-284', 'CWE-20",GHSA-23c7-6444-399m,"@@ -216,6 +216,10 @@ def kick(bot, trigger):
+             return
+         nick = Identifier(text[1])
+         reason = ' '.join(text[2:])
++        if ',' in str(nick):
++            return bot.reply('Unable to kick. Kicking multiple users is not allowed.') 
++        if '#' in str(nick):
++            return bot.reply('Unable to kick. Use of # when kicking is not expected.')
+         if nick != bot.config.core.nick and trigger.account in chanops:
+             bot.write(['KICK', trigger.sender, nick, ':' + reason])
+             if dodeop:
+@@ -263,6 +267,10 @@ def parse_host_mask(text):
+ @example('.ban nick')
+ def ban(bot, trigger):
+     """"""Ban a user from the channel. The bot must be a channel operator for this command to work.""""""
++    if ',' in str(nick):
++        return bot.reply('Unable to ban. Banning multiple users is not allowed.') 
++    if '#' in str(nick):
++        return bot.reply('Unable to ban. Use of # when banning is not expected.')
+     makemodechange(bot, trigger, '+b', isbqmode=True)
+ 
+ 
+@@ -312,6 +320,10 @@ def kickban(bot, trigger):
+                 deopbot(trigger.sender, bot)
+             return
+         nick = Identifier(text[1])
++        if ',' in str(nick):
++            return bot.reply('Unable to kickban. Kickbanning multiple users is not allowed.') 
++        if '#' in str(nick):
++            return bot.reply('Unable to kickban. Use of # when kickbanning is not expected.')
+         mask = text[2] if any(s in text[2] for s in '!@*') else ''
+         reasonidx = 3 if mask != '' else 2
+         reason = ' '.join(text[reasonidx:])","Merge pull request from GHSA-23c7-6444-399m
+
+* ban use of , & # when kicking
+
+* Update __init__.py","vuln-fix: Restrict multi-user and channel symbol input in moderation commands
+
+The kick, ban, and kickban commands allowed input containing commas or '#' symbols, enabling multiple user targeting or channel masks unexpectedly.
+This posed a security risk by permitting abuse of moderation commands to affect multiple users or unintended targets, potentially disrupting channel operations.
+The fix adds explicit checks rejecting inputs with commas or '#' symbols, ensuring only single user nicknames are accepted for these commands.
+
+Weakness: CWE-285
+Severity: Medium
+CVSS: 5.0",0.23529411764705882,"[('ghsa-23c7', 'VULNID', 'GHSA'), ('update', 'ACTION', ''), ('init__.py', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('security', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-285', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+72,CWE-200,GHSA-rp7r-79rm-2758,"@@ -209,7 +209,7 @@ public int getMinorVersion() {
+ 	}
+ 
+ 	public boolean jdbcCompliant() {
+-		return false;
++		return true;
+ 	}
+ 
+ 	/*","DERBY-561 - Embedded driver jdbcCompliant() method should return true
+Test will be checked in as part of tess for DERBY-530
+
+
+
+git-svn-id: https://svn.apache.org/repos/asf/db/derby/code/trunk@279860 13f79535-47bb-0310-9956-ffa450edef68","vuln-fix: Declare JDBC compliance to prevent compatibility issues
+
+The driver incorrectly reported non-compliance with JDBC standards by returning false in the jdbcCompliant method.
+This misrepresentation could cause applications to disable important security features or fallback to less secure behaviors assuming the driver is non-compliant.
+The fix changes the return value to true, accurately declaring JDBC compliance and ensuring proper security expectations and compatibility.
+
+Weakness: CWE-693
+Severity: Low
+CVSS: 3.1",0.11764705882352941,"[('https://svn.apache.org/repos/asf/db/derby/code/trunk@279860', 'URL', ''), ('ffa450edef68', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('issues', 'FLAW', ''), ('misrepresentation', 'secword', ''), ('security', 'secword', ''), ('secure', 'SECWORD', ''), ('fix', 'ACTION', ''), ('changes', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('security', 'secword', ''), ('weakness', 'secword', ''), ('cwe-693', 'CWEID', ''), ('low', 'SEVERITY', '')]"
+73,CWE-200,GHSA-wwgf-3xp7-cxj4,"new file mode 100644
+@@ -0,0 +1,13 @@
++title:     Potentially sensitive data exposure
++link:      https://github.com/GeniusesOfSymfony/WebSocketBundle/security/advisories/GHSA-wwgf-3xp7-cxj4
++branches:
++    1.x:
++        time:       2020-07-06 14:08:35
++        versions:   ['<1.10.4']
++    3.x:
++        time:       2020-07-06 14:08:35
++        versions:   ['>=2.0.0', '<2.6.1']
++    3.x:
++        time:       2020-07-06 14:08:35
++        versions:   ['>=3.0.0', '<3.3.0']
++reference: composer://gos/web-socket-bundle",Add gos/web-socket-bundle advisory,"vuln-fix: Add security advisory for sensitive data exposure
+
+The WebSocketBundle contained a vulnerability that could lead to exposure of sensitive data through improperly secured WebSocket connections.
+This posed a risk of unauthorized data disclosure, allowing attackers to intercept or access confidential information transmitted over the socket.
+The fix documents the issue with a security advisory and specifies affected versions to inform users and prompt timely updates.
+
+Weakness: CWE-200
+Severity: High
+CVSS: 7.5",0.11764705882352941,"[('add', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('add', 'ACTION', ''), ('security', 'SECWORD', ''), ('sensitive data exposure', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('sensitive data', 'secword', ''), ('secured', 'SECWORD', ''), ('disclosure', 'secword', ''), ('attackers', 'FLAW', ''), ('confidential', 'secword', ''), ('fix', 'ACTION', ''), ('issue', 'FLAW', ''), ('security', 'SECWORD', ''), ('updates', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-200', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+74,CWE-200,GHSA-m2q3-53fq-7h66,"@@ -176,6 +176,7 @@ def wiki_new
+         fullname = params[:file][:filename]
+         tempfile = params[:file][:tempfile]
+       end
++      halt 500 unless tempfile.is_a? Tempfile
+ 
+       # Remove page file dir prefix from upload path if necessary -- committer handles this itself
+       dir      = wiki.per_page_uploads ? params[:upload_dest].match(/^(#{wiki.page_file_dir}\/+)?(.*)/)[2] : 'uploads'",Added security check.,"vuln-fix: Prevent file upload processing with invalid tempfile objects
+
+The file upload handler did not verify that the uploaded file parameter was a valid Tempfile object before processing.
+This allowed attackers to potentially cause server errors or unexpected behavior by submitting malformed or non-file inputs.
+The fix adds a type check to halt processing with an error if the uploaded file is not a Tempfile instance, ensuring only valid uploads proceed.
+
+Weakness: CWE-20
+Severity: Medium
+CVSS: 5.0",0.11764705882352941,"[('added', 'ACTION', ''), ('security', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('verify', 'ACTION', ''), ('attackers', 'FLAW', ''), ('server', 'secword', ''), ('errors', 'FLAW', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('ensuring', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+75,"CWE-908', 'CWE-200",GHSA-3wcq-x3mq-6r9p,"@@ -78,7 +78,7 @@ name.decode.bytes = 0
+ 
+ name.encodingLength = function (n) {
+   if (n === '.') return 1
+-  return Buffer.byteLength(n) + 2
++  return Buffer.byteLength(n.replace(/^\.|\.$/gm, '')) + 2
+ }
+ 
+ const string = {}",do trim on encodingLength as well,"vuln-fix: Prevent buffer length miscalculation from dot characters
+
+The encodingLength function did not remove leading or trailing dots before calculating byte length, causing incorrect buffer size estimations.
+This could lead to buffer overflows or memory corruption when encoding names with extraneous dots, risking application crashes or data corruption.
+The fix strips leading and trailing dots from the input before measuring byte length, ensuring accurate buffer size calculation and safe memory allocation.
+
+Weakness: CWE-119
+Severity: High
+CVSS: 7.8",0.11764705882352941,"[('encodinglength', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('encodinglength', 'SECWORD', ''), ('remove', 'ACTION', ''), ('buffer overflows', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('encoding', 'SECWORD', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-119', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+76,CWE-209,GHSA-4r65-35qq-ch8j,"@@ -38,10 +38,13 @@
+ import uuid
+ 
+ from functools import partial
++from ansible import constants as C
+ from ansible.module_utils._text import to_bytes, to_text
+ from ansible.module_utils.common.json import AnsibleJSONEncoder
++from ansible.module_utils.common.parameters import remove_values
+ from ansible.module_utils.six import iteritems
+ from ansible.module_utils.six.moves import cPickle
++from ansible.utils.helpers import deduplicate_list
+ 
+ 
+ def write_to_file_descriptor(fd, obj):
+@@ -163,12 +166,26 @@ def _exec_jsonrpc(self, name, *args, **kwargs):
+         try:
+             response = json.loads(out)
+         except ValueError:
+-            params = [repr(arg) for arg in args] + ['{0}={1!r}'.format(k, v) for k, v in iteritems(kwargs)]
++            sensitive_keys = list(
++                    C.MAGIC_VARIABLE_MAPPING[""password""]
++                    + C.MAGIC_VARIABLE_MAPPING[""private_key_file""]
++                    + C.MAGIC_VARIABLE_MAPPING[""become_pass""]
++            )
++            sensitive_values = [
++                v2 
++                for k, v in iteritems(kwargs) 
++                for k2, v2 in iteritems(v) 
++                if k2 in sensitive_keys
++            ]
++            params = [repr(remove_values(arg, sensitive_values)) for arg in args] + [
++                ""{0}={1!r}"".format(k, remove_values(v, sensitive_values)) 
++                for k, v in iteritems(kwargs)]
+             params = ', '.join(params)
+             raise ConnectionError(
+                 ""Unable to decode JSON from response to {0}({1}). Received '{2}'."".format(name, params, out)
+             )
+ 
++
+         if response['id'] != reqid:
+             raise ConnectionError('invalid json-rpc id received')
+         if ""result_type"" in response:","Fixed exposed credentials in exception
+
+Under certain conditions, sensitive connection parameters are shown in tracebacks when Ansible receives an unexpected response (in my case `None`) from `set_options` in ansible-connection. This patch creates a list of sensitive connection parameter names from `ansible.constants`, pulls a list of those values in the `params` that are about to be dumped to the screen and log file, and sends the `params` and list of `sensitive_values` to the `module_utils.common.parameters.remove_values` function for processing to hide them before being exposed.","vuln-fix: Mask sensitive data in JSON-RPC error logging
+
+The JSON-RPC error handler logged full argument contents including sensitive credentials like passwords and private keys when JSON decoding failed.
+This exposed confidential information in logs, risking credential leakage and unauthorized access if logs were accessed by attackers or insiders.
+The fix filters out sensitive values from arguments before logging, ensuring that passwords and keys are redacted in error messages.
+
+Weakness: CWE-532
+Severity: High
+CVSS: 7.5",0.17647058823529413,"[('fixed', 'ACTION', ''), ('sensitive', 'SECWORD', ''), ('patch', 'ACTION', ''), ('sensitive', 'SECWORD', ''), ('ansible.constants', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sensitive data', 'SECWORD', ''), ('error', 'FLAW', ''), ('error handler', 'SECWORD', ''), ('sensitive', 'SECWORD', ''), ('passwords', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('decoding', 'SECWORD', ''), ('confidential', 'secword', ''), ('credential', 'secword', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('sensitive', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('passwords', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-532', 'CWEID', ''), ('high', 'SEVERITY', '')]"

@@ -1,0 +1,1728 @@
+id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message,original_message_score,original_message_entities,generated_secom_message_score,generated_secom_message_entities
+0,{'CWE-400'},GHSA-rhcw-wjcm-9h6g,"@@ -230,9 +230,15 @@ public Resource getResource(final String p) {
+                 log.tracef(""Failed to get path resource %s from path resource manager with base %s, as the path did not exist"", p, base);
+                 return null;
+             }
+-        } catch (Exception e) {
++        } catch (IOException e) {
+             UndertowLogger.REQUEST_LOGGER.debugf(e, ""Invalid path %s"", p);
+             return null;
++        } catch (SecurityException e) {
++            UndertowLogger.REQUEST_LOGGER.errorf(e, ""Missing JSM permissions for path %s"", p);
++            throw e;
++        } catch (Exception e) {
++            UndertowLogger.REQUEST_LOGGER.debugf(e, ""Other issue for path %s"", p);
++            return null;
+         }
+     }",UNDERTOW-1813 Make PathResourceManager.getResource rethrow a SecurityException,"vuln-fix: Improve exception handling to enforce security permissions
+
+The code previously caught all exceptions broadly, potentially masking security-related permission errors during resource access. This allowed security exceptions to be logged as debug messages without proper enforcement, risking unauthorized access. The fix explicitly catches SecurityException, logs it as an error, and rethrows it to ensure permission issues are properly handled and not silently ignored.
+
+Weakness: Improper Exception Handling (CWE-703)  
+Severity: High  
+CVSS: 7.5",0.058823529411764705,"[('pathresourcemanager.getresource', 'URL', ''), ('securityexception', 'SECWORD', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('improve', 'ACTION', ''), ('security', 'SECWORD', ''), ('permissions', 'SECWORD', ''), ('security', 'SECWORD', ''), ('permission', 'SECWORD', ''), ('errors', 'FLAW', ''), ('security', 'SECWORD', ''), ('fix', 'ACTION', ''), ('securityexception', 'SECWORD', ''), ('error', 'FLAW', ''), ('ensure', 'ACTION', ''), ('permission issues', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-703', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+1,{'CWE-400'},GHSA-57f3-gghm-9mhc,"@@ -630,7 +630,7 @@ import { atob, btoa } from ""../libs/AtobBtoa.js"";
+     var result = null;
+ 
+     if (dataUrlParts.length === 2) {
+-      var extractedInfo = /^data:(\w*\/\w*);*(charset=[\w=-]*)*;*$/.exec(
++      var extractedInfo = /^data:(\w*\/\w*);*(charset=(?!charset=)[\w=-]*)*;*$/.exec(
+         dataUrlParts[0]
+       );
+       if (Array.isArray(extractedInfo)) {",fix ReDoS-vulnerable regexp in addImage (#3091),"vuln-fix: Prevent double charset parameter parsing in data URLs
+
+The vulnerability allowed multiple charset parameters in data URLs, causing incorrect parsing and potential misinterpretation of content encoding. This could lead to security issues such as injection or data corruption when processing malformed data URLs. The fix updates the regex to disallow repeated charset parameters, ensuring only a single charset is parsed and preventing ambiguous encoding interpretation.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('fix', 'ACTION', ''), ('redos', 'SECWORD', ''), ('vulnerable', 'SECWORD', ''), ('#3091', 'ISSUE', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('encoding', 'SECWORD', ''), ('security', 'secword', ''), ('issues', 'FLAW', ''), ('injection', 'SECWORD', ''), ('fix', 'ACTION', ''), ('updates', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('preventing', 'ACTION', ''), ('encoding', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+2,{'CWE-400'},GHSA-394c-5j6w-4xmx,"@@ -222,7 +222,7 @@
+ 
+             // Presto based
+             /(opera\smini)\/([\w\.-]+)/i,                                       // Opera Mini
+-            /(opera\s[mobiletab]+).+version\/([\w\.-]+)/i,                      // Opera Mobi/Tablet
++            /(opera\s[mobiletab]{3,6}).+version\/([\w\.-]+)/i,                  // Opera Mobi/Tablet
+             /(opera).+version\/([\w\.]+)/i,                                     // Opera > 9.80
+             /(opera)[\/\s]+([\w\.]+)/i                                          // Opera < 9.80
+             ], [NAME, VERSION], [
+@@ -252,7 +252,7 @@
+             /(konqueror)\/([\w\.]+)/i                                           // Konqueror
+             ], [[NAME, 'Konqueror'], VERSION], [
+ 
+-            /(trident).+rv[:\s]([\w\.]+).+like\sgecko/i                         // IE11
++            /(trident).+rv[:\s]([\w\.]{1,9}).+like\sgecko/i                     // IE11
+             ], [[NAME, 'IE'], VERSION], [
+ 
+             /(edge|edgios|edga|edg)\/((\d+)?[\w\.]+)/i                          // Microsoft Edge
+@@ -362,13 +362,13 @@
+             /fxios\/([\w\.-]+)/i                                                // Firefox for iOS
+             ], [VERSION, [NAME, 'Firefox']], [
+ 
+-            /version\/([\w\.]+).+?mobile\/\w+\s(safari)/i                       // Mobile Safari
++            /version\/([\w\.]+)\s.*mobile\/\w+\s(safari)/i                      // Mobile Safari
+             ], [VERSION, [NAME, 'Mobile Safari']], [
+ 
+-            /version\/([\w\.]+).+?(mobile\s?safari|safari)/i                    // Safari & Safari Mobile
++            /version\/([\w\.]+)\s.*(mobile\s?safari|safari)/i                   // Safari & Safari Mobile
+             ], [VERSION, NAME], [
+ 
+-            /webkit.+?(gsa)\/([\w\.]+).+?(mobile\s?safari|safari)(\/[\w\.]+)/i  // Google Search Appliance on iOS
++            /webkit.+?(gsa)\/([\w\.]+)\s.*(mobile\s?safari|safari)(\/[\w\.]+)/i // Google Search Appliance on iOS
+             ], [[NAME, 'GSA'], VERSION], [
+ 
+             /webkit.+?(mobile\s?safari|safari)(\/[\w\.]+)/i                     // Safari < 3.0
+@@ -387,7 +387,7 @@
+ 
+                                                                                 // Firefox/SeaMonkey/K-Meleon/IceCat/IceApe/Firebird/Phoenix
+             /(firefox)\/([\w\.]+)\s[\w\s\-]+\/[\w\.]+$/i,                       // Other Firefox-based
+-            /(mozilla)\/([\w\.]+).+rv\:.+gecko\/\d+/i,                          // Mozilla
++            /(mozilla)\/([\w\.]+)\s.+rv\:.+gecko\/\d+/i,                        // Mozilla
+ 
+             // Other
+             /(polaris|lynx|dillo|icab|doris|amaya|w3m|netsurf|sleipnir)[\/\s]?([\w\.]+)/i,
+@@ -487,7 +487,7 @@
+             /(sprint\s(\w+))/i                                                  // Sprint Phones
+             ], [[VENDOR, mapper.str, maps.device.sprint.vendor], [MODEL, mapper.str, maps.device.sprint.model], [TYPE, MOBILE]], [
+ 
+-            /(htc)[;_\s-]+([\w\s]+(?=\)|\sbuild)|\w+)/i,                        // HTC
++            /(htc)[;_\s-]{1,2}([\w\s]+(?=\)|\sbuild)|\w+)/i,                    // HTC
+             /(zte)-(\w*)/i,                                                     // ZTE
+             /(alcatel|geeksphone|nexian|panasonic|(?=;\s)sony)[_\s-]?([\w-]*)/i
+                                                                                 // Alcatel/GeeksPhone/Nexian/Panasonic/Sony
+@@ -591,13 +591,13 @@
+             ], [MODEL, [VENDOR, 'Google'], [TYPE, MOBILE]], [
+ 
+             /android.+;\s(\w+)\s+build\/hm\1/i,                                 // Xiaomi Hongmi 'numeric' models
+-            /android.+(hm[\s\-_]*note?[\s_]*(?:\d\w)?)\s+build/i,               // Xiaomi Hongmi
+-            /android.+(redmi[\s\-_]*(?:note|k)?(?:[\s_]?[\w\s]+))(?:\s+build|\))/i,      
++            /android.+(hm[\s\-_]?note?[\s_]?(?:\d\w)?)\sbuild/i,                // Xiaomi Hongmi
++            /android.+(redmi[\s\-_]?(?:note|k)?(?:[\s_]?[\w\s]+))(?:\sbuild|\))/i,      
+                                                                                 // Xiaomi Redmi
+-            /android.+(mi[\s\-_]*(?:a\d|one|one[\s_]plus|note lte)?[\s_]?(?:\d?\w?)[\s_]*(?:plus)?)\s+build/i    
++            /android.+(mi[\s\-_]?(?:a\d|one|one[\s_]plus|note lte)?[\s_]?(?:\d?\w?)[\s_]?(?:plus)?)\sbuild/i    
+                                                                                 // Xiaomi Mi
+             ], [[MODEL, /_/g, ' '], [VENDOR, 'Xiaomi'], [TYPE, MOBILE]], [
+-            /android.+(mi[\s\-_]*(?:pad)(?:[\s_]?[\w\s]+))(?:\s+build|\))/i     // Mi Pad tablets
++            /android.+(mi[\s\-_]?(?:pad)(?:[\s_]?[\w\s]+))(?:\sbuild|\))/i     // Mi Pad tablets
+             ],[[MODEL, /_/g, ' '], [VENDOR, 'Xiaomi'], [TYPE, TABLET]], [
+             /android.+;\s(m[1-5]\snote)\sbuild/i                                // Meizu
+             ], [MODEL, [VENDOR, 'Meizu'], [TYPE, MOBILE]], [
+@@ -611,7 +611,7 @@
+             /android.+[;\/]\s*(RCT[\d\w]+)\s+build/i                            // RCA Tablets
+             ], [MODEL, [VENDOR, 'RCA'], [TYPE, TABLET]], [
+ 
+-            /android.+[;\/\s]+(Venue[\d\s]{2,7})\s+build/i                      // Dell Venue Tablets
++            /android.+[;\/\s](Venue[\d\s]{2,7})\s+build/i                       // Dell Venue Tablets
+             ], [MODEL, [VENDOR, 'Dell'], [TYPE, TABLET]], [
+ 
+             /android.+[;\/]\s*(Q[T|M][\d\w]+)\s+build/i                         // Verizon Tablet
+@@ -669,8 +669,8 @@
+             /android.+[;\/]\s*TU_(1491)\s+build/i                               // Rotor Tablets
+             ], [MODEL, [VENDOR, 'Rotor'], [TYPE, TABLET]], [
+ 
+-            /android.+(KS(.+))\s+build/i                                        // Amazon Kindle Tablets
+-            ], [MODEL, [VENDOR, 'Amazon'], [TYPE, TABLET]], [
++            //android.+(KS(.+))\s+build/i                                        // Amazon Kindle Tablets
++            //], [MODEL, [VENDOR, 'Amazon'], [TYPE, TABLET]], [
+ 
+             /android.+(Gigaset)[\s\-]+(Q\w{1,9})\s+build/i                      // Gigaset Tablets
+             ], [VENDOR, MODEL, [TYPE, TABLET]], [",Fix ReDoS vulnerabilities reported by Snyk,"vuln-fix: Prevent excessive regex quantifiers in user agent parsing
+
+The vulnerability involves overly permissive regular expression quantifiers that can cause catastrophic backtracking, leading to denial of service via regex-based ReDoS attacks.
+This is a security risk because attackers can craft malicious user agent strings that trigger excessive CPU usage, degrading service availability or causing crashes.
+The fix restricts quantifier ranges and adjusts patterns to limit repetition, preventing excessive backtracking and improving regex matching performance and security.
+
+Weakness: CWE-1333: Inefficient Regular Expression Complexity
+Severity: High
+CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('redos', 'SECWORD', ''), ('vulnerabilities', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'secword', ''), ('permissive regular expression', 'secword', ''), ('denial of service', 'SECWORD', ''), ('redos', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('malicious', 'SECWORD', ''), ('availability', 'secword', ''), ('fix', 'ACTION', ''), ('preventing', 'ACTION', ''), ('improving', 'ACTION', ''), ('security', 'secword', ''), ('weakness', 'secword', ''), ('cwe-1333', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+3,{'CWE-400'},GHSA-f8m6-h2c7-8h9x,"@@ -266,7 +266,6 @@ def word_tokenize(self, s):
+         return self._word_tokenizer_re().findall(s)
+ 
+     _period_context_fmt = r""""""
+-        \S*                          # some word material
+         %(SentEndChars)s             # a potential sentence ending
+         (?=(?P<after_tok>
+             %(NonWord)s              # either other punctuation
+@@ -1284,8 +1283,7 @@ def debug_decisions(self, text):
+         See format_debug_decision() to help make this output readable.
+         """"""
+ 
+-        for match in self._lang_vars.period_context_re().finditer(text):
+-            decision_text = match.group() + match.group(""after_tok"")
++        for match, decision_text in self._match_potential_end_contexts(text):
+             tokens = self._tokenize_words(decision_text)
+             tokens = list(self._annotate_first_pass(tokens))
+             while tokens and not tokens[0].tok.endswith(self._lang_vars.sent_end_chars):
+@@ -1333,10 +1331,68 @@ def sentences_from_text(self, text, realign_boundaries=True):
+         """"""
+         return [text[s:e] for s, e in self.span_tokenize(text, realign_boundaries)]
+ 
++    def _match_potential_end_contexts(self, text):
++        """"""
++        Given a text, find the matches of potential sentence breaks,
++        alongside the contexts surrounding these sentence breaks.
++
++        Since the fix for the ReDOS discovered in issue #2866, we no longer match
++        the word before a potential end of sentence token. Instead, we use a separate
++        regex for this. As a consequence, `finditer`'s desire to find non-overlapping
++        matches no longer aids us in finding the single longest match.
++        Where previously, we could use::
++
++            >>> pst = PunktSentenceTokenizer()
++            >>> text = ""Very bad acting!!! I promise.""
++            >>> list(pst._lang_vars.period_context_re().finditer(text)) # doctest: +SKIP
++            [<re.Match object; span=(9, 18), match='acting!!!'>]
++
++        Now we have to find the word before (i.e. 'acting') separately, and `finditer`
++        returns::
++
++            >>> pst = PunktSentenceTokenizer()
++            >>> text = ""Very bad acting!!! I promise.""
++            >>> list(pst._lang_vars.period_context_re().finditer(text)) # doctest: +NORMALIZE_WHITESPACE
++            [<re.Match object; span=(15, 16), match='!'>,
++            <re.Match object; span=(16, 17), match='!'>,
++            <re.Match object; span=(17, 18), match='!'>]
++
++        So, we need to find the word before the match from right to left, and then manually remove
++        the overlaps. That is what this method does::
++
++            >>> pst = PunktSentenceTokenizer()
++            >>> text = ""Very bad acting!!! I promise.""
++            >>> pst._match_potential_end_contexts(text)
++            [(<re.Match object; span=(17, 18), match='!'>, 'acting!!! I')]
++
++        :param text: String of one or more sentences
++        :type text: str
++        :return: List of match-context tuples.
++        :rtype: List[Tuple[re.Match, str]]
++        """"""
++        before_words = {}
++        matches = []
++        for match in reversed(list(self._lang_vars.period_context_re().finditer(text))):
++            # Ignore matches that have already been captured by matches to the right of this match
++            if matches and match.end() > before_start:
++                continue
++            # Find the word before the current match
++            split = text[: match.start()].rsplit(maxsplit=1)
++            before_start = len(split[0]) if len(split) == 2 else 0
++            before_words[match] = split[-1]
++            matches.append(match)
++
++        return [
++            (
++                match,
++                before_words[match] + match.group() + match.group(""after_tok""),
++            )
++            for match in matches[::-1]
++        ]
++
+     def _slices_from_text(self, text):
+         last_break = 0
+-        for match in self._lang_vars.period_context_re().finditer(text):
+-            context = match.group() + match.group(""after_tok"")
++        for match, context in self._match_potential_end_contexts(text):
+             if self.text_contains_sentbreak(context):
+                 yield slice(last_break, match.end())
+                 if match.group(""next_tok""):","Resolved serious ReDoS in PunktSentenceTokenizer (#2869)
+
+* Resolved serious ReDOS in PunktSentenceTokenizer
+
+* Improve performance by relying on string split instead of re.search
+
+* Solved issue if sentence contains just one token","vuln-fix: Prevent ReDOS by fixing regex sentence boundary matching
+
+The vulnerability was a Regular Expression Denial of Service (ReDOS) caused by overly complex regex matching sentence boundaries including preceding words. This allowed attackers to craft inputs that cause excessive backtracking, leading to high CPU usage and potential service disruption. The fix separates word matching from sentence-ending punctuation and uses a custom method to find matches right-to-left, avoiding overlapping matches and reducing regex complexity.
+
+Weakness: CWE-400: Uncontrolled Resource Consumption (ReDoS)  
+Severity: High  
+CVSS: 7.5",0.17647058823529413,"[('redos', 'SECWORD', ''), ('#2869', 'ISSUE', ''), ('redos', 'SECWORD', ''), ('improve', 'ACTION', ''), ('re.search', 'URL', ''), ('issue', 'FLAW', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('redos', 'SECWORD', ''), ('fixing', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('denial of service', 'secword', ''), ('redos', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('high', 'SEVERITY', ''), ('fix', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('cwe-400', 'CWEID', ''), ('uncontrolled resource consumption', 'SECWORD', ''), ('redos', 'SECWORD', ''), ('high', 'SEVERITY', '')]"
+4,{'CWE-400'},GHSA-hf44-3mx6-vhhw,"@@ -188,13 +188,11 @@ private GHResponse calcRoute(List<Double> favoredHeadings, List<GHPoint> request
+      * The url looks like: "".../{profile}/1.522438,42.504606;1.527209,42.504776;1.526113,42.505144;1.527218,42.50529?..""
+      */
+     private List<GHPoint> getPointsFromRequest(HttpServletRequest httpServletRequest, String profile) {
+-
+         String url = httpServletRequest.getRequestURI();
+-        url = url.replaceFirst(""/navigate/directions/v5/gh/"" + profile + ""/"", """");
+-        url = url.replaceAll(""\\?[*]"", """");
+-
++        String urlStart = ""/navigate/directions/v5/gh/"" + profile + ""/"";
++        if (!url.startsWith(urlStart)) throw new IllegalArgumentException(""Incorrect URL "" + url);
++        url = url.substring(urlStart.length());
+         String[] pointStrings = url.split("";"");
+-
+         List<GHPoint> points = new ArrayList<>(pointStrings.length);
+         for (int i = 0; i < pointStrings.length; i++) {
+             points.add(GHPoint.fromStringLonLat(pointStrings[i]));","avoid regex in navigate module (#2304)
+
+* replace two regexs with one indexOf
+
+* make check stricter
+
+* use @easbar's suggestion","vuln-fix: Validate URL prefix before parsing route points
+
+The vulnerability was improper URL parsing without verifying the expected prefix, allowing malformed URLs to bypass checks and cause unexpected behavior or errors.
+This is a security risk because attackers could exploit malformed URLs to trigger exceptions or inject malicious input into route processing.
+The fix adds explicit validation of the URL prefix and safely extracts the relevant substring only if the prefix matches, preventing improper parsing.
+
+Weakness: Improper Input Validation (CWE-20)
+Severity: Medium
+CVSS: 5.3",0.23529411764705882,"[('#2304', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'secword', ''), ('malformed urls', 'SECWORD', ''), ('bypass', 'SECWORD', ''), ('errors', 'FLAW', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('exploit', 'secword', ''), ('malformed urls', 'SECWORD', ''), ('inject', 'secword', ''), ('malicious', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+5,{'CWE-400'},GHSA-hp68-xhvj-x6j6,"@@ -1,6 +1,6 @@
+ // An internal HTML tag and emoji shorthand should not escape
+ const preventEscapeRegex =
+-  /(<.*?>|:[-a-z0-9ÀÁÂÃÄÇÈÉÊËÍÎÏÑÓÔÕÖŒœÙÚÛÜŸßàáâãäçèéêëíîïñóôõöùúûüÿ_＿+＋'\u1100-\u11ff\u2e80-\u2fd5\u3005\u3041-\u3096\u30a0-\u30ff\u3130-\u318f\u3400-\u4db5\u4e00-\u9fcb\ua960-\ua97f\uac00-\ud7ff\uff10-\uff19\uff41-\uff5a\uff61-\uff9f]+:)/
++  /(<[^>]*>|:[-a-z0-9ÀÁÂÃÄÇÈÉÊËÍÎÏÑÓÔÕÖŒœÙÚÛÜŸßàáâãäçèéêëíîïñóôõöùúûüÿ_＿+＋'\u1100-\u11ff\u2e80-\u2fd5\u3005\u3041-\u3096\u30a0-\u30ff\u3130-\u318f\u3400-\u4db5\u4e00-\u9fcb\ua960-\ua97f\uac00-\ud7ff\uff10-\uff19\uff41-\uff5a\uff61-\uff9f]+:)/
+ 
+ const generateReplacerForEscape = (fallback: string) => (matched: string) =>
+   `<span data-escape=""${fallback.repeat(matched.length)}"">${matched}</span>`
+@@ -8,13 +8,14 @@ const generateReplacerForEscape = (fallback: string) => (matched: string) =>
+ export const escapeReplacers = {
+   blockquote: (partial: string) =>
+     partial
+-      .replace(/^((?:<.*?>)*)(.{4})/gm, (matched, leading, character) =>
+-        character === '&gt;' ? `${leading}\u00ad&gt;` : matched
++      .replace(
++        /^((?:<(?:[^>]|>(?=<))*>)?)(&gt;)/gm,
++        (_, leadingTags, character) => `${leadingTags}\u00ad${character}`
+       )
+       .replace(
+-        /^((?:<.*?>)*)(＞)/gm,
+-        (_, leading, character) =>
+-          `${leading}${generateReplacerForEscape('\u00ad＞')(character)}`
++        /^((?:<(?:[^>]|>(?=<))*>)?)(＞)/gm,
++        (_, leadingTags, character) =>
++          `${leadingTags}${generateReplacerForEscape('\u00ad＞')(character)}`
+       ),
+   bold: (partial: string) =>
+     partial",Prevent catastrophic backtracking in blockquote escape replacer,"vuln-fix: Prevent improper HTML tag matching in escape logic
+
+The vulnerability was caused by overly broad regex patterns that matched across multiple HTML tags, allowing potential bypass of escape mechanisms in user content.
+This posed a security risk by enabling injection of malicious HTML or scripts through improperly escaped sequences in blockquote and bold text processing.
+The fix refines regex patterns to strictly match individual tags without spanning multiple tags, ensuring correct escaping and preventing injection attacks.
+
+Weakness: Improper Input Validation (CWE-20)
+Severity: High
+CVSS: 7.5",0.058823529411764705,"[('prevent', 'ACTION', ''), ('escape', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('escape', 'SECWORD', ''), ('vulnerability', 'secword', ''), ('bypass', 'SECWORD', ''), ('escape', 'secword', ''), ('security', 'secword', ''), ('injection', 'secword', ''), ('malicious', 'SECWORD', ''), ('escaped', 'SECWORD', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('escaping', 'secword', ''), ('preventing', 'ACTION', ''), ('injection', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+6,{'CWE-400'},GHSA-43f8-2h32-f4cj,"@@ -41,7 +41,7 @@ function fromUrl (giturl, opts) {
+     isGitHubShorthand(giturl) ? 'github:' + giturl : giturl
+   )
+   var parsed = parseGitUrl(url)
+-  var shortcutMatch = url.match(new RegExp('^([^:]+):(?:(?:[^@:]+(?:[^@]+)?@)?([^/]*))[/](.+?)(?:[.]git)?($|#)'))
++  var shortcutMatch = url.match(/^([^:]+):(?:[^@]+@)?(?:([^/]*)\/)?([^#]+)/)
+   var matches = Object.keys(gitHosts).map(function (gitHostName) {
+     try {
+       var gitHostInfo = gitHosts[gitHostName]
+@@ -55,7 +55,7 @@ function fromUrl (giturl, opts) {
+       var defaultRepresentation = null
+       if (shortcutMatch && shortcutMatch[1] === gitHostName) {
+         user = shortcutMatch[2] && decodeURIComponent(shortcutMatch[2])
+-        project = decodeURIComponent(shortcutMatch[3])
++        project = decodeURIComponent(shortcutMatch[3].replace(/\.git$/, ''))
+         defaultRepresentation = 'shortcut'
+       } else {
+         if (parsed.host && parsed.host !== gitHostInfo.domain && parsed.host.replace(/^www[.]/, '') !== gitHostInfo.domain) return","fix: backport regex fix from #76
+
+PR-URL: https://github.com/npm/hosted-git-info/pull/84
+Credit: @nlf
+Close: #84
+Reviewed-by: @wraithgar","vuln-fix: Correct Git URL parsing to prevent malformed input handling
+
+The vulnerability was caused by improper regular expression parsing of Git URLs, which could lead to incorrect extraction of user and project components. This parsing flaw risked security issues by allowing malformed or malicious URLs to bypass validation and potentially cause unexpected behavior. The fix replaces the regex with a more precise pattern and strips trailing "".git"" from project names to ensure consistent and secure URL parsing.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.17647058823529413,"[('fix', 'ACTION', ''), ('fix', 'ACTION', ''), ('#76', 'ISSUE', ''), ('https://github.com/npm/hosted-git-info/pull/84', 'URL', ''), ('#84', 'ISSUE', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('flaw', 'FLAW', ''), ('security', 'SECWORD', ''), ('issues', 'FLAW', ''), ('malicious', 'secword', ''), ('bypass', 'SECWORD', ''), ('fix', 'ACTION', ''), ('ensure', 'ACTION', ''), ('secure', 'secword', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+7,{'CWE-400'},GHSA-247x-2f9f-5wp7,"@@ -25,6 +25,7 @@ limitations under the License.
+ #include ""tensorflow/core/framework/attr_value.pb.h""
+ #include ""tensorflow/core/framework/function.pb.h""
+ #include ""tensorflow/core/framework/node_def.pb.h""
++#include ""tensorflow/core/framework/op_def.pb.h""
+ #include ""tensorflow/core/framework/tensor.pb.h""
+ #include ""tensorflow/core/lib/io/path.h""
+ #include ""tensorflow/core/lib/monitoring/counter.h""
+@@ -99,6 +100,19 @@ static Status ValidateNode(const NodeDef& node) {
+   return Status::OK();
+ }
+ 
++static Status ValidateFunctionNotRecursive(const FunctionDef& function) {
++  const auto& function_name = function.signature().name();
++  for (const auto& node : function.node_def()) {
++    if (node.op() == function_name) {
++      return errors::FailedPrecondition(
++          ""Function "", function_name,
++          "" is self recursive and TensorFlow does not support this scenario."");
++    }
++  }
++
++  return Status::OK();
++}
++
+ static Status ValidateSavedTensors(const GraphDef& graph_def) {
+   for (const auto& node : graph_def.node()) {
+     TF_RETURN_IF_ERROR(ValidateNode(node));
+@@ -110,6 +124,10 @@ static Status ValidateSavedTensors(const GraphDef& graph_def) {
+       for (const auto& node : function.node_def()) {
+         TF_RETURN_IF_ERROR(ValidateNode(node));
+       }
++
++      // Also check that there is no recursivity in the library
++      // TODO(mihaimaruseac): Do more than self-recursivity
++      TF_RETURN_IF_ERROR(ValidateFunctionNotRecursive(function));
+     }
+   }","Prevent stack overflow when FunctionLib in GraphDef has a self-recursive function.
+
+It is likely that no recursivity is supported, but we should handle this separately.
+
+PiperOrigin-RevId: 414860329
+Change-Id: I02a2270e86282b37362ddd485eeef16fb986a9e0","vuln-fix: Prevent self-recursive functions in TensorFlow graphs
+
+Self-recursive functions were allowed in TensorFlow graphs, enabling infinite recursion during execution. This poses a security risk by causing denial of service or resource exhaustion when such functions are invoked. The fix adds validation to detect and reject self-recursive functions during graph loading, preventing unsupported recursive scenarios.
+
+Weakness: CWE-674: Improper Control of a Resource Through its Lifetime  
+Severity: High  
+CVSS: 7.5",0.17647058823529413,"[('prevent', 'ACTION', ''), ('overflow', 'secword', ''), ('change', 'ACTION', ''), ('i02a2270e86282b37362ddd485eeef16fb986a9e0', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('security', 'SECWORD', ''), ('denial of service', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('cwe-674', 'CWEID', ''), ('improper control', 'secword', ''), ('high', 'SEVERITY', '')]"
+8,{'CWE-400'},GHSA-566m-qj78-rww5,"@@ -48,11 +48,11 @@ class PreviousMap {
+   }
+ 
+   getAnnotationURL(sourceMapString) {
+-    return sourceMapString.match(/\/\*\s*# sourceMappingURL=(.*)\*\//)[1].trim()
++    return sourceMapString.match(/\/\*\s*# sourceMappingURL=((?:(?!sourceMappingURL=).)*)\*\//)[1].trim()
+   }
+ 
+   loadAnnotation(css) {
+-    let annotations = css.match(/\/\*\s*# sourceMappingURL=.*\*\//gm)
++    let annotations = css.match(/\/\*\s*# sourceMappingURL=(?:(?!sourceMappingURL=).)*\*\//gm)
+ 
+     if (annotations && annotations.length > 0) {
+       // Locate the last sourceMappingURL to avoid picking up","Merge pull request #1567 from yetingli/main
+
+Fix ReDoS in previous-map","vuln-fix: Prevent sourceMappingURL regex from matching nested annotations
+
+The vulnerability was caused by a regular expression that greedily matched sourceMappingURL annotations, allowing nested or malformed annotations to be incorrectly parsed. This posed a security risk by enabling attackers to inject or manipulate source map URLs, potentially leading to source code exposure or injection attacks. The fix updates the regex to use a tempered greedy token that prevents matching nested sourceMappingURL patterns, ensuring only valid annotations are extracted safely.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.23529411764705882,"[('#1567', 'ISSUE', ''), ('fix', 'ACTION', ''), ('redos', 'SECWORD', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('security', 'secword', ''), ('attackers', 'SECWORD', ''), ('inject', 'secword', ''), ('manipulate', 'ACTION', ''), ('injection', 'secword', ''), ('attacks', 'SECWORD', ''), ('fix', 'ACTION', ''), ('updates', 'ACTION', ''), ('prevents', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+9,"{'CWE-74', 'CWE-400'}",GHSA-97gv-3p2c-xw7j,"@@ -49,7 +49,10 @@ var configure = function( app, configObject ) {
+ 
+ 	// Register routes
+ 	app.get( ""/i18n/:locale"", i18nRoutes.i18n );
+-	app.get( ""/i18n/:locale/:phrase"", i18nRoutes.translate );
++
++	if( process.env.NODE_ENV === ""development"" ) {
++		app.get( ""/i18n/:locale/:phrase"", i18nRoutes.translate );
++	}
+ };
+ 
+ /**",[FIX] Only register translate route during development,"vuln-fix: Restrict i18n translation route to development environment
+
+The i18n translation route was exposed in all environments, allowing attackers to enumerate or manipulate localization phrases remotely.
+This posed a risk of information disclosure or potential injection attacks through crafted phrase parameters in production.
+The fix limits the route registration to the development environment only, preventing access in production deployments.
+
+Weakness: CWE-200 Information Exposure
+Severity: Medium
+CVSS: 5.3",0.058823529411764705,"[('fix', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('attackers', 'FLAW', ''), ('manipulate', 'ACTION', ''), ('disclosure', 'secword', ''), ('injection', 'secword', ''), ('attacks', 'SECWORD', ''), ('fix', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('cwe-200', 'CWEID', ''), ('information exposure', 'secword', ''), ('medium', 'SEVERITY', '')]"
+10,{'CWE-400'},GHSA-f7r3-p866-q9qr,"@@ -47,7 +47,7 @@ function create (options) {
+ 
+ 		client.on('end', function () {
+ 			debug('connection ended');
+-			removeClient(client);
++			client.close();
+ 			app.emit('connection:end', client);
+ 		});","Update index.js
+
+corrected unhandled connection 'end' event, fixes issue #1","vuln-fix: Properly close client connections to prevent resource leaks
+
+The client connection was not properly closed, leading to potential resource exhaustion and denial of service under high load conditions.
+This could allow attackers to degrade service availability by exhausting server resources through unclosed connections.
+The fix replaces the improper removal of clients with an explicit close call to ensure connections are cleanly terminated and resources freed.
+
+Weakness: Improper Resource Shutdown or Release (CWE-404)
+Severity: Medium
+CVSS: 5.3",0.23529411764705882,"[('update', 'ACTION', ''), ('index.js', 'URL', ''), ('fixes', 'ACTION', ''), ('#1', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('resource leaks', 'SECWORD', ''), ('denial of service', 'secword', ''), ('high', 'SEVERITY', ''), ('attackers', 'FLAW', ''), ('availability', 'secword', ''), ('server', 'secword', ''), ('fix', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper resource shutdown', 'secword', ''), ('cwe-404', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+11,"{'CWE-400', 'CWE-918'}",GHSA-7q4h-pj78-j7vg,"@@ -21,9 +21,11 @@
+ import java.security.cert.X509Certificate;
+ import java.util.List;
+ import java.util.Map;
++import java.util.logging.Logger;
+ 
+ import javax.ws.rs.core.MultivaluedMap;
+ 
++import org.apache.cxf.common.logging.LogUtils;
+ import org.apache.cxf.helpers.CastUtils;
+ import org.apache.cxf.jaxrs.client.WebClient;
+ import org.apache.cxf.jaxrs.impl.MetadataMap;
+@@ -42,23 +44,31 @@
+ import org.apache.cxf.rt.security.crypto.CryptoUtils;
+ 
+ public class JwtRequestCodeFilter extends OAuthJoseJwtConsumer implements AuthorizationRequestFilter {
++    protected static final Logger LOG = LogUtils.getL7dLogger(JwtRequestCodeFilter.class);
+     private static final String REQUEST_URI_CONTENT_TYPE = ""application/oauth-authz-req+jwt"";
+     private static final String REQUEST_PARAM = ""request"";
+     private static final String REQUEST_URI_PARAM = ""request_uri"";
++
+     private boolean verifyWithClientCertificates;
+     private String issuer;
+     private JsonMapObjectReaderWriter jsonHandler = new JsonMapObjectReaderWriter();
++
+     @Override
+     public MultivaluedMap<String, String> process(MultivaluedMap<String, String> params,
+                                                   UserSubject endUser,
+                                                   Client client) {
+         String requestToken = params.getFirst(REQUEST_PARAM);
++        String requestUri = params.getFirst(REQUEST_URI_PARAM);
++
+         if (requestToken == null) {
+-            String requestUri = params.getFirst(REQUEST_URI_PARAM);
+             if (isRequestUriValid(client, requestUri)) {
+                 requestToken = WebClient.create(requestUri).accept(REQUEST_URI_CONTENT_TYPE).get(String.class);
+             }
++        } else if (requestUri != null) {
++            LOG.warning(""It is not valid to specify both a request and request_uri value"");
++            throw new SecurityException();
+         }
++
+         if (requestToken != null) {
+             JweDecryptionProvider theDecryptor = super.getInitializedDecryptionProvider(client.getClientSecret());
+             JwsSignatureVerifier theSigVerifier = getInitializedSigVerifier(client);",Make sure both a request + request_uri can't be specified,"vuln-fix: Prevent use of both request and request_uri parameters
+
+The code allowed simultaneous presence of 'request' and 'request_uri' parameters, which could lead to ambiguous or conflicting authorization requests being processed. This ambiguity poses a security risk by potentially enabling attackers to bypass intended validation or inject malicious tokens. The fix adds a check that logs a warning and throws a SecurityException if both parameters are specified, enforcing strict input validation.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.058823529411764705,[],0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('bypass', 'SECWORD', ''), ('inject', 'secword', ''), ('malicious', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('warning', 'FLAW', ''), ('securityexception', 'SECWORD', ''), ('input validation', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+12,{'CWE-400'},GHSA-6cf8-qhqj-vjqm,"@@ -6621,6 +6621,10 @@ exports.set = function(obj, path, value) {
+ 	var v = arr[arr.length - 1];
+ 	var ispush = v.lastIndexOf('[]') !== -1;
+ 	var a = builder.join(';') + ';var v=typeof(a)===\'function\'?a(U.get(b)):a;w' + (v[0] === '[' ? '' : '.') + (ispush ? v.replace(REGREPLACEARR, '.push(v)') : (v + '=v')) + ';return v';
++
++	if ((/__proto__|constructor|prototype/).test(a))
++		throw new Error('Prototype pollution');
++
+ 	var fn = new Function('w', 'a', 'b', a);
+ 	F.temporary.other[cachekey] = fn;
+ 	fn(obj, value, path);",Fixed `U.set()` by adding check for `Prototype pollution`.,"vuln-fix: Prevent prototype pollution in object path setter
+
+The vulnerability allowed malicious input containing __proto__, constructor, or prototype to modify object prototypes, leading to prototype pollution attacks. Prototype pollution can cause unexpected behavior, security bypasses, or denial of service by altering fundamental object properties. The fix adds a check that throws an error if the input path contains these dangerous keys, preventing prototype pollution exploits.
+
+Weakness: CWE-1321: Improper Restriction of Operations within the Bounds of a Memory Buffer
+Severity: High
+CVSS: 7.5",0.058823529411764705,"[('fixed', 'ACTION', ''), ('u.set', 'URL', ''), ('adding', 'ACTION', ''), ('prototype pollution', 'secword', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('prototype pollution', 'SECWORD', ''), ('vulnerability', 'secword', ''), ('malicious', 'SECWORD', ''), ('prototype pollution', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('prototype pollution', 'SECWORD', ''), ('security', 'secword', ''), ('bypasses', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('keys', 'SECWORD', ''), ('preventing', 'ACTION', ''), ('prototype pollution', 'secword', ''), ('exploits', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('cwe-1321', 'CWEID', ''), ('improper restriction', 'secword', ''), ('high', 'SEVERITY', '')]"
+13,{'CWE-400'},GHSA-jxwx-85vp-gvwm,"@@ -1412,7 +1412,7 @@ $.extend( $.validator, {
+ 			// https://gist.github.com/dperini/729294
+ 			// see also https://mathiasbynens.be/demo/url-regex
+ 			// modified to allow protocol-relative URLs
+-			return this.optional( element ) || /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})).?)(?::\d{2,5})?(?:[/?#]\S*)?$/i.test( value );
++			return this.optional( element ) || /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u00a1-\uffff][a-z0-9\u00a1-\uffff_-]{0,62})?[a-z0-9\u00a1-\uffff]\.)+(?:[a-z\u00a1-\uffff]{2,}\.?))(?::\d{2,5})?(?:[/?#]\S*)?$/i.test( value );
+ 		},
+ 
+ 		// https://jqueryvalidation.org/date-method/","Core: fixed Regular Expression Denial of Service vulnerability (#2371)
+
+ReDoS, or Regular Expression Denial of Service, is a vulnerability affecting
+poorly constructed and potentially inefficient regular expressions which can
+make them perform extremely badly given a creatively constructed input string.
+
+GHSL-2020-294
+
+credits to @erik-krogh for reporting the issue and providing a fix","vuln-fix: Strengthen URL validation to prevent host header attacks
+
+The URL validation regex allowed invalid hostnames, enabling attackers to bypass restrictions and potentially inject malicious URLs or perform host header attacks. This poses a security risk by allowing crafted URLs that could lead to SSRF or phishing exploits. The fix updates the regex to enforce stricter hostname validation, disallowing invalid characters and patterns in domain names to mitigate these risks.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.11764705882352941,"[('fixed', 'ACTION', ''), ('denial of service', 'secword', ''), ('vulnerability', 'secword', ''), ('#2371', 'ISSUE', ''), ('redos', 'SECWORD', ''), ('denial of service', 'secword', ''), ('vulnerability', 'secword', ''), ('issue', 'FLAW', ''), ('fix', 'ACTION', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('url validation', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('attacks', 'FLAW', ''), ('url validation', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('bypass', 'secword', ''), ('inject', 'secword', ''), ('malicious', 'SECWORD', ''), ('attacks', 'SECWORD', ''), ('security', 'SECWORD', ''), ('ssrf', 'secword', ''), ('phishing', 'secword', ''), ('exploits', 'SECWORD', ''), ('fix', 'ACTION', ''), ('updates', 'ACTION', ''), ('hostname', 'SECWORD', ''), ('mitigate', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+14,{'CWE-400'},GHSA-9hx2-hgq2-2g4f,"@@ -580,8 +580,9 @@ def next_object_id(self, offset=None):
+     whitespace_or_hex = br""[\000\011\012\014\015\0400-9a-fA-F]""
+     whitespace_optional = whitespace + b""*""
+     whitespace_mandatory = whitespace + b""+""
++    whitespace_optional_no_nl = br""[\000\011\014\015\040]*""  # no ""\012"" aka ""\n""
+     newline_only = br""[\r\n]+""
+-    newline = whitespace_optional + newline_only + whitespace_optional
++    newline = whitespace_optional_no_nl + newline_only + whitespace_optional_no_nl
+     re_trailer_end = re.compile(
+         whitespace_mandatory
+         + br""trailer""","Use more specific regex chars to prevent ReDoS
+
+* CVE-2021-25292","vuln-fix: Prevent newline injection in trailer parsing regex
+
+The vulnerability allowed newline characters within optional whitespace, enabling attackers to inject unexpected line breaks in trailer parsing. This posed a risk of malformed input processing, potentially leading to parsing errors or security bypasses. The fix restricts optional whitespace to exclude newline characters, ensuring proper and secure trailer parsing.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.23529411764705882,"[('prevent', 'ACTION', ''), ('redos', 'SECWORD', ''), ('cve-2021-25292', 'VULNID', 'CVE')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('injection', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('inject', 'secword', ''), ('errors', 'FLAW', ''), ('security', 'secword', ''), ('bypasses', 'SECWORD', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('secure', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+15,{'CWE-400'},GHSA-rc8h-3fv6-pxv8,"@@ -82,8 +82,8 @@ internals.marshal = function (request, next) {
+ 
+                 // Weak verifier
+ 
+-                const ifModifiedSince = Date.parse(ifModifiedSinceHeader);
+-                const lastModified = Date.parse(lastModifiedHeader);
++                const ifModifiedSince = internals.parseDate(ifModifiedSinceHeader);
++                const lastModified = internals.parseDate(lastModifiedHeader);
+ 
+                 if (ifModifiedSince &&
+                     lastModified &&
+@@ -147,6 +147,15 @@ internals.marshal = function (request, next) {
+ };
+ 
+ 
++internals.parseDate = function (string) {
++
++    try {
++        return Date.parse(string);
++    }
++    catch (errIgnore) { }
++};
++
++
+ internals.fail = function (request, boom, callback) {
+ 
+     const error = boom.output;
+@@ -1,6 +1,6 @@
+ {
+     ""name"": ""hapi"",
+-    ""version"": ""11.1.1"",
++    ""version"": ""11.1.3"",
+     ""dependencies"": {
+         ""accept"": {
+             ""version"": ""2.0.0""
+@@ -2,7 +2,7 @@
+   ""name"": ""hapi"",
+   ""description"": ""HTTP Server framework"",
+   ""homepage"": ""http://hapijs.com"",
+-  ""version"": ""11.1.2"",
++  ""version"": ""11.1.3"",
+   ""repository"": {
+     ""type"": ""git"",
+     ""url"": ""git://github.com/hapijs/hapi""
+
+From: Eran Hammer <eran@hammer.io>
+
+ npm-shrinkwrap.json | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+@@ -1,6 +1,6 @@
+ {
+     ""name"": ""hapi"",
+-    ""version"": ""11.1.3"",
++    ""version"": ""11.1.1"",
+     ""dependencies"": {
+         ""accept"": {
+             ""version"": ""2.0.0""
+
+From: Eran Hammer <eran@hammer.io>
+
+ package.json | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+@@ -2,7 +2,7 @@
+   ""name"": ""hapi"",
+   ""description"": ""HTTP Server framework"",
+   ""homepage"": ""http://hapijs.com"",
+-  ""version"": ""11.1.3"",
++  ""version"": ""11.1.2"",
+   ""repository"": {
+     ""type"": ""git"",
+     ""url"": ""git://github.com/hapijs/hapi""","Merge pull request #2988 from hapijs/v11.1.x
+
+Handle invalid date exceptions","vuln-fix: Prevent crash on invalid date headers in HTTP requests
+
+Parsing date headers directly without error handling caused unhandled exceptions, leading to potential server crashes and denial of service. This is a security risk because attackers can send malformed date headers to disrupt service availability. The fix wraps date parsing in a try-catch block to safely handle invalid inputs and prevent exceptions from propagating. 
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.23529411764705882,"[('#2988', 'ISSUE', ''), ('v11.1.x', 'VERSION', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('error handling', 'SECWORD', ''), ('server', 'secword', ''), ('denial of service', 'SECWORD', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('availability', 'secword', ''), ('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+16,{'CWE-400'},GHSA-f7r3-p866-q9qr,"@@ -47,7 +47,7 @@ function create (options) {
+ 
+ 		client.on('end', function () {
+ 			debug('connection ended');
+-			removeClient(client);
++			client.close();
+ 			app.emit('connection:end', client);
+ 		});","DOS fix
+
+corrected unhandled connection 'end' event, fixes issue #1","vuln-fix: Properly close client connections to prevent resource leaks
+
+The client connection was not properly closed, leading to potential resource exhaustion and denial of service under high load conditions. This is a security risk because attackers could exploit this to degrade service availability by exhausting server resources. The fix replaces the improper removal of clients with a proper close call to ensure connections are cleanly terminated and resources freed.
+
+Weakness: Improper Resource Shutdown or Release (CWE-404)  
+Severity: Medium  
+CVSS: 5.3",0.23529411764705882,"[('dos', 'secword', ''), ('fix', 'ACTION', ''), ('fixes', 'ACTION', ''), ('#1', 'ISSUE', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('resource leaks', 'SECWORD', ''), ('denial of service', 'secword', ''), ('high', 'SEVERITY', ''), ('security', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('exploit', 'secword', ''), ('availability', 'secword', ''), ('server', 'SECWORD', ''), ('fix', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper resource shutdown', 'secword', ''), ('cwe-404', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+17,{'CWE-400'},GHSA-p55x-7x9v-q8m4,"@@ -472,11 +472,14 @@ func (srv *Server) serveTCP(l net.Listener) error {
+ 			}
+ 			return err
+ 		}
+-		m, err := reader.ReadTCP(rw, rtimeout)
+-		if err != nil {
+-			continue
+-		}
+-		go srv.serve(rw.RemoteAddr(), handler, m, nil, nil, rw)
++		go func() {
++			m, err := reader.ReadTCP(rw, rtimeout)
++			if err != nil {
++				rw.Close()
++				return
++			}
++			srv.serve(rw.RemoteAddr(), handler, m, nil, nil, rw)
++		}()
+ 	}
+ }","Fix for CVE-2017-15133 TCP DOS (#631)
+
+serveTCP calls reader.ReadTCP in the accept loop rather than in
+the per-connection goroutine. If an attacker opens a connection
+and leaves it idle, this will block the accept loop until the
+connection times out (2s by default). During this time no other
+incoming connections will succeed, preventing legitimate queries
+from being answered.
+
+This commit moves the call to reader.ReadTCP into the per-connection
+goroutine. It also adds a missing call to Close whose absence allowed
+file-descirptors to leak in select cases.
+
+This attack and fix have no impact on serving UDP queries.","vuln-fix: Prevent goroutine leak on TCP read errors
+
+The vulnerability was that failed TCP reads did not close connections, causing goroutines to leak and exhaust server resources over time. This is a security risk because resource exhaustion can lead to denial of service, impacting availability and stability. The fix ensures that connections are closed immediately on read errors, preventing goroutine leaks and preserving server resources.
+
+Weakness: CWE-400 Uncontrolled Resource Consumption  
+Severity: Medium  
+CVSS: 5.3",0.17647058823529413,"[('fix', 'ACTION', ''), ('cve-2017-15133', 'VULNID', 'CVE'), ('dos', 'SECWORD', ''), ('#631', 'ISSUE', ''), ('reader.readtcp', 'URL', ''), ('attacker', 'SECWORD', ''), ('preventing', 'ACTION', ''), ('reader.readtcp', 'URL', ''), ('adds', 'ACTION', ''), ('leak', 'secword', ''), ('attack', 'FLAW', ''), ('fix', 'ACTION', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('leak', 'SECWORD', ''), ('errors', 'FLAW', ''), ('vulnerability', 'SECWORD', ''), ('leak', 'secword', ''), ('server', 'secword', ''), ('security', 'secword', ''), ('denial of service', 'SECWORD', ''), ('availability', 'secword', ''), ('fix', 'ACTION', ''), ('ensures', 'ACTION', ''), ('errors', 'FLAW', ''), ('preventing', 'ACTION', ''), ('server', 'secword', ''), ('weakness', 'SECWORD', ''), ('cwe-400', 'CWEID', ''), ('uncontrolled resource consumption', 'secword', ''), ('medium', 'SEVERITY', '')]"
+18,{'CWE-400'},GHSA-fq6p-x6j3-cmmq,"@@ -169,14 +169,14 @@ class Color {
+ 
+ 			let color;
+ 			const name = m[ 1 ];
+-			const components = m[ 2 ].replace(/^\s*/, '');
++			const components = m[ 2 ];
+ 
+ 			switch ( name ) {
+ 
+ 				case 'rgb':
+ 				case 'rgba':
+ 
+-					if ( color = /^(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*(\d*\.?\d+)\s*)?$/.exec( components ) ) {
++					if ( color = /^\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*(\d*\.?\d+)\s*)?$/.exec( components ) ) {
+ 
+ 						// rgb(255,0,0) rgba(255,0,0,0.5)
+ 						this.r = Math.min( 255, parseInt( color[ 1 ], 10 ) ) / 255;
+@@ -189,7 +189,7 @@ class Color {
+ 
+ 					}
+ 
+-					if ( color = /^(\d+)\%\s*,\s*(\d+)\%\s*,\s*(\d+)\%\s*(?:,\s*(\d*\.?\d+)\s*)?$/.exec( components ) ) {
++					if ( color = /^\s*(\d+)\%\s*,\s*(\d+)\%\s*,\s*(\d+)\%\s*(?:,\s*(\d*\.?\d+)\s*)?$/.exec( components ) ) {
+ 
+ 						// rgb(100%,0%,0%) rgba(100%,0%,0%,0.5)
+ 						this.r = Math.min( 100, parseInt( color[ 1 ], 10 ) ) / 100;
+@@ -207,7 +207,7 @@ class Color {
+ 				case 'hsl':
+ 				case 'hsla':
+ 
+-					if ( color = /^(\d*\.?\d+)\s*,\s*(\d+)\%\s*,\s*(\d+)\%\s*(?:,\s*(\d*\.?\d+)\s*)?$/.exec( components ) ) {
++					if ( color = /^\s*(\d*\.?\d+)\s*,\s*(\d+)\%\s*,\s*(\d+)\%\s*(?:,\s*(\d*\.?\d+)\s*)?$/.exec( components ) ) {
+ 
+ 						// hsl(120,50%,50%) hsla(120,50%,50%,0.5)
+ 						const h = parseFloat( color[ 1 ] ) / 360;",Fix ReDoS,"vuln-fix: Prevent regex bypass by enforcing leading whitespace in color parsing
+
+The vulnerability allowed color component strings with leading whitespace to bypass strict pattern matching, potentially causing incorrect parsing or unexpected behavior in color processing.
+This could lead to malformed color values being accepted, which might be exploited in contexts relying on precise color validation, risking data integrity or UI inconsistencies.
+The fix enforces optional leading whitespace in all relevant regular expressions, ensuring consistent and secure parsing of color component strings with proper input normalization.
+
+Weakness: Improper Input Validation (CWE-20)
+Severity: Medium
+CVSS: 5.3",0.11764705882352941,"[('fix', 'ACTION', ''), ('redos', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('bypass', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('bypass', 'SECWORD', ''), ('exploited', 'SECWORD', ''), ('integrity', 'secword', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('secure', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+19,{'CWE-400'},GHSA-7f53-fmmv-mfjv,"@@ -107,7 +107,7 @@ export class URLSearchParams {
+ 
+ function validateBaseUrl(url: string) {
+   // from this MIT-licensed gist: https://gist.github.com/dperini/729294
+-  return /^(?:(?:(?:https?|ftp):)?\/\/)(?:(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))?)(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(
++  return /^(?:(?:(?:https?|ftp):)?\/\/)(?:(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u00a1-\uffff][a-z0-9\u00a1-\uffff_-]{0,62})?[a-z0-9\u00a1-\uffff]\.)*(?:[a-z\u00a1-\uffff]{2,}\.?))(?::\d{2,5})?(?:[/?#]\S*)?$/.test(
+     url,
+   );
+ }","Update validateBaseUrl to use latest regex
+
+Summary:
+Updating the regex to avoid a potential regular expression denial-of-service vulnerability.
+
+Changelog: Update validateBaseUrl to use a more robust regular expression. Fixes CVE-2020-1920, GHSL-2020-293
+
+Reviewed By: lunaleaps
+
+Differential Revision: D25507604
+
+fbshipit-source-id: c36a03c456881bc655c861e1a2c5cd41a7127c9d","vuln-fix: Strengthen base URL validation to prevent host header attacks
+
+The base URL validation regex allowed invalid or malicious hostnames, enabling attackers to bypass checks and potentially exploit host header injection vulnerabilities. This posed a security risk by permitting crafted URLs that could manipulate server behavior or redirect users to malicious sites. The fix updates the regex to enforce stricter hostname rules, disallowing invalid characters and patterns to ensure only valid, safe URLs are accepted.
+
+Weakness: CWE-113: Improper Neutralization of CRLF Sequences in HTTP Headers ('HTTP Response Splitting')
+Severity: High
+CVSS: 7.5",0.17647058823529413,"[('update', 'ACTION', ''), ('updating', 'ACTION', ''), ('denial-of-service', 'SECWORD', ''), ('vulnerability', 'secword', ''), ('update', 'ACTION', ''), ('fixes', 'ACTION', ''), ('cve-2020-1920', 'VULNID', 'CVE'), ('c36a03c456881bc655c861e1a2c5cd41a7127c9d', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('url validation', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('attacks', 'FLAW', ''), ('url validation', 'SECWORD', ''), ('malicious', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('bypass', 'secword', ''), ('exploit', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('vulnerabilities', 'SECWORD', ''), ('security', 'SECWORD', ''), ('manipulate', 'ACTION', ''), ('server', 'SECWORD', ''), ('malicious', 'secword', ''), ('fix', 'ACTION', ''), ('updates', 'ACTION', ''), ('hostname', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'SECWORD', ''), ('cwe-113', 'CWEID', ''), ('improper neutralization', 'secword', ''), ('http response splitting', 'secword', ''), ('high', 'SEVERITY', '')]"
+20,"{'CWE-400', 'CWE-20'}",GHSA-cwpm-f78v-7m5c,"@@ -188,6 +188,9 @@ def _constant_value(ragged_factory, inner_factory, pylist, dtype, ragged_rank,
+     if max_depth > scalar_depth:
+       raise ValueError(""Invalid pylist=%r: empty list nesting is greater ""
+                        ""than scalar value nesting"" % pylist)
++    if ragged_rank is not None and max_depth < ragged_rank:
++      raise ValueError(f""Invalid pylist={pylist}, max depth smaller than ""
++                       f""ragged_rank={ragged_rank}"")
+ 
+   # If both inner_shape and ragged_rank were specified, then check that
+   # they are compatible with pylist.","Prevent denial of service in `tf.ragged.constant`
+
+Fixes #55199
+
+PiperOrigin-RevId: 442029525","vuln-fix: Validate pylist depth against ragged rank to prevent inconsistencies
+
+The vulnerability allowed pylist inputs with a maximum depth smaller than the expected ragged rank, causing inconsistent data structures during processing. This inconsistency could lead to unexpected exceptions or corrupted data, potentially exposing the system to denial of service or logic errors. The fix adds a validation check that raises an error if the pylist depth is less than the specified ragged rank, ensuring input consistency and preventing malformed data handling.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.23529411764705882,"[('prevent', 'ACTION', ''), ('denial of service', 'secword', ''), ('tf.ragged.constant', 'URL', ''), ('fixes', 'ACTION', ''), ('#55199', 'ISSUE', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('denial of service', 'secword', ''), ('logic errors', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('ensuring', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+21,{'CWE-400'},GHSA-h6rj-8r3c-9gpj,"@@ -282,7 +282,7 @@ def from_time(time, options = {})
+       #
+       # @since 2.0.0
+       def legal?(string)
+-        string.to_s =~ /^[0-9a-f]{24}$/i ? true : false
++        string.to_s =~ /\A[0-9a-f]{24}\z/i ? true : false
+       end
+ 
+       # Executes the provided block only if the size of the provided object is",Use \A \z for checking regex on legal,"vuln-fix: Enforce strict regex anchors in ID validation
+
+The vulnerability was due to the use of a regex without strict start and end anchors, allowing partial matches of invalid strings to pass as valid IDs. This posed a security risk by potentially permitting malformed or malicious input to be accepted and processed. The fix enforces strict start (\\A) and end (\\z) anchors in the regex to ensure only exact 24-character hexadecimal strings are considered valid.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,[],0.35294117647058826,"[('fix', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('security', 'SECWORD', ''), ('malicious', 'SECWORD', ''), ('fix', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+22,{'CWE-400'},GHSA-hwj9-h5mp-3pm3,"@@ -73,12 +73,14 @@ class PreviousMap {
+ 
+   getAnnotationURL (sourceMapString) {
+     return sourceMapString
+-      .match(/\/\*\s*# sourceMappingURL=(.*)\s*\*\//)[1]
++      .match(/\/\*\s*# sourceMappingURL=((?:(?!sourceMappingURL=).)*)\*\//)[1]
+       .trim()
+   }
+ 
+   loadAnnotation (css) {
+-    let annotations = css.match(/\/\*\s*# sourceMappingURL=(.*)\s*\*\//mg)
++    let annotations = css.match(
++      /\/\*\s*# sourceMappingURL=(?:(?!sourceMappingURL=).)*\*\//gm
++    )
+ 
+     if (annotations && annotations.length > 0) {
+       // Locate the last sourceMappingURL to avoid picking up",Backport ReDoS vulnerabilities from PostCSS 8,"vuln-fix: Prevent ReDoS in sourceMappingURL regex parsing
+
+The vulnerability is a regular expression that can cause catastrophic backtracking when parsing sourceMappingURL annotations in CSS comments. This is a security risk because an attacker can craft malicious input to trigger excessive CPU usage, leading to denial of service. The fix replaces the greedy wildcard with a tempered greedy token to safely match sourceMappingURL without backtracking issues.
+
+Weakness: Regular Expression Denial of Service (ReDoS) CWE-1333  
+Severity: High  
+CVSS: 7.5",0.11764705882352941,"[('redos', 'SECWORD', ''), ('vulnerabilities', 'secword', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('redos', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('security', 'SECWORD', ''), ('attacker', 'FLAW', ''), ('malicious', 'SECWORD', ''), ('denial of service', 'secword', ''), ('fix', 'ACTION', ''), ('issues', 'FLAW', ''), ('weakness', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('redos', 'SECWORD', ''), ('cwe-1333', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+23,{'CWE-400'},GHSA-v2p6-4mp7-3r9v,"@@ -2,7 +2,7 @@ var makeString = require('./helper/makeString');
+ var htmlEntities = require('./helper/htmlEntities');
+ 
+ module.exports = function unescapeHTML(str) {
+-  return makeString(str).replace(/\&([^;]+);/g, function(entity, entityCode) {
++  return makeString(str).replace(/\&([^;]{1,10});/g, function(entity, entityCode) {
+     var match;
+ 
+     if (entityCode in htmlEntities) {","Try to fix regexp redos
+
+fixes  #510","vuln-fix: Limit HTML entity length to prevent regex abuse
+
+The unescapeHTML function allowed matching HTML entities of any length, enabling potential ReDoS attacks through crafted long input strings.
+This posed a security risk by allowing attackers to cause excessive CPU usage and degrade service availability.
+The fix restricts the entity code length to a maximum of 10 characters, mitigating the risk of catastrophic backtracking in the regex engine.
+
+Weakness: CWE-400 Uncontrolled Resource Consumption
+Severity: Medium
+CVSS: 5.3",0.11764705882352941,"[('fix', 'ACTION', ''), ('redos', 'SECWORD', ''), ('fixes', 'ACTION', ''), ('#510', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('unescapehtml', 'SECWORD', ''), ('redos', 'SECWORD', ''), ('attacks', 'SECWORD', ''), ('security', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('availability', 'secword', ''), ('fix', 'ACTION', ''), ('mitigating', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('cwe-400', 'CWEID', ''), ('uncontrolled resource consumption', 'secword', ''), ('medium', 'SEVERITY', '')]"
+24,{'CWE-400'},GHSA-r33q-22hv-j29q,"@@ -610,6 +610,7 @@ func (h *serverHandler) handleMsg(p *clientPeer, wg *sync.WaitGroup) error {
+ 		var (
+ 			lastBHash common.Hash
+ 			root      common.Hash
++			header    *types.Header
+ 		)
+ 		reqCnt := len(req.Reqs)
+ 		if accept(req.ReqID, uint64(reqCnt), MaxProofsFetch) {
+@@ -624,10 +625,6 @@ func (h *serverHandler) handleMsg(p *clientPeer, wg *sync.WaitGroup) error {
+ 						return
+ 					}
+ 					// Look up the root hash belonging to the request
+-					var (
+-						header *types.Header
+-						trie   state.Trie
+-					)
+ 					if request.BHash != lastBHash {
+ 						root, lastBHash = common.Hash{}, request.BHash
+ 
+@@ -654,6 +651,7 @@ func (h *serverHandler) handleMsg(p *clientPeer, wg *sync.WaitGroup) error {
+ 					// Open the account or storage trie for the request
+ 					statedb := h.blockchain.StateCache()
+ 
++					var trie state.Trie
+ 					switch len(request.AccKey) {
+ 					case 0:
+ 						// No account key specified, open an account trie",les: fix GetProofsV2 bug (#21896),"vuln-fix: Prevent variable shadowing in handleMsg to avoid logic errors
+
+The handleMsg function contained variable shadowing that could cause incorrect state trie lookups and inconsistent blockchain state processing during peer message handling. This is a security risk because it may lead to incorrect validation or acceptance of malicious data, potentially compromising consensus or state integrity. The fix removes redundant variable declarations and ensures consistent use of shared variables to maintain correct state and prevent logic flaws.
+
+Weakness: CWE-484: Omitted Variable Initialization
+Severity: Medium
+CVSS: 5.3",0.11764705882352941,"[('fix', 'ACTION', ''), ('bug', 'FLAW', ''), ('#21896', 'ISSUE', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('logic errors', 'secword', ''), ('security', 'secword', ''), ('incorrect validation', 'SECWORD', ''), ('malicious', 'SECWORD', ''), ('integrity', 'secword', ''), ('fix', 'ACTION', ''), ('removes', 'ACTION', ''), ('ensures', 'ACTION', ''), ('prevent', 'ACTION', ''), ('flaws', 'FLAW', ''), ('weakness', 'SECWORD', ''), ('cwe-484', 'CWEID', ''), ('initialization', 'SECWORD', ''), ('medium', 'SEVERITY', '')]"
+25,{'CWE-400'},GHSA-4gw3-8f77-f72c,"@@ -126,7 +126,7 @@ CodeMirror.defineMode(""javascript"", function(config, parserConfig) {
+           var kw = keywords[word]
+           return ret(kw.type, kw.style, word)
+         }
+-        if (word == ""async"" && stream.match(/^(\s|\/\*.*?\*\/)*[\[\(\w]/, false))
++        if (word == ""async"" && stream.match(/^(\s|\/\*([^*]|\*(?!\/))*?\*\/)*[\[\(\w]/, false))
+           return ret(""async"", ""keyword"", word)
+       }
+       return ret(""variable"", ""variable"", word)",[javascript mode] Fix potentially-exponential regexp,"vuln-fix: Correct regex to safely match async keyword in JS mode
+
+The vulnerability was an incorrect regular expression that could misinterpret comment patterns following the 'async' keyword, leading to improper tokenization in the JavaScript mode parser. This flaw could allow attackers to craft malicious code that bypasses syntax checks or causes unexpected parser behavior, potentially leading to security issues in code editors or analysis tools. The fix updates the regex to correctly handle nested comment patterns, ensuring accurate parsing and preventing exploitation through malformed comments.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.058823529411764705,"[('fix', 'ACTION', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('keyword', 'SECWORD', ''), ('vulnerability', 'secword', ''), ('incorrect regular expression', 'secword', ''), ('keyword', 'SECWORD', ''), ('flaw', 'FLAW', ''), ('attackers', 'FLAW', ''), ('malicious code', 'SECWORD', ''), ('bypasses', 'SECWORD', ''), ('security', 'secword', ''), ('issues', 'FLAW', ''), ('fix', 'ACTION', ''), ('updates', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('preventing', 'ACTION', ''), ('exploitation', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+26,{'CWE-400'},GHSA-43f8-2h32-f4cj,"@@ -41,7 +41,7 @@ function fromUrl (giturl, opts) {
+     isGitHubShorthand(giturl) ? 'github:' + giturl : giturl
+   )
+   var parsed = parseGitUrl(url)
+-  var shortcutMatch = url.match(new RegExp('^([^:]+):(?:(?:[^@:]+(?:[^@]+)?@)?([^/]*))[/](.+?)(?:[.]git)?($|#)'))
++  var shortcutMatch = url.match(/^([^:]+):(?:[^@]+@)?(?:([^/]*)\/)?([^#]+)/)
+   var matches = Object.keys(gitHosts).map(function (gitHostName) {
+     try {
+       var gitHostInfo = gitHosts[gitHostName]
+@@ -55,7 +55,7 @@ function fromUrl (giturl, opts) {
+       var defaultRepresentation = null
+       if (shortcutMatch && shortcutMatch[1] === gitHostName) {
+         user = shortcutMatch[2] && decodeURIComponent(shortcutMatch[2])
+-        project = decodeURIComponent(shortcutMatch[3])
++        project = decodeURIComponent(shortcutMatch[3].replace(/\.git$/, ''))
+         defaultRepresentation = 'shortcut'
+       } else {
+         if (parsed.host && parsed.host !== gitHostInfo.domain && parsed.host.replace(/^www[.]/, '') !== gitHostInfo.domain) return","fix: simplify the regular expression for shortcut matching
+
+PR-URL: https://github.com/npm/hosted-git-info/pull/76
+Credit: @nlf
+Close: #76
+Reviewed-by: @isaacs","vuln-fix: Correct Git URL parsing to prevent malformed input handling
+
+The vulnerability involved improper parsing of Git URLs, which could allow crafted inputs to bypass expected format checks and cause incorrect repository resolution. This posed a security risk by enabling attackers to manipulate repository references, potentially leading to unauthorized code access or injection. The fix updates the regular expression to more accurately parse Git URLs, ensuring proper extraction of user and project components and removing trailing "".git"" suffixes securely.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('fix', 'ACTION', ''), ('https://github.com/npm/hosted-git-info/pull/76', 'URL', ''), ('#76', 'ISSUE', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('bypass', 'secword', ''), ('security', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('manipulate', 'ACTION', ''), ('injection', 'secword', ''), ('fix', 'ACTION', ''), ('updates', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('removing', 'ACTION', ''), ('securely', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+27,{'CWE-400'},GHSA-662x-fhqg-9p8v,"@@ -585,9 +585,9 @@
+             /android.+(hm[\s\-_]*note?[\s_]*(?:\d\w)?)\s+build/i,               // Xiaomi Hongmi
+             /android.+(mi[\s\-_]*(?:a\d|one|one[\s_]plus|note lte)?[\s_]*(?:\d?\w?)[\s_]*(?:plus)?)\s+build/i,    
+                                                                                 // Xiaomi Mi
+-            /android.+(redmi[\s\-_]*(?:note)?(?:[\s_]*[\w\s]+))\s+build/i       // Redmi Phones
++            /android.+(redmi[\s\-_]*(?:note)?(?:[\s_]?[\w\s]+))\s+build/i       // Redmi Phones
+             ], [[MODEL, /_/g, ' '], [VENDOR, 'Xiaomi'], [TYPE, MOBILE]], [
+-            /android.+(mi[\s\-_]*(?:pad)(?:[\s_]*[\w\s]+))\s+build/i            // Mi Pad tablets
++            /android.+(mi[\s\-_]*(?:pad)(?:[\s_]?[\w\s]+))\s+build/i            // Mi Pad tablets
+             ],[[MODEL, /_/g, ' '], [VENDOR, 'Xiaomi'], [TYPE, TABLET]], [
+             /android.+;\s(m[1-5]\snote)\sbuild/i                                // Meizu
+             ], [MODEL, [VENDOR, 'Meizu'], [TYPE, MOBILE]], [",Fix potential ReDoS vulnerability,"vuln-fix: Prevent regex over-permissiveness in device model parsing
+
+The vulnerability is caused by overly permissive regex patterns that allow unexpected input formats in device model detection, potentially leading to incorrect parsing or injection risks. This is a security risk because attackers could exploit the regex to bypass filters or inject malicious payloads through crafted user-agent strings. The fix tightens the regex quantifiers from '*' to '?' to limit optional whitespace and characters, reducing the attack surface for injection or parsing errors.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('fix', 'ACTION', ''), ('redos', 'SECWORD', ''), ('vulnerability', 'secword', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'secword', ''), ('injection', 'secword', ''), ('security', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('exploit', 'SECWORD', ''), ('bypass', 'SECWORD', ''), ('inject', 'secword', ''), ('malicious', 'SECWORD', ''), ('fix', 'ACTION', ''), ('attack surface', 'secword', ''), ('injection', 'secword', ''), ('errors', 'FLAW', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+28,{'CWE-400'},GHSA-vp56-6g26-6827,"@@ -119,7 +119,7 @@ export function isOriginPotentiallyTrustworthy(url) {
+ 	// 5. If origin's host component is ""localhost"" or falls within "".localhost"", and the user agent conforms to the name resolution rules in [let-localhost-be-localhost], return ""Potentially Trustworthy"".
+ 	// We are returning FALSE here because we cannot ensure conformance to
+ 	// let-localhost-be-loalhost (https://tools.ietf.org/html/draft-west-let-localhost-be-localhost)
+-	if (/^(.+\.)*localhost$/.test(url.host)) {
++	if (url.host === 'localhost' || url.host.endsWith('.localhost')) {
+ 		return false;
+ 	}","fix: ReDoS referrer (#1611)
+
+* fix ReDoS referrer
+
+* Update src/utils/referrer.js
+
+Eliminate regex and use string matcher
+
+Co-authored-by: Linus Unnebäck <linus@folkdatorn.se>
+
+Co-authored-by: Khang. Võ Vĩ <khangvv@vng.com.vn>
+Co-authored-by: Linus Unnebäck <linus@folkdatorn.se>","vuln-fix: Correct localhost origin trust check to prevent bypass
+
+The origin trust check incorrectly used a regex that could misclassify certain localhost subdomains as untrustworthy origins.
+This flaw could allow attackers to exploit trusted localhost origins, potentially bypassing security policies relying on origin trustworthiness.
+The fix replaces the regex with explicit string equality and suffix checks to accurately identify localhost and its subdomains as potentially trustworthy origins.
+
+Weakness: Improper Input Validation (CWE-20)
+Severity: Medium
+CVSS: 5.3",0.4117647058823529,"[('fix', 'ACTION', ''), ('redos', 'SECWORD', ''), ('#1611', 'ISSUE', ''), ('fix', 'ACTION', ''), ('redos', 'SECWORD', ''), ('update', 'ACTION', ''), ('referrer.js', 'URL', ''), ('linus@folkdatorn.se', 'EMAIL', ''), ('khangvv@vng.com.vn', 'EMAIL', ''), ('linus@folkdatorn.se', 'EMAIL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('trust', 'secword', ''), ('prevent', 'ACTION', ''), ('bypass', 'secword', ''), ('trust', 'secword', ''), ('incorrectly used', 'SECWORD', ''), ('flaw', 'FLAW', ''), ('attackers', 'FLAW', ''), ('exploit', 'SECWORD', ''), ('bypassing', 'SECWORD', ''), ('security', 'SECWORD', ''), ('fix', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+29,{'CWE-400'},GHSA-xfhp-gmh8-r8v2,"@@ -41,7 +41,7 @@ var Formatter = function(/*String*/ format){
+   this._tokens = tokenize(format, this._re, this._parseDelim, this);
+ };
+ 
+-Formatter.prototype._re = /\%(?:\(([\w_.]+)\)|([1-9]\d*)\$)?([0 +\-\#]*)([\*1-9]0*)*(?:(\.)(\*|\d+)?)?[hlL]?([\%bscdeEfFgGioOuxX])/g;
++Formatter.prototype._re = /\%(?:\(([\w_.]+)\)|([1-9]\d*)\$)?([0 +\-\#]*)(\*|\d+)?(?:(\.)(\*|\d+)?)?[hlL]?([\%bscdeEfFgGioOuxX])/g;
+ Formatter.prototype._parseDelim = function(mapping, intmapping, flags, minWidth, period, precision, specifier){
+   if(mapping){
+     this._mapped = true;",Fix ReDoS,"vuln-fix: Correct regex to prevent format string parsing errors
+
+The regular expression used for parsing format strings allowed malformed width specifiers, which could lead to incorrect parsing and potential injection of unintended format tokens.
+This flaw could be exploited to cause unexpected behavior or crashes, posing a security risk in applications relying on safe format string processing.
+The fix adjusts the regex to properly match width specifiers, ensuring only valid numeric or asterisk characters are accepted, preventing malformed input from bypassing validation.
+
+Weakness: Improper Input Validation (CWE-20)
+Severity: Medium
+CVSS: 5.3",0.11764705882352941,"[('fix', 'ACTION', ''), ('redos', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('errors', 'FLAW', ''), ('injection', 'SECWORD', ''), ('flaw', 'FLAW', ''), ('exploited', 'SECWORD', ''), ('security', 'secword', ''), ('safe', 'secword', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('preventing', 'ACTION', ''), ('bypassing', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+30,{'CWE-400'},GHSA-j4f2-536g-r55m,"@@ -26,7 +26,7 @@ class Server extends EventEmitter {
+         pingTimeout: 5000,
+         pingInterval: 25000,
+         upgradeTimeout: 10000,
+-        maxHttpBufferSize: 10e7,
++        maxHttpBufferSize: 1e6,
+         transports: Object.keys(transports),
+         allowUpgrades: true,
+         perMessageDeflate: {","feat: decrease the default value of maxHttpBufferSize
+
+This change reduces the default value from 100 mb to a more sane 1 mb.
+
+This helps protect the server against denial of service attacks by
+malicious clients sending huge amounts of data.","vuln-fix: Limit maximum HTTP buffer size to prevent DoS attacks
+
+The server allowed excessively large HTTP buffer sizes, enabling attackers to send huge payloads that could exhaust server memory resources. This posed a denial-of-service risk by potentially crashing or severely degrading server performance under high load. The fix reduces the maxHttpBufferSize to a safer limit, mitigating memory exhaustion and improving resilience against large payload attacks.
+
+Weakness: CWE-400 Uncontrolled Resource Consumption
+Severity: High
+CVSS: 7.5",0.17647058823529413,"[('change', 'ACTION', ''), ('protect', 'ACTION', ''), ('server', 'SECWORD', ''), ('denial of service', 'secword', ''), ('attacks', 'FLAW', ''), ('malicious', 'SECWORD', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('dos', 'secword', ''), ('attacks', 'FLAW', ''), ('server', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('server', 'secword', ''), ('denial-of-service', 'SECWORD', ''), ('server', 'secword', ''), ('high', 'SEVERITY', ''), ('fix', 'ACTION', ''), ('mitigating', 'ACTION', ''), ('improving', 'ACTION', ''), ('attacks', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('cwe-400', 'CWEID', ''), ('uncontrolled resource consumption', 'secword', ''), ('high', 'SEVERITY', '')]"
+31,{'CWE-400'},GHSA-hwj9-h5mp-3pm3,"@@ -48,9 +48,7 @@ class PreviousMap {
+   }
+ 
+   getAnnotationURL(sourceMapString) {
+-    return sourceMapString
+-      .match(/\/\*\s*# sourceMappingURL=(.*)\s*\*\//)[1]
+-      .trim()
++    return sourceMapString.match(/\/\*\s*# sourceMappingURL=(.*)\*\//)[1].trim()
+   }
+ 
+   loadAnnotation(css) {",Fix unsafe regexp in getAnnotationURL() too,"vuln-fix: Prevent regex DoS in sourceMappingURL extraction
+
+The vulnerability is a regular expression that can cause excessive backtracking when parsing sourceMappingURL annotations in source map strings. This poses a security risk by enabling denial-of-service attacks through crafted inputs that trigger high CPU usage. The fix simplifies the regex pattern to remove unnecessary quantifiers, reducing the risk of catastrophic backtracking and improving input parsing safety.
+
+Weakness: Regular Expression Denial of Service (ReDoS) CWE-1333  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('fix', 'ACTION', ''), ('unsafe', 'SECWORD', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('dos', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('security', 'secword', ''), ('denial-of-service', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('high', 'SEVERITY', ''), ('fix', 'ACTION', ''), ('remove', 'ACTION', ''), ('improving', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('redos', 'SECWORD', ''), ('cwe-1333', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+32,{'CWE-400'},GHSA-hj5v-574p-mj7c,"@@ -396,7 +396,7 @@ def makecmdoptions(self):
+     def __str__(self):
+         return ""<SvnAuth username=%s ...>"" %(self.username,)
+ 
+-rex_blame = re.compile(r'\s*(\d+)\s*(\S+) (.*)')
++rex_blame = re.compile(r'\s*(\d+)\s+(\S+) (.*)')
+ 
+ class SvnWCCommandPath(common.PathBase):
+     """""" path implementation offering access/modification to svn working copies.","svnwc: fix regular expression vulnerable to DoS in blame functionality
+
+The subpattern `\d+\s*\S+` is ambiguous which makes the pattern subject
+to catastrophic backtracing given a string like `""1"" * 5000`.
+
+SVN blame output seems to always have at least one space between the
+revision number and the user name, so the ambiguity can be fixed by
+changing the `*` to `+`.
+
+Fixes #256.","vuln-fix: Prevent improper parsing of svn blame output fields
+
+The regular expression for parsing svn blame output allowed variable whitespace between fields, causing potential misinterpretation of revision and author data.
+This could lead to incorrect attribution or processing of blame information, potentially misleading audit or security tools relying on accurate data.
+The fix enforces one or more whitespace characters between fields, ensuring consistent and correct parsing of the blame output format.
+
+Weakness: Improper Input Validation (CWE-20)
+Severity: Medium
+CVSS: 5.3",0.11764705882352941,"[('fix', 'ACTION', ''), ('vulnerable', 'SECWORD', ''), ('dos', 'secword', ''), ('user name', 'secword', ''), ('fixed', 'ACTION', ''), ('changing', 'ACTION', ''), ('fixes', 'ACTION', ''), ('#256', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('audit', 'secword', ''), ('security', 'secword', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+33,"{'CWE-400', 'CWE-918'}",GHSA-7q4h-pj78-j7vg,"@@ -42,6 +42,7 @@
+ import org.apache.cxf.rt.security.crypto.CryptoUtils;
+ 
+ public class JwtRequestCodeFilter extends OAuthJoseJwtConsumer implements AuthorizationRequestFilter {
++    private static final String REQUEST_URI_CONTENT_TYPE = ""application/oauth-authz-req+jwt"";
+     private static final String REQUEST_PARAM = ""request"";
+     private static final String REQUEST_URI_PARAM = ""request_uri"";
+     private boolean verifyWithClientCertificates;
+@@ -55,7 +56,7 @@ public MultivaluedMap<String, String> process(MultivaluedMap<String, String> par
+         if (requestToken == null) {
+             String requestUri = params.getFirst(REQUEST_URI_PARAM);
+             if (isRequestUriValid(client, requestUri)) {
+-                requestToken = WebClient.create(requestUri).get(String.class);
++                requestToken = WebClient.create(requestUri).accept(REQUEST_URI_CONTENT_TYPE).get(String.class);
+             }
+         }
+         if (requestToken != null) {
+@@ -101,9 +102,17 @@ public MultivaluedMap<String, String> process(MultivaluedMap<String, String> par
+         }
+         return params;
+     }
+-    private boolean isRequestUriValid(Client client, String requestUri) {
+-        //TODO: consider restricting to specific hosts
+-        return requestUri != null && requestUri.startsWith(""https://"");
++
++    /**
++     * This method must be overridden to support request_uri. Take care to validate the request_uri properly,
++     * as otherwise it could lead to a security problem
++     * (https://tools.ietf.org/html/draft-ietf-oauth-jwsreq-30#section-10.4)
++     * @param client the Client object
++     * @param requestUri the request_uri parameter to validate
++     * @return whether the requestUri is permitted or not
++     */
++    protected boolean isRequestUriValid(Client client, String requestUri) {
++        return false;
+     }
+     protected JwsSignatureVerifier getInitializedSigVerifier(Client c) {
+         if (verifyWithClientCertificates) {",Disallow OAuth2 request_uri by default,"vuln-fix: Prevent insecure request_uri processing in OAuth JWT filter
+
+The code allowed fetching OAuth authorization requests from arbitrary HTTPS URIs without strict validation, enabling potential malicious request injection attacks. This is a security risk because attackers could supply crafted request_uris to manipulate authorization flows or inject harmful payloads. The fix disables request_uri usage by default and requires explicit overriding with proper validation to prevent unauthorized or unsafe URI access.
+
+Weakness: CWE-601 Open Redirect  
+Severity: High  
+CVSS: 7.5",0.11764705882352941,[],0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('insecure', 'SECWORD', ''), ('oauth', 'SECWORD', ''), ('oauth', 'SECWORD', ''), ('malicious', 'secword', ''), ('injection', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('security', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('manipulate', 'ACTION', ''), ('inject', 'secword', ''), ('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('unsafe', 'secword', ''), ('weakness', 'SECWORD', ''), ('cwe-601', 'CWEID', ''), ('open redirect', 'secword', ''), ('high', 'SEVERITY', '')]"
+34,{'CWE-400'},GHSA-35q2-47q7-3pc3,"@@ -127,7 +127,7 @@ module.exports = {
+     reply_to_object: replyToObject,
+     print: print,
+     err_code: /^([A-Z]+)\s+(.+)$/,
+-    monitor_regex: /^[0-9]{10,11}\.[0-9]+ \[[0-9]+ .+\]( "".+?"")+$/,
++    monitor_regex: /^[0-9]{10,11}\.[0-9]+ \[[0-9]+ .+\].*""$/,
+     clone: convenienceClone,
+     callback_or_emit: callbackOrEmit,
+     reply_in_order: replyInOrder","fix #1569 - improve monitor_regex (#1595)
+
+Co-authored-by: Guy Korland <gkorland@gmail.com>","vuln-fix: Fix regex to prevent excessive backtracking in monitor pattern
+
+The original regular expression allowed multiple repeated quoted substrings, causing potential catastrophic backtracking with crafted inputs. This vulnerability could be exploited to cause denial of service by making the regex engine consume excessive CPU resources. The fix simplifies the regex by removing the repeated group, ensuring it matches a single quoted substring and preventing exponential backtracking.
+
+Weakness: Regular Expression Denial of Service (ReDoS) - CWE-1333  
+Severity: Medium  
+CVSS: 5.3",0.17647058823529413,"[('fix', 'ACTION', ''), ('#1569', 'ISSUE', ''), ('improve', 'ACTION', ''), ('#1595', 'ISSUE', ''), ('gkorland@gmail.com', 'EMAIL', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('exploited', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('fix', 'ACTION', ''), ('removing', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('redos', 'SECWORD', ''), ('cwe-1333', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+35,"{'CWE-400', 'CWE-185'}",GHSA-8462-q7x7-g2x4,"@@ -235,6 +235,13 @@ Decimal128.fromString = function(string) {
+   // Trim the string
+   string = string.trim();
+ 
++  // Naively prevent against REDOS attacks.
++  // TODO: implementing a custom parsing for this, or refactoring the regex would yield
++  //       further gains.
++  if (string.length >= 7000) {
++    throw new Error('' + string + ' not a valid Decimal128 string');
++  }
++
+   // Results
+   var stringMatch = string.match(PARSE_STRING_REGEXP);
+   var infMatch = string.match(PARSE_INF_REGEXP);","fix(decimal128): add basic guard against REDOS attacks
+
+This is a naive approach to reducing the efficacy of a REDOS attack
+against this module. A refactor of the regular expression or a
+custom parser substitute would be ideal, however this solution
+suffices as a stopgap until such work is completed.
+
+Many thanks to James Davis who graciously alterted us to the
+attack","vuln-fix: Prevent ReDoS in Decimal128 string parsing
+
+The vulnerability is a regular expression denial of service (ReDoS) risk caused by processing excessively long input strings in Decimal128 parsing. This is a security risk because attackers can exploit it to cause high CPU usage, leading to service unavailability or degraded performance. The fix adds a length check that rejects input strings longer than 7000 characters before applying regex parsing, mitigating the ReDoS attack vector.
+
+Weakness: CWE-400: Uncontrolled Resource Consumption  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('fix(decimal128', 'ACTION', ''), ('add', 'ACTION', ''), ('redos', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('redos', 'SECWORD', ''), ('attack', 'FLAW', ''), ('attack', 'SECWORD', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('redos', 'SECWORD', ''), ('vulnerability', 'secword', ''), ('denial of service', 'SECWORD', ''), ('redos', 'SECWORD', ''), ('security', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('exploit', 'SECWORD', ''), ('high', 'SEVERITY', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('mitigating', 'ACTION', ''), ('redos', 'SECWORD', ''), ('attack vector', 'secword', ''), ('weakness', 'SECWORD', ''), ('cwe-400', 'CWEID', ''), ('uncontrolled resource consumption', 'SECWORD', ''), ('medium', 'SEVERITY', '')]"
+36,{'CWE-400'},GHSA-3pcq-34w5-p4g2,"@@ -35,7 +35,7 @@ import mapLimit from './mapLimit.mjs'
+  */
+ async function forEachLimit (iterable, iteratee, concurrency) {
+   await mapLimit(iterable, async (v, i, t) => {
+-    iteratee(v, i, t)
++    await iteratee(v, i, t)
+   }, concurrency)
+ }",Fix #5,"vuln-fix: Await asynchronous iteratee calls in forEachLimit function
+
+The forEachLimit function did not await asynchronous iteratee calls, causing unhandled promise rejections and unpredictable execution order in concurrent operations.
+This could lead to race conditions and inconsistent state, exposing the application to data corruption or logic errors.
+The fix ensures that iteratee calls are properly awaited, enforcing correct asynchronous flow and reliable concurrency control.
+
+
+Weakness: Improper Handling of Asynchronous Operations (CWE-665)  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('fix', 'ACTION', ''), ('#5', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('race conditions', 'SECWORD', ''), ('logic errors', 'SECWORD', ''), ('fix', 'ACTION', ''), ('ensures', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper handling', 'secword', ''), ('cwe-665', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+37,"{'CWE-400', 'CWE-1321'}",GHSA-74cr-77xc-8g6r,"@@ -4,7 +4,7 @@ export function deepMerge(target: any, source: any): any {
+   if (source === undefined || source === null) return target;
+ 
+   for (const key of Object.keys(source)) {
+-    if (source[key] === undefined) continue;
++    if (source[key] === undefined || key === '__proto__') continue;
+ 
+     if (target[key] && isObject(source[key])) {
+       deepMerge(target[key], source[key]);",Ignore __proto__ fields in deepMerge,"vuln-fix: Prevent prototype pollution in deepMerge function
+
+The deepMerge function allowed merging of properties named __proto__, enabling prototype pollution attacks.
+This vulnerability could lead to arbitrary code execution or denial of service by modifying the object's prototype chain.
+The fix prevents merging of __proto__ properties by explicitly skipping keys named __proto__ during the merge process.
+
+Weakness: Prototype Pollution (CWE-1321)
+Severity: High
+CVSS: 7.5",0.11764705882352941,[],0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('prototype pollution', 'SECWORD', ''), ('prototype pollution', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('vulnerability', 'SECWORD', ''), ('code execution', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('fix', 'ACTION', ''), ('prevents', 'ACTION', ''), ('keys', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('prototype pollution', 'secword', ''), ('cwe-1321', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+38,"{'CWE-400', 'CWE-345'}",GHSA-6fc8-4gx4-v693,"@@ -286,7 +286,7 @@ class WebSocketServer extends EventEmitter {
+     let protocol = req.headers['sec-websocket-protocol'];
+ 
+     if (protocol) {
+-      protocol = protocol.trim().split(/ *, */);
++      protocol = protocol.split(',').map(trim);
+ 
+       //
+       // Optionally call external protocol selection handler.
+@@ -404,3 +404,15 @@ function abortHandshake(socket, code, message, headers) {
+   socket.removeListener('error', socketOnError);
+   socket.destroy();
+ }
++
++/**
++ * Remove whitespace characters from both ends of a string.
++ *
++ * @param {String} str The string
++ * @return {String} A new string representing `str` stripped of whitespace
++ *     characters from both its beginning and end
++ * @private
++ */
++function trim(str) {
++  return str.trim();
++}","[security] Fix ReDoS vulnerability
+
+A specially crafted value of the `Sec-Websocket-Protocol` header could
+be used to significantly slow down a ws server.
+
+PoC and fix were sent privately by Robert McLaughlin from University of
+California, Santa Barbara.","vuln-fix: Correctly trim WebSocket protocol header values
+
+The WebSocket protocol header values were improperly trimmed using a regex split without trimming each element, causing potential malformed protocol handling.
+This could allow attackers to exploit protocol negotiation by injecting unexpected whitespace, leading to protocol confusion or bypass.
+The fix replaces the split and trim logic with a proper map-based trim function applied to each protocol string element, ensuring clean protocol tokens.
+
+Weakness: Improper Input Validation (CWE-20)
+Severity: Medium
+CVSS: 5.3",0.17647058823529413,"[('security', 'SECWORD', ''), ('fix', 'ACTION', ''), ('redos', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('protocol', 'secword', ''), ('server', 'secword', ''), ('fix', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('protocol', 'secword', ''), ('protocol', 'SECWORD', ''), ('protocol', 'secword', ''), ('attackers', 'FLAW', ''), ('exploit', 'secword', ''), ('protocol', 'secword', ''), ('protocol', 'SECWORD', ''), ('bypass', 'secword', ''), ('fix', 'ACTION', ''), ('protocol', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('protocol', 'secword', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+39,{'CWE-400'},GHSA-h6ch-v84p-w6p9,"@@ -53,16 +53,16 @@ export function parsePatch(uniDiff, options = {}) {
+   // Parses the --- and +++ headers, if none are found, no lines
+   // are consumed.
+   function parseFileHeader(index) {
+-    const headerPattern = /^(---|\+\+\+)\s+([\S ]*)(?:\t(.*?)\s*)?$/;
+-    const fileHeader = headerPattern.exec(diffstr[i]);
++    const fileHeader = (/^(---|\+\+\+)\s+(.*)$/).exec(diffstr[i]);
+     if (fileHeader) {
+       let keyPrefix = fileHeader[1] === '---' ? 'old' : 'new';
+-      let fileName = fileHeader[2].replace(/\\\\/g, '\\');
++      const data = fileHeader[2].split('\t', 2);
++      let fileName = data[0].replace(/\\\\/g, '\\');
+       if (/^"".*""$/.test(fileName)) {
+         fileName = fileName.substr(1, fileName.length - 2);
+       }
+       index[keyPrefix + 'FileName'] = fileName;
+-      index[keyPrefix + 'Header'] = fileHeader[3];
++      index[keyPrefix + 'Header'] = (data[1] || '').trim();
+ 
+       i++;
+     }",Optimize parch header parser,"vuln-fix: Prevent header injection in patch file parsing
+
+The vulnerability allowed untrusted input in patch headers to be parsed without proper separation, enabling potential injection of malicious tab-separated data. This posed a security risk by permitting crafted patch files to manipulate header fields and potentially bypass validation or cause incorrect processing. The fix splits header data on tabs explicitly and trims extraneous input, ensuring safe and accurate parsing of patch file headers.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('optimize', 'ACTION', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('injection', 'SECWORD', ''), ('patch', 'ACTION', ''), ('vulnerability', 'secword', ''), ('untrusted', 'SECWORD', ''), ('patch', 'ACTION', ''), ('injection', 'SECWORD', ''), ('malicious', 'secword', ''), ('security', 'secword', ''), ('patch', 'ACTION', ''), ('manipulate', 'ACTION', ''), ('bypass', 'SECWORD', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('patch', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+40,{'CWE-400'},GHSA-xfhh-g9f5-x4m4,"@@ -286,11 +286,9 @@ function decodeString(str) {
+ 
+   // look up attachments if type binary
+   if (exports.BINARY_EVENT === p.type || exports.BINARY_ACK === p.type) {
+-    var buf = '';
+-    while (str.charAt(++i) !== '-') {
+-      buf += str.charAt(i);
+-      if (i == str.length) break;
+-    }
++    var start = i + 1;
++    while (str.charAt(++i) !== '-' && i != str.length) {}
++    var buf = str.substring(start, i);
+     if (buf != Number(buf) || str.charAt(i) !== '-') {
+       throw new Error('Illegal attachments');
+     }
+@@ -299,13 +297,13 @@ function decodeString(str) {
+ 
+   // look up namespace (if any)
+   if ('/' === str.charAt(i + 1)) {
+-    p.nsp = '';
++    var start = i + 1;
+     while (++i) {
+       var c = str.charAt(i);
+       if (',' === c) break;
+-      p.nsp += c;
+       if (i === str.length) break;
+     }
++    p.nsp = str.substring(start, i);
+   } else {
+     p.nsp = '/';
+   }
+@@ -313,17 +311,16 @@ function decodeString(str) {
+   // look up id
+   var next = str.charAt(i + 1);
+   if ('' !== next && Number(next) == next) {
+-    p.id = '';
++    var start = i + 1;
+     while (++i) {
+       var c = str.charAt(i);
+       if (null == c || Number(c) != c) {
+         --i;
+         break;
+       }
+-      p.id += str.charAt(i);
+       if (i === str.length) break;
+     }
+-    p.id = Number(p.id);
++    p.id = Number(str.substring(start, i + 1));
+   }
+ 
+   // look up json data","fix: prevent DoS (OOM) via massive packets (#95)
+
+When maxHttpBufferSize is large (1e8 bytes), a payload of length 100MB
+can be sent like so:
+
+99999991:422222222222222222222222222222222222222222222...
+
+This massive packet can cause OOM via building up many many
+`ConsOneByteString` objects due to concatenation:
+99999989 `ConsOneByteString`s and then converting the massive integer to
+a `Number`.
+
+The performance can be improved to avoid this by using `substring`
+rather than building the string via concatenation.
+
+Below I tried one payload of length 7e7 as the 1e8 payload took so
+long to process that it timed out before running out of memory.
+
+```
+==== JS stack trace =========================================
+
+    0: ExitFrame [pc: 0x13c5b79]
+Security context: 0x152fe7b808d1 <JSObject>
+    1: decodeString [0x2dd385fb5d1] [/node_modules/socket.io-parser/index.js:~276] [pc=0xf59746881be](this=0x175d34c42b69 <JSGlobal Object>,0x14eccff10fe1 <Very long string[69999990]>)
+    2: add [0x31fc2693da29] [/node_modules/socket.io-parser/index.js:242] [bytecode=0xa7ed6554889 offset=11](this=0x0a2881be5069 <Decoder map = 0x3ceaa8bf48c9>,0x14eccff10fe1 <Very...
+
+FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory
+ 1: 0xa09830 node::Abort() [node]
+ 2: 0xa09c55 node::OnFatalError(char const*, char const*) [node]
+ 3: 0xb7d71e v8::Utils::ReportOOMFailure(v8::internal::Isolate*, char const*, bool) [node]
+ 4: 0xb7da99 v8::internal::V8::FatalProcessOutOfMemory(v8::internal::Isolate*, char const*, bool) [node]
+ 5: 0xd2a1f5  [node]
+ 6: 0xd2a886 v8::internal::Heap::RecomputeLimits(v8::internal::GarbageCollector) [node]
+ 7: 0xd37105 v8::internal::Heap::PerformGarbageCollection(v8::internal::GarbageCollector, v8::GCCallbackFlags) [node]
+ 8: 0xd37fb5 v8::internal::Heap::CollectGarbage(v8::internal::AllocationSpace, v8::internal::GarbageCollectionReason, v8::GCCallbackFlags) [node]
+ 9: 0xd3965f v8::internal::Heap::HandleGCRequest() [node]
+10: 0xce8395 v8::internal::StackGuard::HandleInterrupts() [node]
+11: 0x1042cb6 v8::internal::Runtime_StackGuard(int, unsigned long*, v8::internal::Isolate*) [node]
+12: 0x13c5b79  [node]
+```","vuln-fix: Prevent inefficient string concatenation in decodeString parser
+
+The vulnerability involved inefficient string concatenation in decodeString, which could lead to performance degradation or potential denial of service with large inputs. This is a security risk because attackers might exploit the inefficiency to cause resource exhaustion and disrupt service availability. The fix replaces repeated string concatenation with substring extraction, improving performance and mitigating the risk of resource exhaustion.
+
+Weakness: Improper Input Handling (CWE-20)
+Severity: Medium
+CVSS: 5.3",0.17647058823529413,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('dos', 'SECWORD', ''), ('#95', 'ISSUE', ''), ('99999991:422222222222222222222222222222222222222222222', 'SHA', ''), ('...', 'VERSION', ''), ('improved', 'ACTION', ''), ('out of memory', 'SECWORD', ''), ('security', 'SECWORD', ''), ('0x152fe7b808d1', 'SHA', ''), ('decodestring', 'SECWORD', ''), ('0x2dd385fb5d1', 'SHA', ''), ('socket.io', 'URL', ''), ('pc=0xf59746881be](this=0x175d34c42b69', 'SHA', ''), ('object>,0x14eccff10fe1', 'SHA', ''), ('add', 'ACTION', ''), ('0x31fc2693da29', 'SHA', ''), ('socket.io', 'URL', ''), ('index.js:242', 'URL', ''), ('bytecode=0xa7ed6554889', 'SHA', ''), ('offset=11](this=0x0a2881be5069', 'SHA', ''), ('decoder', 'SECWORD', ''), ('0x3ceaa8bf48c9>,0x14eccff10fe1', 'SHA', ''), ('...', 'VERSION', ''), ('error', 'FLAW', ''), ('out of memory', 'secword', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('decodestring', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('decodestring', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('exploit', 'SECWORD', ''), ('availability', 'secword', ''), ('fix', 'ACTION', ''), ('improving', 'ACTION', ''), ('mitigating', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+41,"{'CWE-400', 'CWE-1333'}",GHSA-wc69-rhjr-hc9g,"@@ -151,7 +151,7 @@ function untruncateYear(yearStr) {
+ function preprocessRFC2822(s) {
+     // Remove comments and folding whitespace and replace multiple-spaces with a single space
+     return s
+-        .replace(/\([^)]*\)|[\n\t]/g, ' ')
++        .replace(/\([^()]*\)|[\n\t]/g, ' ')
+         .replace(/(\s\s+)/g, ' ')
+         .replace(/^\s\s*/, '')
+         .replace(/\s\s*$/, '');","[bugfix] Fix redos in preprocessRFC2822 regex (#6015)
+
+* fix ReDoS in preprocessRFC2822 regex
+
+Fixes: [#2936](https://github.com/moment/moment/issues/6012)
+
+Disallow nested rfc2822 comments to prevent quadratic regex execution time (i.e each open bracket is considered at most twice).","vuln-fix: Prevent improper comment removal in RFC2822 preprocessing
+
+The vulnerability was caused by a regex that incorrectly removed nested parentheses in email date comments, leading to malformed date strings during parsing.
+This parsing flaw could be exploited to bypass input validation or cause unexpected behavior in date handling, potentially leading to security issues.
+The fix updates the regex to correctly match only non-nested parentheses, ensuring proper comment removal and robust preprocessing of RFC2822 date strings.
+
+Weakness: Improper Input Validation (CWE-20)
+Severity: Medium
+CVSS: 5.3",0.17647058823529413,"[('fix', 'ACTION', ''), ('redos', 'SECWORD', ''), ('preprocessrfc2822', 'SECWORD', ''), ('#6015', 'ISSUE', ''), ('fix', 'ACTION', ''), ('redos', 'SECWORD', ''), ('preprocessrfc2822', 'SECWORD', ''), ('fixes', 'ACTION', ''), ('#2936](https://github.com', 'ISSUE', ''), ('issues/6012', 'FLAW', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('removed', 'ACTION', ''), ('flaw', 'FLAW', ''), ('exploited', 'SECWORD', ''), ('bypass', 'secword', ''), ('input validation', 'SECWORD', ''), ('security', 'secword', ''), ('issues', 'FLAW', ''), ('fix', 'ACTION', ''), ('updates', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+42,{'CWE-400'},GHSA-hq37-853p-g5cf,"@@ -187,8 +187,8 @@
+     'transparent': (0, 0, 0, 0),
+ }
+ 
+-RGBA = re.compile(r'rgba\([ \n\r\t]*(.+?)[ \n\r\t]*\)')
+-RGB = re.compile(r'rgb\([ \n\r\t]*(.+?)[ \n\r\t]*\)')
++RGBA = re.compile(r'rgba\((.+?)\)')
++RGB = re.compile(r'rgb\((.+?)\)')
+ HEX_RRGGBB = re.compile('#[0-9a-f]{6}')
+ HEX_RGB = re.compile('#[0-9a-f]{3}')
+ 
+@@ -212,14 +212,14 @@ def color(string, opacity=1):
+     if match:
+         r, g, b, a = tuple(
+             float(i.strip(' %')) / 100 if '%' in i else float(i) / 255
+-            for i in match.group(1).split(','))
++            for i in match.group(1).strip().split(','))
+         return (r, g, b, a * 255 * opacity)
+ 
+     match = RGB.search(string)
+     if match:
+         r, g, b = tuple(
+             float(i.strip(' %')) / 100 if '%' in i else float(i) / 255
+-            for i in match.group(1).split(','))
++            for i in match.group(1).strip().split(','))
+         return (r, g, b, opacity)
+ 
+     match = HEX_RRGGBB.search(string)","Merge pull request from GHSA-hq37-853p-g5cf
+
+Don’t use overlapping groups for regular expressions","vuln-fix: Prevent regex overmatching in color parsing functions
+
+The regex patterns for matching rgb and rgba color strings were overly permissive, allowing unexpected characters and whitespace that could lead to incorrect parsing or injection risks.
+This posed a security risk by enabling crafted inputs to bypass validation and potentially cause downstream errors or injection vulnerabilities in color processing.
+The fix restricts the regex to exclude surrounding whitespace and adds explicit stripping of input before splitting, ensuring only valid color components are processed safely.
+
+Weakness: Improper Input Validation (CWE-20)
+Severity: Medium
+CVSS: 5.3",0.23529411764705882,"[('ghsa', 'VULNID', 'GHSA')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('injection', 'secword', ''), ('security', 'secword', ''), ('bypass', 'secword', ''), ('errors', 'FLAW', ''), ('injection', 'SECWORD', ''), ('vulnerabilities', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+43,{'CWE-400'},GHSA-cwfw-4gq5-mrqx,"@@ -127,7 +127,7 @@ module.exports = function(braces, options) {
+     .set('multiplier', function() {
+       var isInside = this.isInside('brace');
+       var pos = this.position();
+-      var m = this.match(/^\{(,+(?:(\{,+\})*),*|,*(?:(\{,+\})*),+)\}/);
++      var m = this.match(/^\{((?:,|\{,+\})+)\}/);
+       if (!m) return;
+ 
+       this.multiplier = true;",optimize regex,"vuln-fix: Fix brace pattern matching to prevent malformed input parsing
+
+The vulnerability was caused by an overly permissive regular expression that incorrectly matched malformed brace patterns, allowing unexpected input to be processed. This posed a security risk by potentially enabling injection or denial of service through crafted input exploiting the flawed pattern matching. The fix replaces the regex with a stricter pattern that correctly validates brace sequences, preventing malformed inputs from being accepted. 
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('optimize', 'ACTION', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('permissive regular expression', 'secword', ''), ('security', 'secword', ''), ('injection', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('exploiting', 'SECWORD', ''), ('fix', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+44,{'CWE-400'},GHSA-qhmp-h54x-38qr,"@@ -355,7 +355,7 @@ def parse_native_url(url):
+         result = re.match(
+             r'^https?://maker\.ifttt\.com/use/'
+             r'(?P<webhook_id>[A-Z0-9_-]+)'
+-            r'/?(?P<events>([A-Z0-9_-]+/?)+)?'
++            r'((?P<events>(/[A-Z0-9_-]+)+))?'
+             r'/?(?P<params>\?.+)?$', url, re.I)
+ 
+         if result:",Slight bulletproofing to IFTTT regex handling (#436),"vuln-fix: Correct URL parsing to prevent event path ambiguity
+
+The vulnerability was caused by improper regex allowing event names to be parsed without leading slashes, leading to ambiguous or incorrect event extraction from URLs. This ambiguity could allow attackers to craft URLs that bypass intended event validation or trigger unintended events. The fix enforces that each event segment must start with a slash, ensuring accurate and secure event path parsing.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.058823529411764705,"[('#436', 'ISSUE', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('bypass', 'secword', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('secure', 'secword', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+45,{'CWE-400'},GHSA-3q6g-vf58-7m4g,"@@ -48,7 +48,7 @@ def my_type(value):
+ 
+ 
+ email_regex = re.compile(
+-    r""^"" ""(?P<local>[^@]*[^@.])"" r""@"" r""(?P<server>[^@]+(?:\.[^@]+)*)"" r""$"",
++    r""^"" ""(?P<local>[^@]*[^@.])"" r""@"" r""(?P<server>[^@\.]+(?:\.[^@\.]+)*)"" r""$"",
+     re.IGNORECASE,
+ )","optimize email regex (credits: @kevinbackhouse, fix: #372)","vuln-fix: Restrict email server part to prevent invalid characters
+
+The email validation regex allowed server parts containing dots at invalid positions, which could lead to acceptance of malformed or spoofed email addresses.
+Malformed email addresses pose a security risk by enabling injection attacks or bypassing filters relying on proper email format.
+The fix tightens the regex to disallow dots at the start or end of server segments, ensuring only valid domain labels are accepted.
+
+Weakness: Improper Input Validation (CWE-20)
+Severity: Medium
+CVSS: 5.3",0.058823529411764705,"[('optimize', 'ACTION', ''), ('fix', 'ACTION', ''), ('#372', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('server', 'secword', ''), ('prevent', 'ACTION', ''), ('server', 'SECWORD', ''), ('security', 'secword', ''), ('injection', 'secword', ''), ('attacks', 'SECWORD', ''), ('bypassing', 'SECWORD', ''), ('fix', 'ACTION', ''), ('server', 'secword', ''), ('ensuring', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+46,"{'CWE-400', 'CWE-125'}",GHSA-8g7p-74h8-hg48,"@@ -204,7 +204,7 @@ HttpsProxyAgent.prototype.callback = function connect(req, opts, fn) {
+   var headers = Object.assign({}, proxy.headers);
+   if (proxy.auth) {
+     headers['Proxy-Authorization'] =
+-      'Basic ' + new Buffer(proxy.auth).toString('base64');
++      'Basic ' + Buffer.from(proxy.auth).toString('base64');
+   }
+ 
+   // the Host header should only include the port","Use `Buffer.from()`
+
+`new Buffer()` is deprecated and unsafe.","vuln-fix: Replace deprecated Buffer constructor to prevent unsafe buffer usage
+
+The code used the deprecated Buffer constructor which can lead to uninitialized memory exposure and potential data leakage when handling proxy authentication headers. This is a security risk because attackers might exploit uninitialized buffers to access sensitive information or cause application instability. The fix replaces the deprecated constructor with Buffer.from(), ensuring safe and initialized buffer allocation for encoding credentials.
+
+Weakness: Use of Deprecated Buffer Constructor (CWE-119)
+Severity: Medium
+CVSS: 5.3",0.23529411764705882,"[('buffer.from', 'URL', ''), ('unsafe', 'SECWORD', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('unsafe buffer', 'SECWORD', ''), ('uninitialized memory', 'SECWORD', ''), ('authentication', 'SECWORD', ''), ('security', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('exploit', 'SECWORD', ''), ('uninitialized', 'SECWORD', ''), ('sensitive information', 'SECWORD', ''), ('fix', 'ACTION', ''), ('buffer.from', 'URL', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('initialized', 'SECWORD', ''), ('encoding', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-119', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+47,{'CWE-400'},GHSA-627q-g293-49q7,"@@ -14,6 +14,8 @@ limitations under the License.
+ ==============================================================================*/
+ #include ""tensorflow/core/framework/shape_inference.h""
+ 
++#include <cstdint>
++
+ #include ""tensorflow/core/framework/bounds_check.h""
+ #include ""tensorflow/core/framework/full_type_util.h""
+ #include ""tensorflow/core/framework/node_def.pb.h""
+@@ -789,6 +791,19 @@ Status InferenceContext::InternalMakeShapeFromTensor(
+       return ReturnUnknownShape(out);
+     }
+     const auto num_dims = Value(shape_dim);
++    // TODO(mihaimaruseac): Should be `TensorShape::MaxDimensions()` as we are
++    // not able to materialize shapes with more than this number of dimensions
++    // but then shape inference would fail for operations such as
++    // `tf.range`/`tf.ones`, etc. where the shape is not really materialized,
++    // only used during the inference. Hence, just prevent doing a `reserve`
++    // with a very large argument.
++    const int64_t max_dimensions = 1 << 20;
++    if (num_dims >= max_dimensions) {
++      return errors::Internal(
++          ""Cannot create a tensor with "", num_dims,
++          "" dimensions, as these would be more than maximum of "",
++          max_dimensions);
++    }
+     std::vector<DimensionHandle> dims;
+     dims.reserve(num_dims);
+     for (int i = 0; i < num_dims; i++) dims.push_back(UnknownDim());","Fix abort caused by allocating a too large vector.
+
+We need to make sure that the number of dimensions in a shape is within limits.
+
+PiperOrigin-RevId: 408997911
+Change-Id: If59e1c23f2ec9c2d4ff4d8632fd62b2a7773a4eb","vuln-fix: Prevent excessive tensor dimensions in shape inference
+
+The vulnerability allowed creation of tensors with extremely large dimensions, leading to excessive memory reservation and potential denial of service during shape inference. This poses a security risk by enabling resource exhaustion attacks that can crash or degrade system performance. The fix adds a hard limit on the maximum number of tensor dimensions to prevent unbounded memory allocation during shape inference.
+
+Weakness: CWE-400 Uncontrolled Resource Consumption  
+Severity: High  
+CVSS: 7.5",0.23529411764705882,"[('fix', 'ACTION', ''), ('change', 'ACTION', ''), ('if59e1c23f2ec9c2d4ff4d8632fd62b2a7773a4eb', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('security', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('prevent', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('cwe-400', 'CWEID', ''), ('uncontrolled resource consumption', 'secword', ''), ('high', 'SEVERITY', '')]"
+48,{'CWE-400'},GHSA-fj7c-vg2v-ccrm,"@@ -152,6 +152,8 @@ public void run() {
+                     }
+                 }
+             });
++        } else {
++            bufferedBinaryMessage.getData().free();
+         }
+     }",[UNDERTOW-1935] - buffer leak on incoming websocket PONG message,"vuln-fix: Prevent memory leak by freeing unused binary message data
+
+The vulnerability was a memory leak caused by not freeing binary message data when the message was not processed further.
+This leak could lead to resource exhaustion and potential denial of service in long-running applications.
+The fix ensures that the binary message data is explicitly freed when it is not used, preventing memory accumulation.
+  
+Weakness: CWE-401: Improper Release of Memory Before Removing References
+Severity: Medium
+CVSS: 5.3",0.058823529411764705,"[('leak', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('memory leak', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('memory leak', 'secword', ''), ('leak', 'secword', ''), ('denial of service', 'SECWORD', ''), ('fix', 'ACTION', ''), ('ensures', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('cwe-401', 'CWEID', ''), ('removing', 'ACTION', ''), ('medium', 'SEVERITY', '')]"
+49,{'CWE-400'},GHSA-gx8x-g87m-h5q6,"@@ -2588,7 +2588,7 @@ protected void scanPI() throws IOException {
+                     if (c == '?' || c == '/') {
+                         char c0 = (char)c;
+                         c = fCurrentEntity.read();
+-                        if (c == '>') {
++                        if (c == '>' || c == -1) {
+                             break;
+                         }
+                         fStringBuffer.append(c0);",fix: ensure ill-formed PIs are parsed correctly,"vuln-fix: Prevent infinite loop on malformed processing instructions
+
+The code failed to handle end-of-file (-1) when scanning processing instructions, causing an infinite loop if the input ended unexpectedly. This is a security risk because it allows denial of service by resource exhaustion through crafted XML inputs. The fix adds a check for end-of-file alongside the closing '>' character to properly terminate the loop and avoid hanging.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('fix', 'ACTION', ''), ('ensure', 'ACTION', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('infinite loop', 'SECWORD', ''), ('infinite loop', 'secword', ''), ('security', 'secword', ''), ('denial of service', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+50,{'CWE-400'},GHSA-23fp-fmrv-f5px,"@@ -7,6 +7,17 @@ const formatError = error => [
+   { messages: [{ id: error.id, message: error.message, field: error.field }] },
+ ];
+ 
++const PLUGIN_NAME_REGEX = /^[A-Za-z][A-Za-z0-9-_]+$/;
++
++/**
++ * Validates a plugin name format
++ */
++const isValidPluginName = plugin => {
++  return (
++    _.isString(plugin) && !_.isEmpty(plugin) && PLUGIN_NAME_REGEX.test(plugin)
++  );
++};
++
+ /**
+  * A set of functions called ""actions"" for `Admin`
+  */
+@@ -67,7 +78,7 @@ module.exports = {
+     try {
+       const { plugin } = ctx.request.body;
+ 
+-      if (!/^[A-Za-z0-9_-]+$/.test(plugin)) {
++      if (!isValidPluginName(plugin)) {
+         return ctx.badRequest('Invalid plugin name');
+       }
+ 
+@@ -107,7 +118,7 @@ module.exports = {
+     try {
+       const { plugin } = ctx.params;
+ 
+-      if (!/^[A-Za-z0-9_-]+$/.test(plugin)) {
++      if (!isValidPluginName(plugin)) {
+         return ctx.badRequest('Invalid plugin name');
+       }",chore(admin): Improve plugin name validator in install/uninstall plugin,"vuln-fix: Enforce stricter plugin name validation to prevent injection
+
+Plugin name validation allowed names starting with non-alphabetic characters, which could enable injection or unexpected behavior in plugin handling.
+This is a security risk because malformed plugin names might bypass filters and lead to unauthorized code execution or data corruption.
+The fix enforces plugin names to start with a letter and only contain alphanumeric, dash, or underscore characters by adding a dedicated validation function.
+
+Weakness: Improper Input Validation (CWE-20)
+Severity: Medium
+CVSS: 5.3",0.058823529411764705,"[('chore(admin', 'SECWORD', ''), ('improve', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('injection', 'secword', ''), ('injection', 'secword', ''), ('security', 'secword', ''), ('bypass', 'secword', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adding', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+51,{'CWE-400'},GHSA-29mw-wpgm-hmr9,"@@ -152,10 +152,11 @@
+   var reRegExpChar = /[\\^$.*+?()[\]{}|]/g,
+       reHasRegExpChar = RegExp(reRegExpChar.source);
+ 
+-  /** Used to match leading and trailing whitespace. */
+-  var reTrim = /^\s+|\s+$/g,
+-      reTrimStart = /^\s+/,
+-      reTrimEnd = /\s+$/;
++  /** Used to match leading whitespace. */
++  var reTrimStart = /^\s+/;
++
++  /** Used to match a single whitespace character. */
++  var reWhitespace = /\s/;
+ 
+   /** Used to match wrap detail comments. */
+   var reWrapComment = /\{(?:\n\/\* \[wrapped with .+\] \*\/)?\n?/,
+@@ -993,6 +994,19 @@
+     });
+   }
+ 
++  /**
++   * The base implementation of `_.trim`.
++   *
++   * @private
++   * @param {string} string The string to trim.
++   * @returns {string} Returns the trimmed string.
++   */
++  function baseTrim(string) {
++    return string
++      ? string.slice(0, trimmedEndIndex(string) + 1).replace(reTrimStart, '')
++      : string;
++  }
++
+   /**
+    * The base implementation of `_.unary` without support for storing metadata.
+    *
+@@ -1326,6 +1340,21 @@
+       : asciiToArray(string);
+   }
+ 
++  /**
++   * Used by `_.trim` and `_.trimEnd` to get the index of the last non-whitespace
++   * character of `string`.
++   *
++   * @private
++   * @param {string} string The string to inspect.
++   * @returns {number} Returns the index of the last non-whitespace character.
++   */
++  function trimmedEndIndex(string) {
++    var index = string.length;
++
++    while (index-- && reWhitespace.test(string.charAt(index))) {}
++    return index;
++  }
++
+   /**
+    * Used by `_.unescape` to convert HTML entities to characters.
+    *
+@@ -12494,7 +12523,7 @@
+       if (typeof value != 'string') {
+         return value === 0 ? value : +value;
+       }
+-      value = value.replace(reTrim, '');
++      value = baseTrim(value);
+       var isBinary = reIsBinary.test(value);
+       return (isBinary || reIsOctal.test(value))
+         ? freeParseInt(value.slice(2), isBinary ? 2 : 8)
+@@ -14979,7 +15008,7 @@
+     function trim(string, chars, guard) {
+       string = toString(string);
+       if (string && (guard || chars === undefined)) {
+-        return string.replace(reTrim, '');
++        return baseTrim(string);
+       }
+       if (!string || !(chars = baseToString(chars))) {
+         return string;
+@@ -15014,7 +15043,7 @@
+     function trimEnd(string, chars, guard) {
+       string = toString(string);
+       if (string && (guard || chars === undefined)) {
+-        return string.replace(reTrimEnd, '');
++        return string.slice(0, trimmedEndIndex(string) + 1);
+       }
+       if (!string || !(chars = baseToString(chars))) {
+         return string;","perf: improve performance of `toNumber`, `trim` and `trimEnd` on large input strings","vuln-fix: Fix trimming functions to prevent improper whitespace removal
+
+The trimming functions were incorrectly removing both leading and trailing whitespace using a single regex, causing inconsistent string processing and potential data handling errors.
+This could lead to security risks such as improper input validation or bypassing checks relying on exact string formats.
+The fix separates leading and trailing whitespace handling by implementing precise functions that correctly trim only intended whitespace portions, ensuring consistent and secure string manipulation.
+
+Weakness: Improper Input Validation (CWE-20)
+Severity: Medium
+CVSS: 5.3",0.058823529411764705,"[('improve', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('removing', 'ACTION', ''), ('errors', 'FLAW', ''), ('security', 'secword', ''), ('improper input validation', 'SECWORD', ''), ('bypassing', 'SECWORD', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('secure', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+52,{'CWE-400'},GHSA-jgrx-mgxx-jf9v,"@@ -1,4 +1,4 @@
+-var INTERPOLATE = /{([\s\S]+?)}/g
++var INTERPOLATE = /{([^{]+?)}/g
+ 
+ module.exports = function(str, data) {
+   var tmpl = 'var __p=[],print=function(){__p.push.apply(__p,arguments);};' +",fix potential dos in regex,"vuln-fix: Restrict template interpolation pattern to prevent code injection
+
+The interpolation regex previously allowed nested braces, enabling attackers to inject malicious code through crafted template strings.
+This posed a security risk by permitting arbitrary code execution during template rendering, potentially compromising application integrity.
+The fix narrows the regex to disallow nested braces, ensuring only simple placeholders are processed and reducing injection attack surface.
+
+Weakness: Improper Input Validation (CWE-20)
+Severity: High
+CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('dos', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('code injection', 'secword', ''), ('attackers', 'FLAW', ''), ('inject', 'secword', ''), ('malicious code', 'secword', ''), ('security', 'SECWORD', ''), ('code execution', 'SECWORD', ''), ('integrity', 'secword', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('injection', 'SECWORD', ''), ('attack surface', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+53,"{'CWE-400', 'CWE-770'}",GHSA-c582-c96p-r5cq,"@@ -39,6 +39,22 @@ namespace experimental {
+     PrivateThreadPoolDatasetOp::kDatasetType;
+ /* static */ constexpr const char* const PrivateThreadPoolDatasetOp::kDatasetOp;
+ 
++namespace {
++// To prevent integer overflow issues when allocating threadpool memory for an
++// unreasonable number of threads.
++constexpr int kThreadLimit = 65536;
++
++Status ValidateNumThreads(int32_t num_threads) {
++  if (num_threads < 0) {
++    return errors::InvalidArgument(""`num_threads` must be >= 0"");
++  }
++  if (num_threads >= kThreadLimit) {
++    return errors::InvalidArgument(""`num_threads` must be < "", kThreadLimit);
++  }
++  return Status::OK();
++}
++}  // namespace
++
+ class ThreadPoolResource : public ResourceBase {
+  public:
+   ThreadPoolResource(Env* env, const ThreadOptions& thread_options,
+@@ -83,9 +99,7 @@ class ThreadPoolHandleOp : public OpKernel {
+     OP_REQUIRES_OK(ctx, ctx->GetAttr(""num_threads"", &num_threads_));
+     OP_REQUIRES_OK(ctx, ctx->GetAttr(""max_intra_op_parallelism"",
+                                      &max_intra_op_parallelism_));
+-    OP_REQUIRES(
+-        ctx, num_threads_ > 0,
+-        errors::InvalidArgument(""`num_threads` must be greater than zero.""));
++    OP_REQUIRES_OK(ctx, ValidateNumThreads(num_threads_));
+   }
+ 
+   // The resource is deleted from the resource manager only when it is private
+@@ -531,8 +545,7 @@ void PrivateThreadPoolDatasetOp::MakeDatasetFromOptions(OpKernelContext* ctx,
+                                                         DatasetBase* input,
+                                                         int32_t num_threads,
+                                                         DatasetBase** output) {
+-  OP_REQUIRES(ctx, num_threads >= 0,
+-              errors::InvalidArgument(""`num_threads` must be >= 0""));
++  OP_REQUIRES_OK(ctx, ValidateNumThreads(num_threads));
+   *output = new Dataset(ctx,
+                         DatasetContext(DatasetContext::Params(
+                             {PrivateThreadPoolDatasetOp::kDatasetType,
+@@ -546,8 +559,7 @@ void PrivateThreadPoolDatasetOp::MakeDataset(OpKernelContext* ctx,
+   int64_t num_threads = 0;
+   OP_REQUIRES_OK(
+       ctx, ParseScalarArgument<int64_t>(ctx, ""num_threads"", &num_threads));
+-  OP_REQUIRES(ctx, num_threads >= 0,
+-              errors::InvalidArgument(""`num_threads` must be >= 0""));
++  OP_REQUIRES_OK(ctx, ValidateNumThreads(num_threads));
+   *output = new Dataset(ctx, input, num_threads);
+ }","[tf.data] Set limit on number of threads used in threadpool_dataset.
+
+PiperOrigin-RevId: 410922677
+Change-Id: Ib25814a99043ab10805b5d2d7088ae0e0b7b04fd","vuln-fix: Prevent integer overflow in thread pool size allocation
+
+The vulnerability allowed excessively large thread counts, causing integer overflow during memory allocation for thread pools. This overflow could lead to memory corruption, crashes, or potential arbitrary code execution risks. The fix introduces a strict upper limit on thread count and validates input to prevent overflow and ensure safe resource allocation.
+
+Weakness: Integer Overflow (CWE-190)  
+Severity: High  
+CVSS: 7.5",0.11764705882352941,"[('tf.data', 'URL', ''), ('change', 'ACTION', ''), ('ib25814a99043ab10805b5d2d7088ae0e0b7b04fd', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('integer overflow', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('integer overflow', 'secword', ''), ('overflow', 'SECWORD', ''), ('memory corruption', 'SECWORD', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('overflow', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'SECWORD', ''), ('integer overflow', 'secword', ''), ('cwe-190', 'CWEID', ''), ('high', 'SEVERITY', '')]"

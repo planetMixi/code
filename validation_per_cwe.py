@@ -34,11 +34,11 @@ def extract_vuln_id(text):
 
 # --- File mappings: JSON and CSV ---
 file_pairs = {
-    "cwe-617": "secom_few_shot_cwe617.csv",
-    "cwe-79":  "secom_few_shot_cwe79.csv",
-    "cwe-125": "secom_few_shot_cwe125.csv",
-    "cwe-89":  "secom_few_shot_cwe89.csv",
-    "cwe-918": "secom_few_shot_cwe918.csv"
+    "cwe-79":"secom_few_shot_cwe79.csv",
+    "cwe-400":"secom_few_shot_cwe400.csv",
+    "cwe-787":"secom_few_shot_cwe787.csv",
+    "cwe-20":"secom_few_shot_cwe20.csv",
+    "cwe-125":"secom_few_shot_cwe125.csv"
 }
 
 # --- Validation per CWE ---
@@ -101,6 +101,6 @@ for cwe_key, csv_filename in file_pairs.items():
         results.append(result)
 
     validation_df = pd.DataFrame(results)
-    output_file = f"{os.path.splitext(csv_filename)[0]}_fs_validation.csv"
+    output_file = f"{os.path.splitext(csv_filename)[0]}_validation.csv"
     validation_df.to_csv(output_file, index=False)
     print(f"Saved {len(validation_df)} entries to {output_file}")
