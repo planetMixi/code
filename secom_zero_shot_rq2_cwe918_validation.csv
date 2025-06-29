@@ -1,0 +1,10 @@
+vuln_id,generated_vuln_id,vuln_id_match,original_weakness,generated_weakness,weakness_match,original_severity,generated_severity,severity_match,original_cvss,generated_cvss,cvss_match
+GHSA-2h63-qp69-fwvw,,False,"cwe-918', 'cwe-20",cwe-611,False,high,high,True,8.2,7.5,False
+GHSA-7q4h-pj78-j7vg,,False,"cwe-400', 'cwe-918",cwe-285,False,high,high,True,7.5,7.5,True
+GHSA-4wpp-w5r4-7v5v,,False,cwe-918,cwe-22,False,critical,critical,True,9.8,9.8,True
+GHSA-7q4h-pj78-j7vg,,False,"cwe-400', 'cwe-918",cwe-20,False,high,high,True,7.5,7.5,True
+GHSA-rv87-vcv4-fjvr,,False,cwe-918,cwe-918,True,medium,high,False,6.5,7.5,False
+GHSA-wc9w-wvq2-ffm9,,False,cwe-918,cwe-20,False,medium,high,False,5.4,7.5,False
+GHSA-hhr9-7xvh-8xgc,,False,cwe-918,cwe-20,False,high,high,True,7.7,7.5,False
+GHSA-2647-c639-qv2j,,False,cwe-918,cwe-918,True,critical,high,False,9.8,7.5,False
+GHSA-38rv-5jqc-m2cv,,False,cwe-918,cwe-74,False,low,high,False,0.0,7.5,False

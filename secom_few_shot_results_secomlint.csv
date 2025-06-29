@@ -1,4 +1,4 @@
-id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message
+id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message,original_message_score,original_message_entities,generated_secom_message_score,generated_secom_message_entities
 0,CWE-617,GHSA-fq86-3f29-px2c,"@@ -1741,14 +1741,16 @@ Status ConstantFolding::IsSimplifiableReshape(
        int32_t dim = outputs[0]->flat<int32>()(i);
        shp.push_back(dim);
@@ -28,7 +28,7 @@ The fix captures the status and returns early if shape construction fails, preve
 
 Weakness: CWE-703
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.11764705882352941,"[('change', 'ACTION', ''), ('i7f0a3590b8acae3f3e3e2fe636e1f5ef285693cf', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('errors', 'FLAW', ''), ('errors', 'FLAW', ''), ('denial-of-service', 'SECWORD', ''), ('attacks', 'SECWORD', ''), ('fix', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-703', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 1,CWE-617,GHSA-jhq9-wm9m-cf89,"@@ -90,6 +90,8 @@ class UnsortedSegmentJoinOp : public OpKernel {
      const int32 segment_dims = segment_id_shape.dims();
  
@@ -48,7 +48,7 @@ The fix adds a check to ensure the num_segments tensor is not empty before deref
 
 Weakness: CWE-125
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.11764705882352941,"[('fix', 'ACTION', ''), ('overflow', 'SECWORD', ''), ('issue', 'FLAW', ''), ('tf.raw_ops.unsortedsegmentjoin', 'URL', ''), ('change', 'ACTION', ''), ('i33e7c6626224e1060a8a4ab51ad5d861c6d4c63e', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 2,CWE-617,GHSA-27j5-4p9v-pp67,"@@ -302,6 +302,10 @@ class TensorListReserve : public OpKernel {
      PartialTensorShape element_shape;
      OP_REQUIRES_OK(c, TensorShapeFromTensor(c->input(0), &element_shape));
@@ -70,7 +70,7 @@ The fix adds a validation step that rejects negative num_elements values with an
 
 Weakness: CWE-704
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.11764705882352941,"[('validate', 'secword', ''), ('tf.raw_ops.tensorlistreserve', 'URL', ''), ('change', 'ACTION', ''), ('i454bd78eff85bc4f16ddb7e608596971cca47f8f', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('integrity', 'secword', ''), ('issues', 'FLAW', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-704', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 3,CWE-617,GHSA-j3mj-fhpq-qqjj,"@@ -983,6 +983,15 @@ bool Tensor::FromProto(Allocator* a, const TensorProto& proto) {
                           dtype_error = true, dtype_error = true);
      }
@@ -99,7 +99,7 @@ The fix adds explicit validation of the proto data type for these special cases,
 
 Weakness: CWE-20
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.17647058823529413,"[('validate', 'secword', ''), ('proto.dtype', 'URL', ''), ('prevents', 'ACTION', ''), ('change', 'ACTION', ''), ('ia21a3e3d62a90d642a4561f08f3b543e5ad00c46', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('deserialization', 'SECWORD', ''), ('validate', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('integrity', 'secword', ''), ('issues', 'FLAW', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 4,CWE-617,GHSA-5f2r-qp73-37mr,"@@ -75,8 +75,10 @@ bool DependencyOptimizer::SafeToRemoveIdentity(const NodeDef& node) const {
    }
  
@@ -123,7 +123,7 @@ The fix replaces the CHECK with a null check that logs the issue and safely retu
 
 Weakness: CWE-617
 Severity: Medium
-CVSS: 6.5"
+CVSS: 6.5",0.11764705882352941,"[('prevent', 'ACTION', ''), ('null-pointer dereference', 'secword', ''), ('change', 'ACTION', ''), ('i369c249cca32e6c56ec193f0ebbf2f2768fc7d43', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('denial-of-service', 'SECWORD', ''), ('fix', 'ACTION', ''), ('issue', 'FLAW', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-617', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 5,CWE-617,GHSA-43jf-985q-588j,"@@ -181,7 +181,9 @@ class FunctionInstantiationHelper {
      DataTypeVector dtypes;
      TF_RETURN_IF_ERROR(
@@ -145,7 +145,7 @@ The patch replaces a CHECK assertion with a runtime error return when the dtype 
 
 Weakness: CWE-617
 Severity: Medium
-CVSS: 6.5"
+CVSS: 6.5",0.17647058823529413,"[('function.cc', 'URL', ''), ('change', 'ACTION', ''), ('ic854e12ab2edb88b165d32e2d632c4ee654d71ad', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('patch', 'ACTION', ''), ('error', 'FLAW', ''), ('ensuring', 'ACTION', ''), ('error handling', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-617', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 6,CWE-617,GHSA-fphq-gw9m-ghrv,"@@ -232,6 +232,8 @@ class CTCGreedyDecoderOp : public OpKernel {
          int prev_indices = -1;
          for (int t = 0; t < seq_len_t(b); ++t) {
@@ -165,7 +165,7 @@ The fix adds a runtime check using OP_REQUIRES to ensure input tensors have posi
 
 Weakness: CWE-125  
 Severity: Medium  
-CVSS: 5.9"
+CVSS: 5.9",0.17647058823529413,"[('fix', 'ACTION', ''), ('tf.raw_ops.ctcgreedydecoder', 'URL', ''), ('change', 'ACTION', ''), ('if0b8b3264d5a47a24ac0970ed7b81ce6b4921fae', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('decoder', 'SECWORD', ''), ('ctcgreedydecoderop', 'SECWORD', ''), ('verify', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 7,CWE-617,GHSA-36vm-xw34-x4pj,"@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
  limitations under the License.
  ==============================================================================*/
@@ -194,7 +194,7 @@ The patch adds a check that the FFT shape has more than zero elements and return
 
 Weakness: CWE-704
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.17647058823529413,"[('fix', 'ACTION', ''), ('change', 'ACTION', ''), ('id05c3362aa575271bc3e06b16316c9037085fc11', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('exploitable', 'SECWORD', ''), ('denial of service', 'secword', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-704', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 8,CWE-617,GHSA-ph87-fvjr-v33w,"@@ -222,6 +222,9 @@ class FFTCPU : public FFTBase {
        input_slice_sizes[i] = fft_shape[i - 1];
        temp_shape.AddDim(fft_shape[i - 1]);
@@ -215,7 +215,7 @@ The fix adds a validation check that rejects FFT shapes with zero elements by en
 
 Weakness: CWE-125
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.17647058823529413,"[('prevent', 'ACTION', ''), ('change', 'ACTION', ''), ('i50994e3e8a5d1342d01bde80256f6bf2730ca299', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('verify', 'ACTION', ''), ('invalid memory accesses', 'SECWORD', ''), ('denial-of-service', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 9,CWE-617,GHSA-4j82-5ccr-4r8v,"@@ -45,7 +45,7 @@ constexpr int kMaxTensorNestDepth = 100;
  // not fully defined return -1.
  int64_t TensorByteSize(const TensorProto& t) {
@@ -236,7 +236,7 @@ The fix replaces TensorShape with PartialTensorShape to correctly handle partial
 
 Weakness: CWE-190
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.23529411764705882,"[('overflows', 'secword', ''), ('change', 'ACTION', ''), ('ia56542ff9ec758f2c9ffc7e4dcc9fa7eecd86e7b', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('integer underflows', 'SECWORD', ''), ('memory corruption', 'SECWORD', ''), ('fix', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-190', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 10,CWE-617,GHSA-4v5p-v5h9-6xjx,"@@ -821,9 +821,10 @@ bool RepeatedAttrDefEqual(
      const protobuf::RepeatedPtrField<OpDef::AttrDef>& a2) {
    std::unordered_map<string, const OpDef::AttrDef*> a1_set;
@@ -267,7 +267,7 @@ The fix replaces DCHECK with a runtime error log to ensure duplicate AttrDef nam
 
 Weakness: CWE-250
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.17647058823529413,"[('remove', 'ACTION', ''), ('error', 'FLAW', ''), ('vulnerabilities', 'secword', ''), ('error', 'FLAW', ''), ('change', 'ACTION', ''), ('id5b3e19c73f3fbe0cc4bba26ca44ff9607bb6356', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('verify', 'ACTION', ''), ('bypassed', 'SECWORD', ''), ('logic errors', 'secword', ''), ('exploitable', 'SECWORD', ''), ('fix', 'ACTION', ''), ('error', 'FLAW', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-250', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 11,CWE-617,GHSA-wp3c-xw9g-gpcg,"@@ -78,6 +78,11 @@ class SparseDenseBinaryOpShared : public OpKernel {
                      ""but received shapes: "",
                      values_t->shape().DebugString(), "" and "",
@@ -290,7 +290,7 @@ The fix adds a runtime check that enforces the first dimension of values and ind
 
 Weakness: CWE-125  
 Severity: Medium  
-CVSS: 6.1"
+CVSS: 6.1",0.11764705882352941,"[('fix', 'ACTION', ''), ('overflow', 'SECWORD', ''), ('issue', 'FLAW', ''), ('tf.raw_ops.sparsedensecwisemul', 'URL', ''), ('change', 'ACTION', ''), ('ifcce0491e2e3816838c87e73be30a1e61b65174d', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('integrity', 'secword', ''), ('issues', 'FLAW', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 12,CWE-617,GHSA-gvm4-h8j3-rjrq,"@@ -123,6 +123,11 @@ class LoadAndRemapMatrixOp : public OpKernel {
      // Processes the checkpoint source and the provided Tensor name.
      const Tensor* ckpt_path_t;
@@ -313,7 +313,7 @@ The fix adds a check to ensure the checkpoint path tensor contains exactly one e
 
 Weakness: CWE-125  
 Severity: Medium  
-CVSS: 5.9"
+CVSS: 5.9",0.17647058823529413,"[('fix', 'ACTION', ''), ('change', 'ACTION', ''), ('i1062cfaed0aa16884e9a16312483794d188db76f', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('errors', 'FLAW', ''), ('out-of-bounds reads', 'SECWORD', ''), ('logic errors', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 13,CWE-617,GHSA-43jf-985q-588j,"@@ -191,7 +191,11 @@ class FunctionInstantiationHelper {
      for (size_t i = 0; i < dtypes.size(); ++i) {
        TF_RETURN_IF_ERROR(AddItem(strings::StrCat(arg_def.name(), "":"", i),
@@ -337,7 +337,7 @@ The patch adds a runtime check that returns an internal error if the argument in
 
 Weakness: CWE-617
 Severity: Medium
-CVSS: 6.5"
+CVSS: 6.5",0.17647058823529413,"[('function.cc', 'URL', ''), ('change', 'ACTION', ''), ('i8376ee464d434e9b970ff0ad49edfdaa2a273cfe', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-617', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 0,CWE-79,GHSA-wcm2-9c89-wmfm,"@@ -352,14 +352,21 @@ $.widget(""ui.dialog"", {
  		uiDialogTitle = $( ""<span>"" )
  			.uniqueId()
@@ -378,7 +378,7 @@ The fix replaces HTML insertion with safe text setting, ensuring the title is tr
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.5"
+CVSS: 7.5",0.058823529411764705,"[('prevent', 'ACTION', ''), ('xss', 'secword', ''), ('fixes', 'ACTION', ''), ('#6016', 'ISSUE', ''), ('xss', 'secword', ''), ('vulnerability', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('injection', 'secword', ''), ('injection', 'SECWORD', ''), ('cross-site scripting', 'secword', ''), ('xss', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('malicious code', 'SECWORD', ''), ('fix', 'ACTION', ''), ('safe', 'secword', ''), ('ensuring', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 1,CWE-79,GHSA-q26w-wjj2-22vv,"@@ -87,11 +87,16 @@ class HtmlUtils {
  			return tagStack[tagStack.length - 1];
  		};
@@ -407,7 +407,7 @@ The fix adds ""link"" and ""meta"" to the disallowed tags list, strengthening th
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.058823529411764705,"[('security', 'SECWORD', ''), ('remove', 'ACTION', ''), ('prevent', 'ACTION', ''), ('xss', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('injection', 'SECWORD', ''), ('sanitizer', 'SECWORD', ''), ('inject', 'secword', ''), ('manipulate', 'ACTION', ''), ('attackers', 'FLAW', ''), ('bypass', 'SECWORD', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'secword', ''), ('xss', 'secword', ''), ('vulnerabilities', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('sanitization', 'SECWORD', ''), ('preventing', 'ACTION', ''), ('injection', 'secword', ''), ('attacks', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 2,CWE-79,GHSA-4p8f-mmfj-r45g,"@@ -17,7 +17,7 @@ def tags_for_index(model)
        elsif !query.include?(hashtag)
          query += "" #{hashtag}""
@@ -423,7 +423,7 @@ The patch applies escape_javascript to sanitize the query string before embeddin
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.4"
+CVSS: 7.4",0.11764705882352941,"[('sensitive', 'SECWORD', ''), ('xss', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'secword', ''), ('unescaped', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'secword', ''), ('vulnerabilities', 'secword', ''), ('patch', 'ACTION', ''), ('escape_javascript', 'SECWORD', ''), ('sanitize', 'secword', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 3,CWE-79,GHSA-cx2r-mf6x-55rx,"@@ -29,6 +29,7 @@
  use PrestaShopBundle\Form\Admin\Type\TranslatorAwareType;
  use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -449,7 +449,7 @@ The fix adds a Symfony URL constraint to enforce proper URL format validation on
 
 Weakness: CWE-20
 Severity: Medium
-CVSS: 5.0"
+CVSS: 5.0",0.23529411764705882,"[('ghsa', 'VULNID', 'GHSA')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('add', 'ACTION', ''), ('url validation', 'SECWORD', ''), ('malicious', 'SECWORD', ''), ('security', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('malformed urls', 'SECWORD', ''), ('open redirect', 'SECWORD', ''), ('injection', 'secword', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 4,CWE-79,GHSA-5qjq-69w6-fg57,"similarity index 86%
 rename from js/src/common/Translator.ts
 rename to js/src/common/Translator.tsx
@@ -485,7 +485,7 @@ The fix wraps all string parameters in React fragments to ensure proper escaping
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.5"
+CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('xss', 'SECWORD', ''), ('vulnerability', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'secword', ''), ('escaping', 'secword', ''), ('injection', 'SECWORD', ''), ('untrusted', 'secword', ''), ('cross-site scripting', 'secword', ''), ('xss', 'secword', ''), ('attacks', 'SECWORD', ''), ('malicious', 'secword', ''), ('fix', 'ACTION', ''), ('ensure', 'ACTION', ''), ('escaping', 'SECWORD', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 5,CWE-79,GHSA-3374-7h99-xr85,"@@ -128,6 +128,7 @@ private function loadDataGrid(): void
              'registered_on',
              true
@@ -501,7 +501,7 @@ The fix applies htmlspecialchars to the display_name column to safely encode spe
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('fix', 'ACTION', ''), ('xss', 'SECWORD', '')]",0.47058823529411764,"[('fix', 'ACTION', ''), ('escape', 'secword', ''), ('escaping', 'secword', ''), ('injection', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('fix', 'ACTION', ''), ('htmlspecialchars', 'SECWORD', ''), ('encode', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 6,CWE-79,GHSA-qqxp-xp9v-vvx6,"@@ -61,7 +61,7 @@
  						// remove invalid value, as it didn't match anything
  						$( element )
@@ -518,7 +518,7 @@ The fix encodes the input value as text using jQuery’s text() method before in
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.058823529411764705,"[('encode', 'SECWORD', ''), ('fixes', 'ACTION', ''), ('#8859', 'ISSUE', ''), ('xss', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('encode', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('injection', 'SECWORD', ''), ('encoding', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'secword', ''), ('attackers', 'SECWORD', ''), ('malicious code', 'secword', ''), ('fix', 'ACTION', ''), ('encodes', 'SECWORD', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 7,CWE-79,GHSA-q7q9-w24q-cpgh,"@@ -149,8 +149,16 @@ App.BreadcrumbItem = Em.Object.extend({
    createLabel() {
      let label = this.get('label');
@@ -555,7 +555,7 @@ The fix escapes labelBindingPath-derived labels and all but the first breadcrumb
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.5"
+CVSS: 7.5",0.11764705882352941,"[('xss', 'secword', ''), ('vulnerability', 'SECWORD', '')]",0.47058823529411764,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escaping', 'SECWORD', ''), ('injection', 'secword', ''), ('malicious', 'SECWORD', ''), ('cross-site scripting', 'secword', ''), ('attackers', 'SECWORD', ''), ('integrity', 'secword', ''), ('fix', 'ACTION', ''), ('escapes', 'SECWORD', ''), ('escapeexpression', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 8,CWE-79,GHSA-vcfc-9wcp-j623,"@@ -90,12 +90,13 @@ public async Task SerializeToStreamAsync(IRequest req, object response, Stream o
              {
                  // Serialize then escape any potential script tags to avoid XSS when displaying as HTML
@@ -578,7 +578,7 @@ The fix replaces manual replacements with comprehensive HtmlEncode calls on both
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('htmlencode', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('encode', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'secword', ''), ('serialization', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('cross-site scripting', 'secword', ''), ('attackers', 'SECWORD', ''), ('inject', 'secword', ''), ('malicious', 'secword', ''), ('exploiting', 'SECWORD', ''), ('escaping', 'secword', ''), ('code execution', 'SECWORD', ''), ('theft', 'secword', ''), ('fix', 'ACTION', ''), ('manual', 'DETECTION', ''), ('htmlencode', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('escaping', 'secword', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 9,CWE-79,GHSA-whv6-rj84-2vh2,"@@ -60,6 +60,9 @@ import Action from 'nextcloud-vue/dist/Components/Action'
  import Avatar from 'nextcloud-vue/dist/Components/Avatar'
  import Tooltip from 'nextcloud-vue/dist/Directives/Tooltip'
@@ -598,7 +598,7 @@ The patch disables default HTML rendering in tooltips by setting defaultHtml to 
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('signed', 'secword', ''), ('jus@bitgrid.net', 'EMAIL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('injection', 'secword', ''), ('cross-site scripting', 'secword', ''), ('xss', 'secword', ''), ('attackers', 'SECWORD', ''), ('malicious code', 'secword', ''), ('patch', 'ACTION', ''), ('preventing', 'ACTION', ''), ('untrusted', 'secword', ''), ('injection', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 10,CWE-79,GHSA-xw79-hhv6-578c,"@@ -4,7 +4,7 @@
      <meta charset=""utf-8"">
      <meta name=""viewport"" content=""width=device-width, initial-scale=1"">
@@ -636,7 +636,7 @@ The fix applies HTML escaping to all inserted variables using the template engin
 
 Weakness: CWE-79  
 Severity: High  
-CVSS: 7.4"
+CVSS: 7.4",0.11764705882352941,"[('#64', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escaping', 'secword', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('theft', 'secword', ''), ('fix', 'ACTION', ''), ('escaping', 'SECWORD', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 11,CWE-79,GHSA-5pg2-qg87-vmj7,"@@ -336,9 +336,12 @@
  // Make sure the fileName is unique but only if chunking is disabled
  if ($chunks < 2 && file_exists($targetDir . DIRECTORY_SEPARATOR . $fileName)) {
@@ -666,7 +666,7 @@ The patch converts file extensions to lowercase before performing existence chec
 
 Weakness: CWE-434
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('update', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('bypasses', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('bypass', 'secword', ''), ('malicious file', 'secword', ''), ('remote code execution', 'SECWORD', ''), ('patch', 'ACTION', ''), ('secure', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-434', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 12,CWE-79,GHSA-5vr6-hm68-5j9p,"@@ -44,5 +44,5 @@
  if (! empty($ok)) {
      exit(""$ok"");
@@ -681,7 +681,7 @@ The fix applies htmlspecialchars to the error message before outputting, ensurin
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('fix', 'ACTION', ''), ('xss', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('poller-groups.inc.php', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('error', 'FLAW', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('error', 'FLAW', ''), ('escaping', 'SECWORD', ''), ('injection', 'secword', ''), ('malicious', 'SECWORD', ''), ('cross-site scripting', 'secword', ''), ('xss', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('exploited', 'SECWORD', ''), ('fix', 'ACTION', ''), ('htmlspecialchars', 'SECWORD', ''), ('error', 'FLAW', ''), ('ensuring', 'ACTION', ''), ('encoded', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 13,"CWE-434', 'CWE-79",GHSA-5q5w-mqp6-g2gh,"@@ -20,7 +20,9 @@ public function rules()
              'quantity' => ['required', 'integer', 'min:0'],
              'price' => ['required', 'numeric', 'min:0'],
@@ -700,7 +700,7 @@ The patch enforces image type restrictions and size limits using Laravel’s ima
 
 Weakness: CWE-434
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('fix', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('hunter.dev', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('add', 'ACTION', ''), ('input validation', 'secword', ''), ('malicious file', 'secword', ''), ('remote code execution', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('patch', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-434', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 14,CWE-79,GHSA-vpwq-6cp4-ffqc,"@@ -309,6 +309,8 @@ public function isDangerFilename($filename){
  			|| $isDangerStr($filename , "".aspx"")
  			|| $isDangerStr($filename , "".xsd"")
@@ -717,7 +717,7 @@ The patch adds checks for .cshtml and .axd extensions to the dangerous filename 
 
 Weakness: CWE-434
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('bug', 'FLAW', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('bypass', 'secword', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('server', 'secword', ''), ('remote code execution', 'SECWORD', ''), ('disclosure', 'secword', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('improving', 'ACTION', ''), ('input validation', 'secword', ''), ('attack surface', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-434', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 15,CWE-79,GHSA-j6p2-cx3w-6jcp,"@@ -1079,7 +1079,7 @@
  
    // Helper function to escape a string for HTML rendering.
@@ -735,7 +735,7 @@ The fix updates the regular expression to also exclude numeric character referen
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.23529411764705882,"[('fixed', 'ACTION', ''), ('escapehtml', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('improve', 'ACTION', ''), ('escaping', 'secword', ''), ('escapehtml', 'SECWORD', ''), ('escaped', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('unsafe', 'SECWORD', ''), ('flaw', 'FLAW', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('attackers', 'FLAW', ''), ('inject', 'secword', ''), ('malicious', 'secword', ''), ('bypass', 'secword', ''), ('escaping', 'SECWORD', ''), ('fix', 'ACTION', ''), ('updates', 'ACTION', ''), ('escaping', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('sanitization', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 16,CWE-79,GHSA-h4mx-xv96-2jgm,"@@ -9,7 +9,7 @@
          {f:translate(
          key: 'forgot_validate_reset_password_html',
@@ -766,7 +766,7 @@ The patch applies HTML escaping to receiverName using f:format.htmlspecialchars(
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.17647058823529413,"[('security', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('password', 'secword', ''), ('password', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('sanitization', 'secword', ''), ('format.htmlspecialchars', 'SECWORD', ''), ('#96559', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('password', 'secword', ''), ('password', 'secword', ''), ('escape', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('inject', 'secword', ''), ('malicious', 'SECWORD', ''), ('cross-site scripting', 'secword', ''), ('xss', 'secword', ''), ('attacks', 'SECWORD', ''), ('patch', 'ACTION', ''), ('escaping', 'secword', ''), ('format.htmlspecialchars', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 17,CWE-79,GHSA-wx69-rvg3-x7fc,"@@ -15,11 +15,12 @@ uploads.upload = async function (socket, data) {
  		'user.updateCover': socketUser.updateCover,
  		'groups.cover.update': socketGroup.cover.update,
@@ -788,7 +788,7 @@ The fix replaces direct property access with hasOwnProperty checks and initializ
 
 Weakness: CWE-471
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('fix', 'ACTION', ''), ('prototype pollution', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('attackers', 'FLAW', ''), ('exploit', 'SECWORD', ''), ('prototype pollution', 'secword', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('initializes', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('prototype pollution', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-471', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 18,CWE-79,GHSA-95hx-62rh-gg96,"@@ -317,7 +317,7 @@ public function getWidgetVariables($hookName = null, array $configuration = [])
              }
          }
@@ -855,7 +855,7 @@ The fix removes html_entity_decode and applies htmlentitiesUTF8 with stripslashe
 
 Weakness: CWE-79  
 Severity: High  
-CVSS: 7.5"
+CVSS: 7.5",0.23529411764705882,"[('ghsa-95hx-62rh', 'VULNID', 'GHSA'), ('unescape', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'secword', ''), ('validate', 'secword', ''), ('decoded', 'SECWORD', ''), ('sanitization', 'SECWORD', ''), ('injection', 'secword', ''), ('malicious', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'secword', ''), ('injection', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('integrity', 'secword', ''), ('fix', 'ACTION', ''), ('removes', 'ACTION', ''), ('html_entity_decode', 'SECWORD', ''), ('escape', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 19,CWE-79,GHSA-82j4-vr25-x394,"@@ -304,6 +304,7 @@ public function isDangerFilename($filename){
  			|| $isDangerStr($filename , ""%"")
  			|| $isDangerStr($filename , "".xml"")
@@ -873,7 +873,7 @@ The patch adds a check for the .aspx extension to the dangerous filename detecti
 
 Weakness: CWE-434
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.23529411764705882,"[('#1629', 'ISSUE', ''), ('update', 'ACTION', ''), ('attachmentmodel.class.php', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('bypass', 'secword', ''), ('security', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('malicious', 'secword', ''), ('asp.net', 'URL', ''), ('remote code execution', 'secword', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-434', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 20,CWE-79,GHSA-m52x-29pq-w3vv,"@@ -1726,7 +1726,7 @@ function createHotSpot(hs) {
          if (config.basePath && !absoluteURL(imgp))
              imgp = config.basePath + imgp;
@@ -939,7 +939,7 @@ The fix extends sanitizeURL to reject vbscript: and data: schemes for links, ret
 
 Weakness: CWE-79  
 Severity: High  
-CVSS: 7.8"
+CVSS: 7.8",0.23529411764705882,"[('ghsa-m52x-29pq', 'VULNID', 'GHSA'), ('fix', 'ACTION', ''), ('xss', 'SECWORD', ''), ('vulnerability', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitization', 'SECWORD', ''), ('unsafe', 'SECWORD', ''), ('sanitization', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('injection', 'secword', ''), ('malicious', 'SECWORD', ''), ('fix', 'ACTION', ''), ('sanitizeurl', 'SECWORD', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 21,CWE-79,GHSA-xg72-6c83-ghh4,"@@ -563,17 +563,25 @@
                  }
  
@@ -977,7 +977,7 @@ The fix adds exception handling around the sanitizer and only writes sanitized c
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('update', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitization', 'SECWORD', ''), ('errors', 'FLAW', ''), ('prevent', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('sanitization', 'SECWORD', ''), ('sanitization', 'secword', ''), ('malicious', 'SECWORD', ''), ('xss', 'SECWORD', ''), ('code injection', 'secword', ''), ('attacks', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('sanitizer', 'secword', ''), ('sanitized', 'SECWORD', ''), ('errors', 'FLAW', ''), ('ensuring', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 22,CWE-79,GHSA-hc72-vj3g-5g2g,"@@ -11,13 +11,16 @@
  using ZKEACMS.Common.Models;
  using Easy;
@@ -1053,7 +1053,7 @@ The fix integrates an HTML sanitizer to clean the Title and Html fields before a
 
 Weakness: CWE-79  
 Severity: High  
-CVSS: 7.4"
+CVSS: 7.4",0.23529411764705882,"[('sanitize', 'secword', ''), ('#457', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'secword', ''), ('sanitization', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'secword', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('sanitizer', 'SECWORD', ''), ('adding', 'ACTION', ''), ('updating', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 23,CWE-79,GHSA-8xqr-4cpm-wx7g,"@@ -10,7 +10,7 @@ export default class ReactSVG extends React.Component {
    static defaultProps = {
      callback: () => {},
@@ -1070,7 +1070,7 @@ The patch changes the default evalScripts property to 'never', preventing automa
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.058823529411764705,"[('changed', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('malicious code', 'secword', ''), ('security', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'secword', ''), ('attacks', 'SECWORD', ''), ('patch', 'ACTION', ''), ('changes', 'ACTION', ''), ('preventing', 'ACTION', ''), ('mitigating', 'ACTION', ''), ('xss', 'secword', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 24,CWE-79,GHSA-h3gg-7wx2-cq3h,"@@ -21,7 +21,8 @@ export default function addStickyControl() {
        if (firstPost) {
          const excerpt = truncate(firstPost.contentPlain(), 175);
@@ -1088,7 +1088,7 @@ The fix wraps the excerpt in a safe React <div> element, preventing unescaped HT
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.5"
+CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('m.trust', 'URL', ''), ('#24', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('m.trust', 'URL', ''), ('untrusted', 'secword', ''), ('cross-site scripting', 'secword', ''), ('attackers', 'FLAW', ''), ('malicious code', 'SECWORD', ''), ('integrity', 'secword', ''), ('fix', 'ACTION', ''), ('safe', 'secword', ''), ('preventing', 'ACTION', ''), ('unescaped', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 25,CWE-79,GHSA-h6wm-mr85-4h9g,"@@ -287,7 +287,7 @@ private function userAuth()
          }
  
@@ -1106,7 +1106,7 @@ The fix applies htmlspecialchars to the user nickname before logging, ensuring s
 
 Weakness: CWE-117
 Severity: Medium
-CVSS: 5.0"
+CVSS: 5.0",0.11764705882352941,"[('sanitized', 'SECWORD', ''), ('found', 'ACTION', '')]",0.47058823529411764,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('login', 'secword', ''), ('warning', 'FLAW', ''), ('login', 'secword', ''), ('warning', 'FLAW', ''), ('escaping', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('malicious', 'secword', ''), ('injection', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('administrators', 'SECWORD', ''), ('fix', 'ACTION', ''), ('htmlspecialchars', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('encoded', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-117', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 26,CWE-79,GHSA-pxpf-v376-7xx5,"@@ -101,7 +101,7 @@ Tagify.prototype = {
  
          _s.disabled = input.hasAttribute('disabled')
@@ -1123,7 +1123,7 @@ The fix applies an HTML escaping function to the placeholder attribute to neutra
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('fixes', 'ACTION', ''), ('#989', 'ISSUE', ''), ('fix', 'ACTION', ''), ('xss', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escaping', 'secword', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('escaping', 'secword', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 27,CWE-79,GHSA-6hjc-m38h-7jhh,"@@ -96,7 +96,7 @@ public function actionSeoFileLink($url, $robots = '', $canonical = '', $inline =
              if (($ext = pathinfo($fileName, PATHINFO_EXTENSION)) !== '') {
                  $ext = strtolower($ext);
@@ -1140,7 +1140,7 @@ The fix explicitly disallows SVG file extensions by adding a check that throws a
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.4"
+CVSS: 7.4",0.11764705882352941,[],0.47058823529411764,"[('fix', 'ACTION', ''), ('security', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'secword', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('adding', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 28,CWE-79,GHSA-9g3v-j3cr-6fc6,"@@ -75,6 +75,10 @@ classes: 'table table-responsive table-no-bordered',
                  export: 'fa-download',
                  clearSearch: 'fa-times'
@@ -1161,7 +1161,7 @@ The patch adds the exportOptions configuration with htmlContent set to true, ens
 
 Weakness: CWE-358
 Severity: Low
-CVSS: 3.1"
+CVSS: 3.1",0.17647058823529413,"[('fixes', 'ACTION', ''), ('xss', 'secword', ''), ('signed', 'secword', ''), ('snipe@snipe.net', 'EMAIL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('integrity', 'secword', ''), ('trust', 'secword', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-358', 'CWEID', ''), ('low', 'SEVERITY', '')]"
 29,CWE-79,GHSA-6qcc-whgp-pjj2,"@@ -79,8 +79,8 @@ pimcore.document.pages.settings = Class.create(pimcore.document.settings_abstrac
              var updateSerpPreview = function () {
  
@@ -1180,7 +1180,7 @@ The fix applies htmlspecialchars to these fields to properly encode special char
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('escaping', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escaping', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attacks', 'SECWORD', ''), ('fix', 'ACTION', ''), ('htmlspecialchars', 'SECWORD', ''), ('encode', 'secword', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 30,CWE-79,GHSA-4fc4-4p5g-6w89,"@@ -50,17 +50,18 @@
  		htmlFilter.addRules( createBogusAndFillerRules( editor, 'html' ), { applyToAll: true } );
  
@@ -1314,7 +1314,7 @@ The fix introduces a cryptographically strong random number per operation to uni
 
 Weakness: CWE-330
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,[],0.4117647058823529,"[('fix', 'ACTION', ''), ('protect', 'ACTION', ''), ('protection', 'SECWORD', ''), ('fixed', 'ACTION', ''), ('protected', 'ACTION', ''), ('attackers', 'FLAW', ''), ('bypass', 'secword', ''), ('protection', 'SECWORD', ''), ('protections', 'SECWORD', ''), ('injection', 'secword', ''), ('xss', 'SECWORD', ''), ('vulnerabilities', 'secword', ''), ('fix', 'ACTION', ''), ('cryptographically', 'SECWORD', ''), ('protection', 'SECWORD', ''), ('preventing', 'ACTION', ''), ('attackers', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-330', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 31,CWE-79,GHSA-fp76-f299-v3hj,"@@ -127,8 +127,7 @@ public function getFile(): bool
          $allowedFolders = ['node_modules', 'vendor', 'Dinamic', 'Core', 'Plugins', 'MyFiles/Public'];
          foreach ($allowedFolders as $folder) {
@@ -1374,7 +1374,7 @@ The fix centralizes file output and adds a Content-Disposition header to force S
 
 Weakness: CWE-79
 Severity: Medium
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('prevent', 'ACTION', ''), ('security', 'secword', ''), ('problems', 'FLAW', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('malicious', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 32,CWE-79,GHSA-mxvc-fwgx-j778,"@@ -16,7 +16,7 @@
  <div>
      <h1>Error</h1>
@@ -1395,7 +1395,7 @@ The fix removes the 'safe' filter to ensure error messages are properly escaped 
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.4"
+CVSS: 7.4",0.23529411764705882,"[('error', 'FLAW', ''), ('safe', 'secword', ''), ('error', 'FLAW', ''), ('error', 'FLAW', ''), ('safe', 'secword', ''), ('xss', 'SECWORD', ''), ('vulnerability', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('remove', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('error', 'FLAW', ''), ('error', 'FLAW', ''), ('safe', 'secword', ''), ('unescaped', 'SECWORD', ''), ('cross-site scripting', 'secword', ''), ('xss', 'SECWORD', ''), ('vulnerability', 'secword', ''), ('attackers', 'SECWORD', ''), ('fix', 'ACTION', ''), ('removes', 'ACTION', ''), ('safe', 'secword', ''), ('ensure', 'ACTION', ''), ('error', 'FLAW', ''), ('escaped', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 33,CWE-79,GHSA-c65v-p733-9796,"@@ -93,15 +93,15 @@ public function transformAsset(Asset $asset)
                      $value = (Gate::allows('superadmin')) ? $decrypted : strtoupper(trans('admin/custom_fields/general.encrypted'));
  
@@ -1434,7 +1434,7 @@ The patch applies the e() escaping function to all dynamic fields and values bef
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.4"
+CVSS: 7.4",0.17647058823529413,"[('#10315', 'ISSUE', ''), ('fixes', 'ACTION', ''), ('escape_custom_fields_in_api_response', 'SECWORD', ''), ('escape', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'secword', ''), ('asset', 'secword', ''), ('unescaped', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('inject', 'secword', ''), ('malicious', 'SECWORD', ''), ('cross-site scripting', 'secword', ''), ('xss', 'secword', ''), ('vulnerabilities', 'SECWORD', ''), ('hijacking', 'SECWORD', ''), ('patch', 'ACTION', ''), ('escaping', 'secword', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('encoding', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 34,CWE-79,GHSA-m8rp-q82r-c5mf,"@@ -91,7 +91,6 @@
              <hr class=""thin"" />
              <div class=""row"">
@@ -1465,7 +1465,7 @@ The fix applies htmlentities to all output values, ensuring special characters a
 
 Weakness: CWE-79  
 Severity: High  
-CVSS: 7.4"
+CVSS: 7.4",0.11764705882352941,"[('xss', 'secword', ''), ('fix', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('cross-site scripting', 'secword', ''), ('escaping', 'SECWORD', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'secword', ''), ('xss', 'SECWORD', ''), ('vulnerability', 'secword', ''), ('fix', 'ACTION', ''), ('htmlentities', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('encoded', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 35,CWE-79,GHSA-3j58-p785-f27x,"@@ -17,9 +17,6 @@
  class ApiController  extends FrontendController
  {
@@ -1507,7 +1507,7 @@ The fix applies AntiXSS's xss_clean to both keys and values of the request data 
 
 Weakness: CWE-79  
 Severity: High  
-CVSS: 7.5"
+CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('xss', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('sanitize', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('fix', 'ACTION', ''), ('antixss', 'SECWORD', ''), ('xss_clean', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 36,CWE-79,GHSA-7c82-mp33-r854,"@@ -1,6 +1,128 @@
  (function ($) {
    'use strict';
@@ -1742,7 +1742,7 @@ The fix adds a configurable HTML sanitizer with a strict whitelist of allowed ta
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.5"
+CVSS: 7.5",0.11764705882352941,"[('add', 'ACTION', ''), ('sanitize', 'SECWORD', ''), ('#2199', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('sanitize', 'secword', ''), ('injection', 'SECWORD', ''), ('malicious', 'SECWORD', ''), ('unsanitized', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('integrity', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('sanitizer', 'SECWORD', ''), ('removing', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 37,CWE-79,GHSA-x7r7-wmj8-vv5g,"@@ -8,6 +8,7 @@
  import os
  import re
@@ -1778,7 +1778,7 @@ The fix parses and validates the redirect URL, rejecting any with a scheme or ne
 
 Weakness: CWE-601
 Severity: Medium
-CVSS: 6.1"
+CVSS: 6.1",0.11764705882352941,"[('sanitize', 'secword', ''), ('validate', 'secword', ''), ('login', 'secword', ''), ('fixes', 'ACTION', ''), ('xss', 'SECWORD', ''), ('open redirect', 'SECWORD', ''), ('issue', 'FLAW', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('login', 'secword', ''), ('prevent', 'ACTION', ''), ('open redirect', 'secword', ''), ('login', 'secword', ''), ('attackers', 'FLAW', ''), ('malicious', 'secword', ''), ('open redirect', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('phishing', 'secword', ''), ('attacks', 'SECWORD', ''), ('attacker', 'FLAW', ''), ('fix', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-601', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 38,CWE-79,GHSA-2cqg-q7jm-j35c,"@@ -910,7 +910,7 @@ public function audit(Request $request) {
              }
          }
@@ -1794,7 +1794,7 @@ The fix applies proper escaping to the asset_tag input before including it in th
 
 Weakness: CWE-79
 Severity: Medium
-CVSS: 5.4"
+CVSS: 5.4",0.17647058823529413,"[('#10286', 'ISSUE', ''), ('fix_bulk_audit_xss', 'SECWORD', ''), ('escape', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('error', 'FLAW', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('audit', 'secword', ''), ('error', 'FLAW', ''), ('escaping', 'SECWORD', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('theft', 'secword', ''), ('fix', 'ACTION', ''), ('escaping', 'secword', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 39,CWE-79,GHSA-mg5h-9rhq-4cqx,"@@ -300,6 +300,7 @@ public function isDangerFilename($filename){
  			 $isDangerStr($filename , "".php"")
  			|| $isDangerStr($filename , "".svg"")
@@ -1810,7 +1810,7 @@ The patch adds a check for the .shtm extension to the list of dangerous filename
 
 Weakness: CWE-434
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('bug', 'FLAW', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('bypass', 'secword', ''), ('security', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('malicious', 'secword', ''), ('code execution', 'SECWORD', ''), ('disclosure', 'secword', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('improving', 'ACTION', ''), ('input validation', 'SECWORD', ''), ('attack surface', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-434', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 40,"CWE-89', 'CWE-79",GHSA-x92h-wmg2-6hp7,"@@ -1346,22 +1346,37 @@ public function setMethod($method)
       */
      public function getMethod()
@@ -1870,7 +1870,7 @@ The fix enforces strict validation against a whitelist of allowed HTTP methods a
 
 Weakness: CWE-20
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.11764705882352941,[],0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('security', 'SECWORD', ''), ('issues', 'FLAW', ''), ('fix', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 41,CWE-79,GHSA-54qq-9chj-rxhv,"@@ -12,7 +12,7 @@
  
  ?>
@@ -1887,7 +1887,7 @@ The patch adds the ng-non-bindable attribute to the link to disable AngularJS co
 
 Weakness: CWE-79
 Severity: Medium
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('escape', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('injection', 'secword', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('code execution', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('prevent', 'ACTION', ''), ('injection', 'secword', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 42,CWE-79,GHSA-mrvj-7q4f-5p42,"@@ -89,6 +89,16 @@ parameters:
          - pht
          - phtml
@@ -1914,7 +1914,7 @@ The patch adds multiple high-risk extensions like hta, html, js, svg, and swf to
 
 Weakness: CWE-434
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.17647058823529413,"[('ghsa', 'VULNID', 'GHSA'), ('gunnstein.lye@ibexa.co', 'EMAIL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('remote code execution', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('malicious file execution', 'SECWORD', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('high', 'SEVERITY', ''), ('attack surface', 'secword', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-434', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 43,CWE-79,GHSA-jq4v-f5q6-mjqq,"@@ -23,6 +23,8 @@
      'usemap',
      # Not standard:
@@ -1931,7 +1931,7 @@ The patch adds 'formaction' to the whitelist, ensuring it is properly recognized
 
 Weakness: CWE-79
 Severity: Medium
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('add', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('add', 'ACTION', ''), ('sanitizer', 'secword', ''), ('injection', 'secword', ''), ('unsafe', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('manipulate', 'ACTION', ''), ('phishing', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('sanitized', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 44,CWE-79,GHSA-8x44-pwr2-rgc6,"@@ -119,7 +119,7 @@ public function getTreeAction(Request $request)
                  'id' => $class->getId(),
                  'text' => $text,
@@ -1948,7 +1948,7 @@ The fix applies htmlspecialchars to the icon value, ensuring special characters 
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('added', 'ACTION', ''), ('escape', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'secword', ''), ('escaping', 'SECWORD', ''), ('injection', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('malicious code', 'secword', ''), ('fix', 'ACTION', ''), ('htmlspecialchars', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('encoded', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 45,CWE-79,GHSA-3j9m-hcv9-rpj8,"@@ -1,6 +1,6 @@
  import React from 'react';
  import { css } from '@emotion/css';
@@ -1984,7 +1984,7 @@ The fix applies textUtil.sanitizeAngularInterpolation to all URLs before renderi
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.17647058823529413,"[('#147', 'ISSUE', ''), ('sanitized', 'SECWORD', ''), ('sanitized', 'SECWORD', ''), ('remove', 'ACTION', ''), ('v8.2.3', 'VERSION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('injection', 'SECWORD', ''), ('sanitization', 'SECWORD', ''), ('security', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'secword', ''), ('attacks', 'SECWORD', ''), ('fix', 'ACTION', ''), ('textutil.sanitizeangularinterpolation', 'URL', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 46,CWE-79,GHSA-wg4r-q74r-p7c8,"@@ -305,6 +305,7 @@ public function isDangerFilename($filename){
  			|| $isDangerStr($filename , "".xml"")
  			|| $isDangerStr($filename , "".xxhtml"")
@@ -2002,7 +2002,7 @@ The patch adds a check for the .xsl extension to the list of dangerous filenames
 
 Weakness: CWE-434
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.23529411764705882,"[('#1630', 'ISSUE', ''), ('update', 'ACTION', ''), ('attachmentmodel.class.php', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('bypass', 'secword', ''), ('security', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('malicious', 'secword', ''), ('xml external entity', 'SECWORD', ''), ('xxe', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('improving', 'ACTION', ''), ('input validation', 'SECWORD', ''), ('attack surface', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-434', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 47,CWE-79,GHSA-4p92-fv6v-fhfj,"similarity index 100%
 rename from .github/workflows/templates.yml.backup
 rename to .github/workflows/templates.yml",update,"vuln-fix: Remove backup file from GitHub workflows directory
@@ -2013,7 +2013,7 @@ The fix removes the backup file by renaming it out of the repository, ensuring o
 
 Weakness: CWE-200
 Severity: Low
-CVSS: 3.1"
+CVSS: 3.1",0.11764705882352941,"[('update', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('remove', 'ACTION', ''), ('sensitive', 'SECWORD', ''), ('disclosure', 'secword', ''), ('fix', 'ACTION', ''), ('removes', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-200', 'CWEID', ''), ('low', 'SEVERITY', '')]"
 48,CWE-79,GHSA-mq35-wqvf-r23c,"@@ -78,7 +78,7 @@ def unlink?
      def params
        super
@@ -2030,7 +2030,7 @@ The fix escapes HTML in error messages using Rack::Utils.escape_html before incl
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('escape', 'secword', ''), ('fixes', 'ACTION', ''), ('#1428', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'secword', ''), ('error', 'FLAW', ''), ('unescaped', 'SECWORD', ''), ('error', 'FLAW', ''), ('cross-site scripting', 'secword', ''), ('xss', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('malicious', 'SECWORD', ''), ('errors', 'FLAW', ''), ('fix', 'ACTION', ''), ('escapes', 'SECWORD', ''), ('error', 'FLAW', ''), ('rack::utils.escape_html', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 49,CWE-79,GHSA-p885-prv3-m4xv,"@@ -30,11 +30,11 @@ public function requestedAssets()
              // Make sure the asset and request still exist
              if ($checkoutRequest && $checkoutRequest->itemRequested()) {
@@ -2057,7 +2057,7 @@ The fix applies proper escaping functions to all output fields, ensuring special
 
 Weakness: CWE-79
 Severity: Medium
-CVSS: 5.4"
+CVSS: 5.4",0.058823529411764705,"[('#10942', 'ISSUE', ''), ('fixes', 'ACTION', ''), ('xss_user_requested', 'SECWORD', ''), ('fixes', 'ACTION', ''), ('xss', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escaping', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('hijacking', 'SECWORD', ''), ('fix', 'ACTION', ''), ('escaping', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('encoded', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 50,CWE-79,GHSA-7vvq-7r29-5vg3,"@@ -498,7 +498,7 @@ <h1><a href=""https://threejs.org"">three.js</a></h1>
  			const oldIframe = iframe;
  			iframe = oldIframe.cloneNode();
@@ -2074,7 +2074,7 @@ The fix adds a check to ensure the hash key exists in the titles map before sett
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('#23245', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('hash', 'secword', ''), ('keys', 'SECWORD', ''), ('iframe.src', 'URL', ''), ('hash', 'secword', ''), ('keys', 'SECWORD', ''), ('injection', 'secword', ''), ('hash', 'secword', ''), ('security', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('injection', 'secword', ''), ('manipulated', 'ACTION', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('hash', 'secword', ''), ('key', 'SECWORD', ''), ('iframe.src', 'URL', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 51,CWE-79,GHSA-72p5-2r6g-fm6v,"@@ -559,7 +559,7 @@ COMPONENT('grid', 'filter:true;external:false;fillcount:50;filterlabel:Filtering
  			for (var j = 0, jl = columns.length; j < jl; j++) {
  				var column = columns[j];
@@ -2091,7 +2091,7 @@ The fix applies HTML encoding to formatted cell values before rendering, ensurin
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.5"
+CVSS: 7.5",0.11764705882352941,"[('fixed', 'ACTION', ''), ('xss', 'SECWORD', '')]",0.47058823529411764,"[('fix', 'ACTION', ''), ('encode', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('encoding', 'SECWORD', ''), ('malicious', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('hijacking', 'secword', ''), ('fix', 'ACTION', ''), ('encoding', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('unsafe', 'secword', ''), ('escaped', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 52,CWE-79,GHSA-q67f-3jq4-mww2,"@@ -568,10 +568,11 @@ pimcore.element.properties = Class.create({
  
      addSetFromUserDefined: function (customKey, customType) {
@@ -2113,7 +2113,7 @@ The fix applies htmlspecialchars to sanitize the key before checking against dis
 
 Weakness: CWE-79
 Severity: Medium
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('escaping', 'secword', ''), ('key', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'secword', ''), ('keys', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('sanitization', 'SECWORD', ''), ('injection', 'secword', ''), ('bypass', 'secword', ''), ('key', 'SECWORD', ''), ('xss', 'secword', ''), ('security', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('inject', 'secword', ''), ('malicious code', 'secword', ''), ('manipulate', 'ACTION', ''), ('key', 'SECWORD', ''), ('fix', 'ACTION', ''), ('htmlspecialchars', 'SECWORD', ''), ('sanitize', 'secword', ''), ('key', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('adding', 'ACTION', ''), ('preventing', 'ACTION', ''), ('injection', 'secword', ''), ('attacks', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 53,CWE-79,GHSA-jr37-66pj-36v7,"@@ -82,7 +82,7 @@ public function anyData()
              })
              ->addColumn('view', function ($tasks) {
@@ -2130,7 +2130,7 @@ The fix removes the task title from the data attributes to eliminate the injecti
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('fix', 'ACTION', ''), ('xss', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('remove', 'ACTION', ''), ('sanitization', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'secword', ''), ('attacks', 'FLAW', ''), ('attackers', 'SECWORD', ''), ('inject', 'secword', ''), ('malicious', 'secword', ''), ('fix', 'ACTION', ''), ('removes', 'ACTION', ''), ('injection', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 54,CWE-79,GHSA-9w7h-3wwh-6m5q,"@@ -611,10 +611,15 @@ public function module()
              $request_data_new = [];
              $antixss = new AntiXSS();
@@ -2164,7 +2164,7 @@ The fix replaces '<' and '>' characters with dashes before running the XSS clean
 
 Weakness: CWE-79  
 Severity: High  
-CVSS: 7.5"
+CVSS: 7.5",0.11764705882352941,"[('update', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'secword', ''), ('keys', 'SECWORD', ''), ('sanitize', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('xss', 'SECWORD', ''), ('bypass', 'SECWORD', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('inject', 'secword', ''), ('cross-site scripting', 'secword', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('xss', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('malicious', 'secword', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 55,CWE-79,GHSA-hj8g-cw8x-2c6m,"@@ -276,7 +276,8 @@ public function string($skip_ajax = false)
  
          // clear request params
@@ -2182,7 +2182,7 @@ The fix replaces cleanArray with the correct clean method to properly sanitize t
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('update', 'ACTION', ''), ('urlmanager.php', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitization', 'secword', ''), ('incorrectly used', 'SECWORD', ''), ('sanitize', 'SECWORD', ''), ('sanitization', 'secword', ''), ('flaw', 'FLAW', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'secword', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('sanitize', 'secword', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 56,"CWE-74', 'CWE-79",GHSA-pxcf-v868-m492,"@@ -19,6 +19,23 @@ app.use((req, res, next) => {
    next();
  });
@@ -2235,7 +2235,7 @@ The fix introduces an HTML escaping function applied to all input parameters bef
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.4"
+CVSS: 7.4",0.058823529411764705,"[('fix', 'ACTION', ''), ('escape', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('injection', 'SECWORD', ''), ('escaping', 'secword', ''), ('injection', 'SECWORD', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('attackers', 'SECWORD', ''), ('security', 'secword', ''), ('fix', 'ACTION', ''), ('escaping', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 57,CWE-79,GHSA-rf66-hmqf-q3fc,"@@ -260,7 +260,18 @@ $(document).ready(function () {
      }
  
@@ -2263,7 +2263,7 @@ The fix applies character escaping for >, <, "", and ' to sanitize the output an
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.4"
+CVSS: 7.4",0.11764705882352941,"[('fix', 'ACTION', ''), ('bug', 'FLAW', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escaping', 'secword', ''), ('injection', 'secword', ''), ('malicious', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('attacks', 'SECWORD', ''), ('hijacking', 'SECWORD', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('escaping', 'SECWORD', ''), ('sanitize', 'secword', ''), ('mitigate', 'ACTION', ''), ('xss', 'secword', ''), ('patch', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 58,CWE-79,GHSA-hxmr-5gv9-6p8v,"@@ -45,9 +45,9 @@
              $snmpver = 'v2c';
              $additional = [
@@ -2286,7 +2286,7 @@ The fix applies PHP's strip_tags function to these inputs, removing HTML and scr
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.23529411764705882,"[('xss', 'secword', ''), ('fix', 'ACTION', ''), ('#13776', 'ISSUE', ''), ('https://huntr.dev/bounties/13951f51-deed-4a3d-8275-52306cc5a87d/', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('unsanitized', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attacks', 'SECWORD', ''), ('hijacking', 'secword', ''), ('fix', 'ACTION', ''), ('removing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 59,CWE-79,GHSA-mxh3-2699-98g9,"@@ -861,7 +861,7 @@ public function fieldcollectionTreeAction(Request $request, EventDispatcherInter
                  if (!isset($groups[$item->getGroup()])) {
                      $groups[$item->getGroup()] = [
@@ -2312,7 +2312,7 @@ The fix applies htmlspecialchars to group names before output, ensuring special 
 
 Weakness: CWE-79
 Severity: Medium
-CVSS: 5.4"
+CVSS: 5.4",0.058823529411764705,"[('admin', 'SECWORD', ''), ('escape', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escaping', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('hijacking', 'secword', ''), ('fix', 'ACTION', ''), ('htmlspecialchars', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('encoded', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 60,CWE-79,GHSA-5jgj-h9wp-53fr,"@@ -285,6 +285,20 @@ public static function isImage($file_path)
              return false;
          }
@@ -2341,7 +2341,7 @@ The patch adds a method that reads file contents and detects presence of PHP tag
 
 Weakness: CWE-94
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('#3017', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('attackers', 'FLAW', ''), ('remote code execution', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('found', 'ACTION', ''), ('prevent', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-94', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 61,CWE-79,GHSA-cg3h-rc9q-g8v9,"@@ -36,7 +36,7 @@ pimcore.settings.website = Class.create({
                  border:false,
                  layout:""fit"",
@@ -2407,7 +2407,7 @@ The fix applies HTML encoding to all grid cell renderers by default and ensures 
 
 Weakness: CWE-79  
 Severity: High  
-CVSS: 7.4"
+CVSS: 7.4",0.058823529411764705,"[('admin', 'SECWORD', ''), ('escape', 'secword', '')]",0.47058823529411764,"[('fix', 'ACTION', ''), ('encode', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('encoding', 'SECWORD', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('encoding', 'SECWORD', ''), ('ensures', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 62,CWE-79,GHSA-73q9-7pwj-gm46,"@@ -150,7 +150,7 @@
              ?>
              <h2><?php echo $t['multi-user']; ?></h2>
@@ -2424,7 +2424,7 @@ The fix applies the xssClean function with HTML context to properly escape the u
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('rxss', 'SECWORD', '')]",0.47058823529411764,"[('fix', 'ACTION', ''), ('sanitize', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('sanitization', 'secword', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'secword', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('xssclean', 'SECWORD', ''), ('escape', 'secword', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 63,CWE-79,GHSA-fc38-mxwr-pfhx,"@@ -36,7 +36,7 @@ DirectoryIndex index.php
  </IfModule>
  
@@ -2441,7 +2441,7 @@ The patch updates the FilesMatch directive to use a case-insensitive regex, ensu
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('fix', 'ACTION', ''), ('xss', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('bypass', 'secword', ''), ('security', 'secword', ''), ('attackers', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('patch', 'ACTION', ''), ('updates', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('secured', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 64,CWE-79,GHSA-2v5j-q74q-r53f,"@@ -56,7 +56,7 @@ def get_markdown(text):
      if not text:
          return """"
@@ -2458,7 +2458,7 @@ The fix removes bracket characters from the last capture group, ensuring proper 
 
 Weakness: CWE-176
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.11764705882352941,"[('update', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('flaw', 'FLAW', ''), ('exploited', 'SECWORD', ''), ('bypass', 'secword', ''), ('input validation', 'SECWORD', ''), ('injection', 'secword', ''), ('issues', 'FLAW', ''), ('fix', 'ACTION', ''), ('removes', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-176', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 65,CWE-79,GHSA-rfw2-x9f8-2f6m,"@@ -579,11 +579,11 @@ var oncall = {
                },
                footer: function(resp){
@@ -2504,7 +2504,7 @@ The fix applies Handlebars.escapeExpression and encodeURIComponent to sanitize q
 
 Weakness: CWE-79
 Severity: Medium
-CVSS: 5.4"
+CVSS: 5.4",0.17647058823529413,"[('prevent', 'ACTION', ''), ('xss', 'secword', ''), ('#342', 'ISSUE', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escaping', 'secword', ''), ('encodeuricomponent', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'secword', ''), ('escaping', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('malicious', 'SECWORD', ''), ('malformed urls', 'SECWORD', ''), ('cross-site scripting', 'secword', ''), ('xss', 'secword', ''), ('attackers', 'FLAW', ''), ('manipulate', 'ACTION', ''), ('fix', 'ACTION', ''), ('handlebars.escapeexpression', 'URL', ''), ('encodeuricomponent', 'SECWORD', ''), ('sanitize', 'secword', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 66,CWE-79,GHSA-jff5-55xj-4jcq,"@@ -2168,6 +2168,7 @@ function createSearchBox(searchURL) {
      var ac = new YAHOO.widget.AutoComplete(""search-box"",""search-box-completion"",ds);
      ac.typeAhead = false;
@@ -2522,7 +2522,7 @@ The fix assigns the formatResult property to formatEscapedResult, ensuring all a
 
 Weakness: CWE-79  
 Severity: High  
-CVSS: 7.4"
+CVSS: 7.4",0.17647058823529413,"[('#98', 'ISSUE', ''), ('security-388', 'SECWORD', ''), ('security-388', 'SECWORD', ''), ('escape', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escape', 'SECWORD', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'secword', ''), ('attacks', 'SECWORD', ''), ('fix', 'ACTION', ''), ('formatescapedresult', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('escaped', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 67,CWE-79,GHSA-wvh5-78h5-gmgr,"@@ -168,7 +168,7 @@ public function render_assign_user_summary(\assign_user_summary $summary) {
              $fullname = fullname($summary->user, $summary->viewfullnames);
              $extrainfo = array();
@@ -2539,7 +2539,7 @@ The patch applies the s() function to escape these fields, preventing unsafe HTM
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.058823529411764705,"[('escape', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'secword', ''), ('escaping', 'SECWORD', ''), ('injection', 'secword', ''), ('malicious', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('patch', 'ACTION', ''), ('escape', 'SECWORD', ''), ('preventing', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 68,CWE-79,GHSA-98gj-wwxm-cj3h,"@@ -11,7 +11,7 @@
  import re
  import inspect
@@ -2576,7 +2576,7 @@ The fix applies proper escaping to keys before substitution, ensuring that speci
 
 Weakness: CWE-117
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.17647058823529413,"[('fix', 'ACTION', ''), ('cve-2017-16876', 'VULNID', 'CVE')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('injection', 'secword', ''), ('key', 'SECWORD', ''), ('key', 'SECWORD', ''), ('escape', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('inject', 'secword', ''), ('unsafe', 'secword', ''), ('injection', 'secword', ''), ('denial of service', 'SECWORD', ''), ('fix', 'ACTION', ''), ('escaping', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-117', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 69,CWE-79,GHSA-5ppx-rgw2-xg23,"@@ -712,6 +712,7 @@ var jenkinsRules = {
          };
          ac.prehighlightClassName = ""yui-ac-prehighlight"";
@@ -2592,7 +2592,7 @@ The patch sets the autocomplete's formatResult function to formatEscapedResult, 
 
 Weakness: CWE-79  
 Severity: High  
-CVSS: 7.4"
+CVSS: 7.4",0.11764705882352941,"[('security-641', 'SECWORD', ''), ('escape', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escape', 'SECWORD', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('patch', 'ACTION', ''), ('formatescapedresult', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('escaped', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 70,CWE-79,GHSA-gmh3-x5w7-jg5m,"@@ -87,7 +87,7 @@
      if (isset($_GET['autosize'])) {
          $autoSize = $_GET['autosize'];
@@ -2644,7 +2644,7 @@ The fix converts numeric input to integers, removes dangerous characters from st
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.4"
+CVSS: 7.4",0.11764705882352941,"[('update', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'SECWORD', ''), ('encode', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'secword', ''), ('sanitization', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('hijack', 'secword', ''), ('steal', 'secword', ''), ('fix', 'ACTION', ''), ('removes', 'ACTION', ''), ('htmlentities', 'SECWORD', ''), ('encoding', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 71,CWE-79,GHSA-f655-xhvm-cwp4,"@@ -1,4 +1,5 @@
  <?jelly escape-by-default='true'?>
  <j:jelly xmlns:j=""jelly:core"">
@@ -2659,7 +2659,7 @@ The fix replaces the dynamic HTML output with a fixed safe string, eliminating t
 
 Weakness: CWE-79  
 Severity: High  
-CVSS: 7.4"
+CVSS: 7.4",0.11764705882352941,"[('security-2316', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('removing', 'ACTION', ''), ('unsafe', 'secword', ''), ('sanitization', 'SECWORD', ''), ('injection', 'secword', ''), ('malicious', 'SECWORD', ''), ('cross-site scripting', 'secword', ''), ('xss', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('integrity', 'secword', ''), ('fix', 'ACTION', ''), ('fixed', 'ACTION', ''), ('safe', 'secword', ''), ('injection', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 72,CWE-79,GHSA-fj93-7wm4-8x2g,"@@ -564,6 +564,15 @@ $.widget( ""mobile.pagecontainer"", {
  
  		return $.proxy( function( html, textStatus, xhr ) {
@@ -2684,7 +2684,7 @@ The patch adds a check on the Content-Type header and aborts processing with an 
 
 Weakness: CWE-829
 Severity: Medium
-CVSS: 5.0"
+CVSS: 5.0",0.17647058823529413,"[('#8649', 'ISSUE', ''), ('fix', 'ACTION', ''), ('issue', 'FLAW', ''), ('#8640', 'ISSUE', ''), ('xss', 'secword', ''), ('vulnerability', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('server', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('inject', 'secword', ''), ('cross-site scripting', 'secword', ''), ('spoofing', 'SECWORD', ''), ('attacks', 'SECWORD', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-829', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 73,CWE-79,GHSA-xjrf-8x4f-43h4,"@@ -1,5 +1,5 @@
  /*
 - * Copyright 2002-2008 the original author or authors.
@@ -2743,7 +2743,7 @@ The fix adds explicit escaping for backspace and vertical tab characters, ensuri
 
 Weakness: CWE-79
 Severity: Medium
-CVSS: 5.4"
+CVSS: 5.4",0.17647058823529413,"[('add', 'ACTION', ''), ('escape', 'SECWORD', ''), ('issue', 'FLAW', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'secword', ''), ('escaping', 'SECWORD', ''), ('unescaped', 'SECWORD', ''), ('injection', 'secword', ''), ('injection', 'secword', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('escaping', 'secword', ''), ('ensuring', 'ACTION', ''), ('encoded', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 74,CWE-79,GHSA-4mv4-gmmf-q382,"@@ -1,11 +1,11 @@
 -/*! DataTables 1.10.10-dev
 +/*! DataTables 1.10.10
@@ -2774,7 +2774,7 @@ The fix updates the version string to the official release number, ensuring accu
 
 Weakness: CWE-200
 Severity: Low
-CVSS: 3.1"
+CVSS: 3.1",0.11764705882352941,"[('1.10.10', 'VERSION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('remove', 'ACTION', ''), ('security', 'SECWORD', ''), ('critical', 'SEVERITY', ''), ('updates', 'ACTION', ''), ('patches', 'ACTION', ''), ('vulnerabilities', 'SECWORD', ''), ('fix', 'ACTION', ''), ('updates', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('update', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-200', 'CWEID', ''), ('low', 'SEVERITY', '')]"
 75,CWE-79,GHSA-q3x2-jvp3-wj78,"@@ -1154,11 +1154,11 @@ function get_allowed_files_extensions_for_upload($fileTypes = 'images', $returnA
                  break;
              case 'file':
@@ -2796,7 +2796,7 @@ The patch removes 'xml' from the allowed file extensions to prevent uploading po
 
 Weakness: CWE-611
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('update', 'ACTION', ''), ('files.php', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('remove', 'ACTION', ''), ('exploited', 'SECWORD', ''), ('xml external entity', 'SECWORD', ''), ('xxe', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('server-side request forgery', 'SECWORD', ''), ('disclose', 'secword', ''), ('sensitive data', 'SECWORD', ''), ('patch', 'ACTION', ''), ('removes', 'ACTION', ''), ('prevent', 'ACTION', ''), ('malicious', 'secword', ''), ('weakness', 'secword', ''), ('cwe-611', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 76,CWE-79,GHSA-hhqj-cfjx-vj25,"@@ -368,6 +368,10 @@ <h4 class=""label"">Notes</h4>
  
  				window.addEventListener( 'message', function( event ) {
@@ -2814,7 +2814,7 @@ The patch adds a strict origin check comparing event.origin to window.location.o
 
 Weakness: CWE-942
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('fix', 'ACTION', ''), ('xss', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('attackers', 'SECWORD', ''), ('malicious', 'SECWORD', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('event.origin', 'URL', ''), ('window.location.origin', 'URL', ''), ('untrusted sources', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-942', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 77,CWE-79,GHSA-h24f-9mm4-w336,"@@ -140,7 +140,9 @@ exports.handleRequest = function(vpath, path, req, res, readOnly, logHeadRequest
  															var name = results[f].name;
  															var normalized = url + '/' + name;
@@ -2833,7 +2833,7 @@ The patch prevents this by rejecting file names containing double quotes and esc
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('fix', 'ACTION', ''), ('sanitizing', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'secword', ''), ('sanitize', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'secword', ''), ('xss', 'secword', ''), ('attacks', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('inject', 'secword', ''), ('patch', 'ACTION', ''), ('prevents', 'ACTION', ''), ('escaping', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 78,CWE-79,GHSA-jpj5-hg26-6jgc,"@@ -7,6 +7,7 @@ import (
  	""github.com/Xhofe/alist/server/common""
  	""github.com/Xhofe/alist/utils""
@@ -2869,7 +2869,7 @@ The fix parses the input string as a URL, returns an error on failure, and sanit
 
 Weakness: CWE-20
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.11764705882352941,"[('fix', 'ACTION', ''), ('#645', 'ISSUE', ''), ('xss', 'SECWORD', ''), ('vulnerability', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'secword', ''), ('malicious', 'secword', ''), ('exploited', 'SECWORD', ''), ('injection', 'secword', ''), ('attacks', 'SECWORD', ''), ('server', 'secword', ''), ('errors', 'FLAW', ''), ('untrusted', 'secword', ''), ('fix', 'ACTION', ''), ('error', 'FLAW', ''), ('sanitizes', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('injection', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 79,CWE-79,GHSA-66gw-5xpf-gfp5,"@@ -339,6 +339,7 @@ def wrapper(self, *args, **kwargs):
              message = e.log_message
              self.log.warn(message)
@@ -2893,7 +2893,7 @@ The patch explicitly sets the Content-Type header to application/json before sen
 
 Weakness: CWE-16
 Severity: Low
-CVSS: 3.1"
+CVSS: 3.1",0.11764705882352941,"[('json_error', 'FLAW', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('error', 'FLAW', ''), ('error handler', 'SECWORD', ''), ('error', 'FLAW', ''), ('improper handling', 'secword', ''), ('security', 'SECWORD', ''), ('issues', 'FLAW', ''), ('injection', 'secword', ''), ('errors', 'FLAW', ''), ('patch', 'ACTION', ''), ('error', 'FLAW', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-16', 'CWEID', ''), ('low', 'SEVERITY', '')]"
 80,CWE-79,GHSA-5fh3-25xr-g85h,"@@ -82,7 +82,7 @@ public function transformCheckedoutAccessory ($accessory, $accessory_users, $tot
                  'first_name'=> e($user->first_name),
                  'last_name'=> e($user->last_name),
@@ -2912,7 +2912,7 @@ The patch applies HTML escaping to the checkout notes before rendering, neutrali
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.17647058823529413,"[('#10361', 'ISSUE', ''), ('fixes', 'ACTION', ''), ('xss_in_accessories_checkout_notes', 'SECWORD', ''), ('escape', 'secword', '')]",0.47058823529411764,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escaping', 'secword', ''), ('malicious', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('hijack', 'secword', ''), ('patch', 'ACTION', ''), ('escaping', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 81,CWE-79,GHSA-xg6r-5gx4-qxjm,"@@ -93,14 +93,15 @@ public function broker()
  
      public function sendResetLinkEmail(ContactPasswordResetRequest $request)
@@ -2950,7 +2950,7 @@ The fix changes the code to use the company_key from the request input and remov
 
 Weakness: CWE-285
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('fixes', 'ACTION', ''), ('password', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('key', 'secword', ''), ('password', 'SECWORD', ''), ('password', 'secword', ''), ('company_key', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('manipulate', 'ACTION', ''), ('passwords', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('passwords', 'SECWORD', ''), ('hijacking', 'secword', ''), ('fix', 'ACTION', ''), ('changes', 'ACTION', ''), ('company_key', 'SECWORD', ''), ('removes', 'ACTION', ''), ('preventing', 'ACTION', ''), ('password', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-285', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 82,CWE-79,GHSA-hm45-mgqm-gjm4,"@@ -930,20 +930,20 @@ <h5>{{ data['message'] }}</h5>
              img.attr(""src"", `${img.attr(""data-src-url"")}png`)
          }
@@ -3131,7 +3131,7 @@ The fix introduces a safe() function that escapes special HTML characters and ap
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.4"
+CVSS: 7.4",0.11764705882352941,"[('fix', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escaping', 'secword', ''), ('escaping', 'SECWORD', ''), ('injection', 'secword', ''), ('malicious', 'SECWORD', ''), ('cross-site scripting', 'secword', ''), ('xss', 'secword', ''), ('attacks', 'FLAW', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('safe', 'secword', ''), ('escapes', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('untrusted', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 83,CWE-79,GHSA-6hjc-m38h-7jhh,"@@ -15,12 +15,15 @@
  use nystudio107\seomatic\Seomatic;
  
@@ -3173,7 +3173,7 @@ The fix enforces a check against the configured allowed file extensions and thro
 
 Weakness: CWE-434
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.11764705882352941,"[('ensure', 'ACTION', ''), ('signed', 'secword', ''), ('andrew@nystudio107.com', 'EMAIL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('verify', 'ACTION', ''), ('attackers', 'FLAW', ''), ('sensitive', 'SECWORD', ''), ('disclosure', 'secword', ''), ('fix', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-434', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 84,CWE-79,GHSA-hpx4-xjp7-m4vr,"@@ -98,7 +98,7 @@ public function transformAsset(Asset $asset)
              'purchase_cost' => Helper::formatCurrencyOutput($asset->purchase_cost),
              'book_value' => Helper::formatCurrencyOutput($depreciated_value),
@@ -3192,7 +3192,7 @@ The patch applies the e() escaping function to sanitize the checked_out_to value
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.17647058823529413,"[('escape', 'secword', ''), ('signed', 'secword', ''), ('snipe@snipe.net', 'EMAIL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'secword', ''), ('asset', 'secword', ''), ('escaping', 'SECWORD', ''), ('injection', 'secword', ''), ('malicious', 'SECWORD', ''), ('cross-site scripting', 'secword', ''), ('xss', 'secword', ''), ('attackers', 'FLAW', ''), ('integrity', 'secword', ''), ('patch', 'ACTION', ''), ('escaping', 'SECWORD', ''), ('sanitize', 'secword', ''), ('preventing', 'ACTION', ''), ('injection', 'secword', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 85,CWE-79,GHSA-wg8p-w946-c482,"@@ -329,7 +329,7 @@ public function isAllowedFilename($filename){
  			'.zip','.tar','.gz','.tgz','.ipa','.apk','.rar','.iso','.bz2','.epub',
  			'.pdf','.ofd','.swf','.epub','.xps',
@@ -3208,7 +3208,7 @@ The patch removes the '.md' extension from the allowed filenames list to prevent
 
 Weakness: CWE-434
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.11764705882352941,"[('bug', 'FLAW', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('remove', 'ACTION', ''), ('malicious', 'secword', ''), ('security', 'SECWORD', ''), ('attack surface', 'secword', ''), ('code injection', 'SECWORD', ''), ('phishing', 'secword', ''), ('patch', 'ACTION', ''), ('removes', 'ACTION', ''), ('prevent', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-434', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 86,CWE-79,GHSA-vc5r-xfc4-4x22,"@@ -50,7 +50,7 @@ private function buildItem($configuration): array
  
          return [
@@ -3225,7 +3225,7 @@ The fix applies htmlspecialchars to the configuration name before output, ensuri
 
 Weakness: CWE-79
 Severity: Medium
-CVSS: 5.4"
+CVSS: 5.4",0.058823529411764705,"[('https://github.com/pimcore/data-hub/pull/462', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escaping', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attacks', 'SECWORD', ''), ('hijacking', 'secword', ''), ('fix', 'ACTION', ''), ('htmlspecialchars', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('encoded', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 87,CWE-79,GHSA-5fxf-x22x-5q38,"@@ -6,7 +6,6 @@ on:
  jobs:
    microweber-test-before-build:
@@ -3240,7 +3240,7 @@ The fix removes the dependency to ensure the job runs independently, preventing 
 
 Weakness: CWE-362
 Severity: Medium
-CVSS: 6.1"
+CVSS: 6.1",0.11764705882352941,"[('update', 'ACTION', ''), ('build-and-upload.yml', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('remove', 'ACTION', ''), ('prevent', 'ACTION', ''), ('race conditions', 'SECWORD', ''), ('race conditions', 'SECWORD', ''), ('security', 'SECWORD', ''), ('fix', 'ACTION', ''), ('removes', 'ACTION', ''), ('ensure', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-362', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 88,CWE-79,GHSA-3pg8-c473-w6rr,"@@ -54,10 +54,10 @@ public function deleteFile($file_id){
  	}
  
@@ -3279,7 +3279,7 @@ The patch introduces a boolean flag to conditionally enforce filename checks aga
 
 Weakness: CWE-434
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('vulnerability', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('add', 'ACTION', ''), ('security', 'secword', ''), ('attackers', 'SECWORD', ''), ('malicious files', 'SECWORD', ''), ('code execution', 'SECWORD', ''), ('patch', 'ACTION', ''), ('preventing', 'ACTION', ''), ('unsafe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-434', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 89,"CWE-434', 'CWE-79",GHSA-rphc-h572-2x9f,"@@ -324,13 +324,13 @@ public function isDangerFilename($filename){
  	public function isAllowedFilename($filename){
  		$allow_array = array(
@@ -3305,7 +3305,7 @@ The patch narrows the allowed extensions list by removing high-risk types, there
 
 Weakness: CWE-434
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('bug', 'FLAW', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('attack surface', 'secword', ''), ('malicious code', 'secword', ''), ('exploitation', 'SECWORD', ''), ('code execution', 'SECWORD', ''), ('server', 'secword', ''), ('unsafe', 'secword', ''), ('patch', 'ACTION', ''), ('removing', 'ACTION', ''), ('high', 'SEVERITY', ''), ('weakness', 'secword', ''), ('cwe-434', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 90,"CWE-79', 'CWE-116",GHSA-ph5x-h23x-7q5q,"@@ -245,7 +245,7 @@
                    &lt;a href=""$backUrl"" class='button secondary'&gt;{{translation key=""platform.wiki.users.join.request.cancel.label""/}}&lt;/a&gt;
                  &lt;/span&gt;
@@ -3322,7 +3322,7 @@ The patch applies XML escaping to the 'requestJoin' value using the escapetool.x
 
 Weakness: CWE-79
 Severity: Medium
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('fix', 'ACTION', ''), ('escaping', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xml injection', 'secword', ''), ('unescaped', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('inject', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('patch', 'ACTION', ''), ('escaping', 'secword', ''), ('escapetool.xml', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 91,CWE-79,GHSA-4wm8-c2vv-xrpq,"@@ -14,6 +14,7 @@
  import javax.servlet.http.HttpServletRequest;
  import javax.servlet.http.HttpServletResponse;
@@ -3363,7 +3363,7 @@ The fix enforces that callerUrl must start with the servlet’s context path and
 
 Weakness: CWE-601
 Severity: Medium
-CVSS: 6.1"
+CVSS: 6.1",0.058823529411764705,"[('improve', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('open redirect', 'SECWORD', ''), ('verify', 'ACTION', ''), ('attackers', 'FLAW', ''), ('open redirect', 'secword', ''), ('vulnerability', 'secword', ''), ('exploited', 'SECWORD', ''), ('phishing', 'secword', ''), ('malicious', 'SECWORD', ''), ('fix', 'ACTION', ''), ('invalid urls', 'SECWORD', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-601', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 92,CWE-79,GHSA-c558-5gfm-p2r8,"@@ -209,7 +209,7 @@
          <input type=""text"" size=""50"" id=""query"" name=""query"" value=""<%= (query==null ? """" : Utils.addEntities(query)) %>""/>
          <input type=""submit"" id=""main-query-submit"" class=""btn btn-primary"" value=""<fmt:message key=""jsp.general.go""/>"" />
@@ -3380,7 +3380,7 @@ The fix applies proper HTML entity encoding to spellCheckQuery before outputting
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.4"
+CVSS: 7.4",0.058823529411764705,"[('fix', 'ACTION', ''), ('xss', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escaping', 'secword', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'secword', ''), ('attacks', 'SECWORD', ''), ('hijacking', 'secword', ''), ('fix', 'ACTION', ''), ('encoding', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 93,CWE-79,GHSA-r5jw-62xg-j433,"@@ -2,7 +2,7 @@
  
  module Kaminari
@@ -3397,7 +3397,7 @@ The patch adds :original_script_name to the exclusion list to prevent it from be
 
 Weakness: CWE-601
 Severity: Medium
-CVSS: 6.1"
+CVSS: 6.1",0.11764705882352941,"[('blacklist', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('add', 'ACTION', ''), ('open redirect', 'secword', ''), ('url manipulation', 'SECWORD', ''), ('vulnerabilities', 'SECWORD', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('prevent', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-601', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 94,CWE-79,GHSA-8w3x-r6x7-c5r5,"@@ -607,7 +607,12 @@ pimcore.object.classes.klass = Class.create({
                  for (var i = 0; i < items.length; i++) {
                      var item = items[i];
@@ -3538,7 +3538,7 @@ The fix applies HTML encoding to all relevant text fields and input values befor
 
 Weakness: CWE-79  
 Severity: High  
-CVSS: 7.5"
+CVSS: 7.5",0.11764705882352941,"[('admin', 'SECWORD', ''), ('escape', 'secword', ''), ('#10991', 'ISSUE', ''), ('admin', 'SECWORD', ''), ('escape', 'secword', ''), ('update', 'ACTION', ''), ('adminbundle', 'SECWORD', ''), ('class.js', 'URL', ''), ('admin', 'SECWORD', ''), ('escape', 'secword', ''), ('admin', 'SECWORD', ''), ('escape', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('encode', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('encoding', 'SECWORD', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'secword', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('encoding', 'SECWORD', ''), ('mitigating', 'ACTION', ''), ('xss', 'SECWORD', ''), ('unsafe', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 95,CWE-79,GHSA-7jh9-6cpf-h4m7,"@@ -1388,8 +1388,12 @@ hello.utils.extend(hello.utils, {
  		// (URI Fragments within 302 Location URI are lost over HTTPS)
  		// Loading the redirect.html before triggering the OAuth Flow seems to fix it.
@@ -3559,7 +3559,7 @@ The fix adds a URL validation check using isValidUrl before performing the redir
 
 Weakness: CWE-601
 Severity: High
-CVSS: 7.5"
+CVSS: 7.5",0.11764705882352941,"[('fix(xss', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('decoded', 'SECWORD', ''), ('open redirect', 'secword', ''), ('vulnerabilities', 'secword', ''), ('attackers', 'FLAW', ''), ('malicious', 'secword', ''), ('phishing', 'secword', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('url validation', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-601', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 96,CWE-79,GHSA-vx6v-xg64-pmr8,"@@ -330,7 +330,11 @@ <h5 class=""mb-0"">
          function get_url(row) {
              return ""{% url 'helpdesk:view' 1234 %}"".replace(/1234/, row.id.toString());
@@ -3591,7 +3591,7 @@ The fix introduces an htmlEntities function that escapes special characters befo
 
 Weakness: CWE-79  
 Severity: High  
-CVSS: 7.4"
+CVSS: 7.4",0.17647058823529413,"[('add', 'ACTION', ''), ('htmlentities', 'SECWORD', ''), ('htmlentities', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escaping', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('integrity', 'secword', ''), ('fix', 'ACTION', ''), ('htmlentities', 'SECWORD', ''), ('escapes', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 97,CWE-79,GHSA-rcvx-rmvf-mxch,"similarity index 64%
 rename from hawkbit-runtime/hawkbit-update-server/src/main/java/org/eclipse/hawkbit/app/StreamAwareErrorController.java
 rename to hawkbit-runtime/hawkbit-update-server/src/main/java/org/eclipse/hawkbit/app/ErrorController.java
@@ -3663,7 +3663,7 @@ The fix removes the ""path"" attribute from error responses by filtering it out 
 
 Weakness: CWE-200  
 Severity: Medium  
-CVSS: 5.0"
+CVSS: 5.0",0.23529411764705882,"[('fixes', 'ACTION', ''), ('#1067', 'ISSUE', ''), ('error', 'FLAW', ''), ('unsafe', 'SECWORD', ''), ('removing', 'ACTION', ''), ('signed', 'secword', ''), ('dominic.schabel@bosch.io', 'EMAIL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('remove', 'ACTION', ''), ('error', 'FLAW', ''), ('prevent', 'ACTION', ''), ('leak', 'SECWORD', ''), ('error', 'FLAW', ''), ('error', 'FLAW', ''), ('disclosure', 'secword', ''), ('attackers', 'FLAW', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('removes', 'ACTION', ''), ('error', 'FLAW', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-200', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 98,CWE-79,GHSA-wjh9-344g-vc49,"@@ -200,7 +200,7 @@ function( $match ) {
  
  	foreach ( $remove as $remove_string )
@@ -3680,7 +3680,7 @@ The fix replaces strpos with stripos to perform case-insensitive searches, ensur
 
 Weakness: CWE-80
 Severity: Medium
-CVSS: 5.0"
+CVSS: 5.0",0.058823529411764705,"[('fix', 'ACTION', ''), ('xss', 'SECWORD', ''), ('security', 'SECWORD', ''), ('issue', 'FLAW', ''), ('remove', 'ACTION', ''), ('preparephp_self.fnc.php', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sensitive', 'SECWORD', ''), ('remove', 'ACTION', ''), ('attackers', 'FLAW', ''), ('bypass', 'SECWORD', ''), ('malicious', 'secword', ''), ('injection', 'SECWORD', ''), ('xss', 'secword', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('removed', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-80', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 99,CWE-79,GHSA-gx5w-rrhp-f436,"@@ -145,6 +145,11 @@ window.search = window.search || {};
              url.push("""");
          }
@@ -3703,7 +3703,7 @@ The fix applies encodeURIComponent to all search terms and additionally replaces
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.4"
+CVSS: 7.4",0.17647058823529413,"[('fix', 'ACTION', ''), ('xss', 'SECWORD', ''), ('vulnerability', 'secword', ''), ('security', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('encode', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('encoding', 'SECWORD', ''), ('unescaped', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('inject', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('vulnerabilities', 'SECWORD', ''), ('fix', 'ACTION', ''), ('encodeuricomponent', 'SECWORD', ''), ('encoded', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 100,CWE-79,GHSA-6m26-25q2-cq46,"@@ -4,6 +4,7 @@
  
  use Conner\Tagging\Model\Tagged;
@@ -3739,7 +3739,7 @@ The fix applies HTMLClean’s cleanArray method to sanitize all request data bef
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('add', 'ACTION', ''), ('xss', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'secword', ''), ('sanitize', 'secword', ''), ('injection', 'SECWORD', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('attacks', 'SECWORD', ''), ('unsanitized', 'SECWORD', ''), ('server', 'secword', ''), ('fix', 'ACTION', ''), ('sanitize', 'secword', ''), ('preventing', 'ACTION', ''), ('injection', 'secword', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 101,CWE-79,GHSA-6jp6-9rf9-gc66,"@@ -1131,7 +1131,9 @@ $(function () {
        return """";
      },
@@ -3760,7 +3760,7 @@ The fix replaces raw HTML injection with safe DOM text assignment using innerTex
 
 Weakness: CWE-79  
 Severity: High  
-CVSS: 7.4"
+CVSS: 7.4",0.11764705882352941,"[('add', 'ACTION', ''), ('escaping', 'secword', ''), ('fixes', 'ACTION', ''), ('https://hackerone.com/reports/1486674', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('unescaped', 'SECWORD', ''), ('malicious', 'SECWORD', ''), ('cross-site scripting', 'secword', ''), ('xss', 'SECWORD', ''), ('vulnerability', 'secword', ''), ('fix', 'ACTION', ''), ('injection', 'SECWORD', ''), ('safe', 'secword', ''), ('ensuring', 'ACTION', ''), ('escaped', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 102,CWE-79,GHSA-c558-5gfm-p2r8,"@@ -147,7 +147,7 @@
  									tmp_val = item.displayedValue;
  								}
@@ -3788,7 +3788,7 @@ The patch adds an escapeHtml function to sanitize displayed values by replacing 
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.058823529411764705,"[('fix', 'ACTION', ''), ('xss', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'secword', ''), ('escape', 'secword', ''), ('attackers', 'SECWORD', ''), ('inject', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'secword', ''), ('xss', 'secword', ''), ('vulnerabilities', 'SECWORD', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('escapehtml', 'SECWORD', ''), ('sanitize', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 103,CWE-79,GHSA-qf2g-q4mc-w7rr,"@@ -839,7 +839,7 @@ public static function processModuleXml(\SimpleXMLElement $xml): array
          $information['name'] = (string) $module->name;
          $information['version'] = (string) $module->version;
@@ -3814,7 +3814,7 @@ The fix applies strip_tags with a whitelist of safe HTML tags to sanitize descri
 
 Weakness: CWE-79
 Severity: Medium
-CVSS: 5.4"
+CVSS: 5.4",0.058823529411764705,"[('fix', 'ACTION', ''), ('xss', 'SECWORD', ''), ('info.xml', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'secword', ''), ('malicious', 'secword', ''), ('injection', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'secword', ''), ('attackers', 'FLAW', ''), ('inject', 'secword', ''), ('fix', 'ACTION', ''), ('safe', 'secword', ''), ('sanitize', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 104,CWE-79,GHSA-wrp6-9w7f-3wxg,"@@ -248,7 +248,7 @@ $(""#btn-upload-format"").on(""change"", function () {
      if (filename.substring(3, 11) === ""fakepath"") {
          filename = filename.substring(12);
@@ -3840,7 +3840,7 @@ The fix replaces html() with text() to safely render filenames as plain text, pr
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.4"
+CVSS: 7.4",0.058823529411764705,"[('fix', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escaping', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('inject', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'SECWORD', ''), ('vulnerabilities', 'SECWORD', ''), ('fix', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 105,CWE-79,GHSA-49qr-xh3w-h436,"@@ -78,6 +78,13 @@ class NbconvertFileHandler(IPythonHandler):
  
      SUPPORTED_METHODS = ('GET',)
@@ -3879,7 +3879,7 @@ The patch appends a sandbox directive with allow-scripts to the CSP, isolating J
 
 Weakness: CWE-1021
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.17647058823529413,"[('untrusted', 'secword', ''), ('server', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('add', 'ACTION', ''), ('sandbox', 'secword', ''), ('security', 'SECWORD', ''), ('server', 'secword', ''), ('leak', 'secword', ''), ('sensitive data', 'secword', ''), ('patch', 'ACTION', ''), ('sandbox', 'secword', ''), ('preventing', 'ACTION', ''), ('server', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-1021', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 106,CWE-79,GHSA-38m9-3vg4-rwvp,"@@ -114,6 +114,9 @@ public function redirect($url)
          $redirectUrl = str_replace(""\r"", """", $redirectUrl);
          $redirectUrl = str_replace(""\n"", """", $redirectUrl);
@@ -3897,7 +3897,7 @@ The patch applies HTMLClean's clean method to sanitize the redirect URL before u
 
 Weakness: CWE-113
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('update', 'ACTION', ''), ('urlmanager.php', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('injection', 'SECWORD', ''), ('sanitize', 'secword', ''), ('injection', 'secword', ''), ('malicious', 'SECWORD', ''), ('manipulate', 'ACTION', ''), ('http response splitting', 'secword', ''), ('injection', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('attackers', 'SECWORD', ''), ('cross-site scripting', 'secword', ''), ('patch', 'ACTION', ''), ('sanitize', 'secword', ''), ('weakness', 'secword', ''), ('cwe-113', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 107,CWE-79,GHSA-vfrc-ggmc-5jwv,"@@ -145,6 +145,7 @@ def process_attachments(followup, attached_files):
                  'application/octet-stream',
                  size=attached.size,
@@ -3916,7 +3916,7 @@ The patch calls full_clean() on the attachment object to enforce model validatio
 
 Weakness: CWE-20
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.17647058823529413,"[('add', 'ACTION', ''), ('fix', 'ACTION', ''), ('issue', 'FLAW', ''), ('https://github.com/django-helpdesk/django-helpdesk/issues/983', 'URL', ''), ('fix', 'ACTION', ''), ('bug', 'FLAW', ''), ('xss', 'SECWORD', ''), ('disclosure', 'secword', ''), ('https://huntr.dev/bounties/4d7a5fdd-b2de-467a-ade0-3f2fb386638e/', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('validate', 'secword', ''), ('malicious', 'secword', ''), ('integrity', 'secword', ''), ('issues', 'FLAW', ''), ('injection', 'secword', ''), ('processing errors', 'secword', ''), ('exploits', 'SECWORD', ''), ('patch', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 108,CWE-79,GHSA-3fw8-66wf-pr7m,"@@ -152,7 +152,7 @@ app.handle = function(req, res, out) {
          res.statusCode = 404;
          res.setHeader('Content-Type', 'text/plain');
@@ -3954,7 +3954,7 @@ The fix applies proper escaping to both the HTTP method and original URL before 
 
 Weakness: CWE-79
 Severity: Medium
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('fix', 'ACTION', ''), ('escape', 'secword', ''), ('req.method', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'secword', ''), ('error', 'FLAW', ''), ('error handler', 'SECWORD', ''), ('escaping', 'secword', ''), ('injection', 'SECWORD', ''), ('malicious', 'secword', ''), ('error', 'FLAW', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('inject', 'secword', ''), ('fix', 'ACTION', ''), ('escaping', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 109,CWE-79,GHSA-455w-gv5p-wgg3,"@@ -37,6 +37,11 @@ class TargetingController extends AdminController implements KernelControllerEve
  {
      // RULES
@@ -4034,7 +4034,7 @@ The fix sanitizes names by replacing dangerous characters with hyphens and appli
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.5"
+CVSS: 7.5",0.23529411764705882,"[('escape', 'secword', ''), ('validate', 'secword', ''), ('#11205', 'ISSUE', ''), ('escape', 'SECWORD', ''), ('validate', 'secword', ''), ('update', 'ACTION', ''), ('adminbundle', 'SECWORD', ''), ('admin', 'SECWORD', ''), ('targetingcontroller.php', 'URL', ''), ('j.dreesen@neusta.de', 'EMAIL', ''), ('j.dreesen@neusta.de', 'EMAIL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'SECWORD', ''), ('escape', 'SECWORD', ''), ('unsafe', 'SECWORD', ''), ('escaping', 'SECWORD', ''), ('cross-site scripting', 'secword', ''), ('xss', 'secword', ''), ('attacks', 'SECWORD', ''), ('injection', 'secword', ''), ('malicious', 'SECWORD', ''), ('fix', 'ACTION', ''), ('sanitizes', 'SECWORD', ''), ('htmlspecialchars', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 110,CWE-79,GHSA-3q55-66g3-p8xq,"@@ -834,10 +834,262 @@ function get_dangerous_files_extentions()
              'xqt',        //    SuperCalc Macro File',
              'xys',        //    XYplorer Script File',
@@ -4305,7 +4305,7 @@ The patch adds numerous additional high-risk extensions to the blocked list, imp
 
 Weakness: CWE-434
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('update', 'ACTION', ''), ('files.php', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('bypass', 'SECWORD', ''), ('server', 'secword', ''), ('security', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('remote code execution', 'secword', ''), ('server', 'SECWORD', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('high', 'SEVERITY', ''), ('improving', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-434', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 111,CWE-79,GHSA-q73m-3q7r-fpf7,"@@ -325,7 +325,7 @@ public function isAllowedFilename($filename){
  		$allow_array = array(
  			'.jpg','.jpeg','.png','.bmp','.gif','.ico','.webp',
@@ -4324,7 +4324,7 @@ The patch removes the invalid '.m3u8a' extension from the allowed array to ensur
 
 Weakness: CWE-20
 Severity: Low
-CVSS: 3.1"
+CVSS: 3.1",0.23529411764705882,"[('#1632', 'ISSUE', ''), ('update', 'ACTION', ''), ('attachmentmodel.class.php', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('remove', 'ACTION', ''), ('bypasses', 'SECWORD', ''), ('security', 'secword', ''), ('malicious file', 'secword', ''), ('patch', 'ACTION', ''), ('removes', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('low', 'SEVERITY', '')]"
 112,"CWE-80', 'CWE-79', 'CWE-116",GHSA-vmhh-xh3g-j992,"@@ -287,7 +287,7 @@
        &lt;form action=""$doc.getURL()"" method=""post""&gt;
          &lt;input type=""hidden"" name=""form_token"" value=""$services.csrf.token"" /&gt;
@@ -4341,7 +4341,7 @@ The fix applies XML escaping to the newThemeName value using escapetool.xml to n
 
 Weakness: CWE-79
 Severity: Medium
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('fix', 'ACTION', ''), ('escaping', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'secword', ''), ('escaping', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('malicious', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('attacks', 'SECWORD', ''), ('fix', 'ACTION', ''), ('escaping', 'SECWORD', ''), ('escapetool.xml', 'URL', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 113,CWE-79,GHSA-c558-5gfm-p2r8,"@@ -196,7 +196,7 @@
                                  <input type=""text"" size=""50"" id=""query"" name=""query"" value=""<%= (query==null ? """" : Utils.addEntities(query)) %>""/>
                                  <input type=""submit"" id=""main-query-submit"" class=""btn btn-primary"" value=""<fmt:message key=""jsp.general.go""/>"" />
@@ -4358,7 +4358,7 @@ The fix applies HTML entity encoding to the displayed spellCheckQuery text, ensu
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.058823529411764705,"[('escape', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'secword', ''), ('escaping', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('inject', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attacks', 'SECWORD', ''), ('fix', 'ACTION', ''), ('encoding', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('escaped', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 114,CWE-79,GHSA-gq77-3r6x-383w,"@@ -301,6 +301,7 @@ public function isDangerFilename($filename){
  			|| $isDangerStr($filename , "".svg"")
  			|| $isDangerStr($filename , "".htm"")
@@ -4374,7 +4374,7 @@ The patch adds "".xml"" to the list of dangerous filename substrings to prevent 
 
 Weakness: CWE-434
 Severity: Medium
-CVSS: 6.1"
+CVSS: 6.1",0.11764705882352941,"[('bug', 'FLAW', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('attackers', 'SECWORD', ''), ('malicious', 'SECWORD', ''), ('insecurely', 'SECWORD', ''), ('injection', 'secword', ''), ('data exposure', 'secword', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('prevent', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-434', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 115,CWE-79,GHSA-6346-5r4h-ff5x,"@@ -158,7 +158,7 @@ class=""btn btn-link btn-sm <?php if (isset($abandoned)): ?>font-weight-bold text
              $(document).ready(function () {
                  var searchOrdersByProduct = new mw.autoComplete({
@@ -4391,7 +4391,7 @@ The fix applies xss_clean to sanitize the productKeyword before embedding it in 
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('update', 'ACTION', ''), ('order_filtering.blade.php', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'secword', ''), ('keyword', 'SECWORD', ''), ('unsanitized', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('malicious', 'secword', ''), ('productkeyword', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'secword', ''), ('attackers', 'SECWORD', ''), ('fix', 'ACTION', ''), ('xss_clean', 'SECWORD', ''), ('sanitize', 'SECWORD', ''), ('productkeyword', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 116,CWE-79,GHSA-6jp6-9rf9-gc66,"@@ -37,6 +37,7 @@
  from django.template.loader import render_to_string
  from django.urls import reverse
@@ -4418,7 +4418,7 @@ The fix applies Django’s escape function to sanitize the language label before
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('add', 'ACTION', ''), ('escaping', 'secword', ''), ('fixes', 'ACTION', ''), ('https://hackerone.com/reports/1486674', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escaping', 'secword', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('sanitize', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 117,CWE-79,GHSA-3x96-m42v-hvh5,"@@ -87,11 +87,13 @@
      if (isset($_GET['autosize'])) {
          $autoSize = $_GET['autosize'];
@@ -4464,7 +4464,7 @@ The fix applies xss_clean sanitization to these parameters and conditionally ren
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.4"
+CVSS: 7.4",0.11764705882352941,"[('update', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'secword', ''), ('unsanitized', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('malicious', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('inject', 'secword', ''), ('fix', 'ACTION', ''), ('xss_clean', 'SECWORD', ''), ('sanitization', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 118,CWE-79,GHSA-cqhr-jqvc-qw9p,"@@ -365,7 +365,7 @@ void writeMessageIfNotNull(String message, String partToRedirectTo,
  		if (message != null) {
  			writeln(SCRIPT_BEGIN);
@@ -4481,7 +4481,7 @@ The fix applies HTML encoding (excluding spaces) after JavaScript encoding to sa
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.4"
+CVSS: 7.4",0.11764705882352941,"[('fix', 'ACTION', ''), ('xss', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('encode', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('encoding', 'SECWORD', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'secword', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('encoding', 'SECWORD', ''), ('encoding', 'SECWORD', ''), ('escape', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 119,CWE-79,GHSA-3r95-23jp-mhvg,"@@ -513,10 +513,10 @@ function factory($, Helper, Icons) {
       */
      function setStageHeadline(title) {
@@ -4545,7 +4545,7 @@ The fix replaces direct HTML insertion with text nodes and uses text() to safely
 
 Weakness: CWE-79  
 Severity: High  
-CVSS: 7.5"
+CVSS: 7.5",0.17647058823529413,"[('security', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('#96743', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('injection', 'SECWORD', ''), ('escaping', 'secword', ''), ('unescaped', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('cross-site scripting', 'secword', ''), ('xss', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('malicious', 'secword', ''), ('security', 'SECWORD', ''), ('fix', 'ACTION', ''), ('encode', 'SECWORD', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 120,CWE-79,GHSA-jp6r-xcjj-5h7r,"@@ -79,7 +79,7 @@ class TextEncodingBruteForce extends Operation {
          let table = ""<table class='table table-hover table-sm table-bordered table-nonfluid'><tr><th>Encoding</th><th>Value</th></tr>"";
  
@@ -4561,7 +4561,7 @@ The fix applies HTML escaping to the encoding values before insertion into the t
 
 Weakness: CWE-79
 Severity: Medium
-CVSS: 5.4"
+CVSS: 5.4",0.058823529411764705,"[('fixed', 'ACTION', ''), ('xss', 'SECWORD', ''), ('encoding', 'SECWORD', ''), ('#539', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'secword', ''), ('encoding', 'SECWORD', ''), ('encoding', 'SECWORD', ''), ('escaping', 'secword', ''), ('injection', 'secword', ''), ('malicious', 'SECWORD', ''), ('cross-site scripting', 'secword', ''), ('xss', 'secword', ''), ('attackers', 'SECWORD', ''), ('fix', 'ACTION', ''), ('escaping', 'SECWORD', ''), ('encoding', 'SECWORD', ''), ('preventing', 'ACTION', ''), ('injection', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 121,CWE-79,GHSA-rxch-gp62-574w,"@@ -170,7 +170,7 @@ public function transformAssignedTo($asset)
          }
          return $asset->assigned ? [
@@ -4580,7 +4580,7 @@ The patch applies the e() function to properly escape the display name before ou
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.17647058823529413,"[('added', 'ACTION', ''), ('escape', 'SECWORD', ''), ('signed', 'secword', ''), ('snipe@snipe.net', 'EMAIL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'secword', ''), ('asset', 'secword', ''), ('escaping', 'secword', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'secword', ''), ('attackers', 'SECWORD', ''), ('inject', 'secword', ''), ('patch', 'ACTION', ''), ('escape', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 122,CWE-79,GHSA-6465-r752-2h8v,"@@ -24,6 +24,7 @@
  use FacturaScripts\Core\Base\DataBase\DataBaseWhere;
  use FacturaScripts\Core\Lib\Widget\VisualItemLoadEngine;
@@ -4630,7 +4630,7 @@ The fix validates the URL by checking it against existing controller names and d
 
 Weakness: CWE-601
 Severity: Medium
-CVSS: 5.8"
+CVSS: 5.8",0.11764705882352941,"[('ensure', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('attackers', 'SECWORD', ''), ('inject', 'secword', ''), ('open redirect', 'SECWORD', ''), ('vulnerabilities', 'secword', ''), ('security', 'SECWORD', ''), ('phishing', 'secword', ''), ('fix', 'ACTION', ''), ('safe', 'secword', ''), ('found', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-601', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 123,CWE-79,GHSA-2gqg-2rg7-gh33,"@@ -118,8 +118,8 @@ private function formatMessage($message)
          return [
              'severity'  => $this->severityLabel($level),
@@ -4649,7 +4649,7 @@ The patch applies htmlspecialchars to these fields to safely encode special char
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('fix', 'ACTION', ''), ('xss', 'secword', ''), ('#13931', 'ISSUE', '')]",0.47058823529411764,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escape', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('patch', 'ACTION', ''), ('htmlspecialchars', 'SECWORD', ''), ('encode', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 124,CWE-79,GHSA-8c76-mxv5-w4g8,"@@ -6,18 +6,30 @@
  
  class SaveOptionApiController
@@ -4694,7 +4694,7 @@ The fix restricts the exception to keys only within explicitly whitelisted group
 
 Weakness: CWE-79  
 Severity: High  
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('update', 'ACTION', ''), ('saveoptionapicontroller.php', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('xss', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('xss', 'secword', ''), ('keys', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('bypass', 'SECWORD', ''), ('sanitization', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('xss', 'SECWORD', ''), ('fix', 'ACTION', ''), ('keys', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('untrusted inputs', 'secword', ''), ('sanitized', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 125,CWE-79,GHSA-rp34-85x3-3764,"@@ -34,10 +34,10 @@
  $status = 'ok';
  $message = '';
@@ -4718,7 +4718,7 @@ The fix applies PHP’s strip_tags function to these inputs, removing any embedd
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.17647058823529413,"[('security', 'SECWORD', ''), ('xss', 'SECWORD', ''), ('fix', 'ACTION', ''), ('fixing', 'ACTION', ''), ('https://huntr.dev/bounties/114ba055-a2f0-4db9-aafb-95df944ba177/', 'URL', ''), ('#13775', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'SECWORD', ''), ('transport', 'secword', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('transport', 'secword', ''), ('sanitization', 'secword', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('removing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 126,"CWE-79', 'CWE-116",GHSA-xjfw-5vv5-vjq2,"@@ -58,9 +58,9 @@
        &lt;dd&gt;
          ## TODO: design a real framework to generate form by type
@@ -4738,7 +4738,7 @@ The fix applies XML escaping to all user input before embedding it into input va
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.4"
+CVSS: 7.4",0.11764705882352941,"[('fix', 'ACTION', ''), ('escaping', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escaping', 'secword', ''), ('attackers', 'FLAW', ''), ('inject', 'secword', ''), ('malicious', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'SECWORD', ''), ('vulnerabilities', 'secword', ''), ('fix', 'ACTION', ''), ('escaping', 'SECWORD', ''), ('mitigating', 'ACTION', ''), ('injection', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 127,CWE-79,GHSA-qq74-vgcf-54c3,"@@ -311,6 +311,7 @@ public function isDangerFilename($filename){
  			|| $isDangerStr($filename , "".asa"")
  			|| $isDangerStr($filename , "".cshtml"")
@@ -4754,7 +4754,7 @@ The patch adds a check for the .htm extension to the list of dangerous filenames
 
 Weakness: CWE-434
 Severity: Medium
-CVSS: 6.0"
+CVSS: 6.0",0.11764705882352941,"[('bug', 'FLAW', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('bypass', 'secword', ''), ('security', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('code injection', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('improving', 'ACTION', ''), ('input validation', 'secword', ''), ('attack surface', 'secword', ''), ('weakness', 'secword', ''), ('cwe-434', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 128,CWE-79,GHSA-gx6h-936c-vrrr,"@@ -45,7 +45,7 @@
        <div>
          <input type=""hidden"" name=""form_token"" value=""$!services.csrf.token"" />
@@ -4773,7 +4773,7 @@ The fix applies XML escaping to the xredirect value before rendering it in the f
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.17647058823529413,"[('fix', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escaping', 'SECWORD', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('integrity', 'secword', ''), ('fix', 'ACTION', ''), ('escaping', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 129,CWE-79,GHSA-ff28-f46g-r9g8,"@@ -314,6 +314,7 @@ func runWeb(c *cli.Context) error {
  				}
  				defer fr.Close()
@@ -4788,7 +4788,7 @@ The patch adds a restrictive Content-Security-Policy header that disables all co
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.058823529411764705,"[('csp header', 'SECWORD', ''), ('#6926', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('add', 'ACTION', ''), ('security', 'secword', ''), ('server', 'SECWORD', ''), ('security', 'SECWORD', ''), ('malicious', 'SECWORD', ''), ('unsafe', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('security', 'secword', ''), ('mitigate', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 130,CWE-79,GHSA-74qp-233x-p5j8,"@@ -15,13 +15,17 @@
   * limitations under the License.
   */
@@ -4843,7 +4843,7 @@ The fix introduces an escapeHtml function that safely encodes text before insert
 
 Weakness: CWE-79  
 Severity: High  
-CVSS: 7.5"
+CVSS: 7.5",0.17647058823529413,"[('add', 'ACTION', ''), ('escape', 'secword', ''), ('changes', 'ACTION', ''), ('adds', 'ACTION', ''), ('escaping', 'secword', ''), ('patch', 'ACTION', ''), ('manual', 'DETECTION', ''), ('mgaido@apache.org', 'EMAIL', ''), ('#302', 'ISSUE', ''), ('escape_html', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('escaping', 'secword', ''), ('attackers', 'FLAW', ''), ('inject', 'secword', ''), ('malicious', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'SECWORD', ''), ('vulnerability', 'secword', ''), ('steal', 'secword', ''), ('sensitive data', 'SECWORD', ''), ('fix', 'ACTION', ''), ('escapehtml', 'SECWORD', ''), ('encodes', 'SECWORD', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 131,CWE-79,GHSA-c7pp-g2v2-2766,"@@ -891,10 +891,8 @@ var Gmail_ = function(localJQuery) {
                  endIndex = (parseInt(dataLength, 10) - 2) + response.indexOf(""["");
                  data = response.substring(response.indexOf(""[""), endIndex);
@@ -4895,7 +4895,7 @@ The fix replaces dynamic function creation with safe JSON.parse calls to strictl
 
 Weakness: CWE-95
 Severity: Critical
-CVSS: 9.8"
+CVSS: 9.8",0.11764705882352941,"[('json.parse', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('code execution', 'SECWORD', ''), ('code execution', 'SECWORD', ''), ('maliciously', 'SECWORD', ''), ('critical', 'SEVERITY', ''), ('security', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('theft', 'secword', ''), ('fix', 'ACTION', ''), ('safe', 'secword', ''), ('json.parse', 'URL', ''), ('code execution', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-95', 'CWEID', ''), ('critical', 'SEVERITY', '')]"
 132,CWE-79,GHSA-c558-5gfm-p2r8,"@@ -141,7 +141,7 @@
  									tmp_val = item.displayedValue;
  								}
@@ -4926,7 +4926,7 @@ The fix adds an escapeHtml function to sanitize displayed values before renderin
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.4"
+CVSS: 7.4",0.058823529411764705,"[('escaping', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'secword', ''), ('escaping', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('integrity', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('escapehtml', 'SECWORD', ''), ('sanitize', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 133,CWE-79,GHSA-gj85-pvp5-mvf9,"@@ -19,7 +19,7 @@ function autoload_class($class) {
  require_once dirname(__FILE__) . '/../config.php';
  require_once dirname(__FILE__) . '/../src/Storage.php';
@@ -4943,7 +4943,7 @@ The fix applies htmlspecialchars to the 'server' parameter to encode special cha
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.11764705882352941,"[('sanitize', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'SECWORD', ''), ('server', 'SECWORD', ''), ('server', 'secword', ''), ('sanitization', 'secword', ''), ('injection', 'SECWORD', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'secword', ''), ('attacks', 'SECWORD', ''), ('hijacking', 'SECWORD', ''), ('fix', 'ACTION', ''), ('htmlspecialchars', 'SECWORD', ''), ('server', 'secword', ''), ('encode', 'secword', ''), ('prevent', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 134,CWE-79,GHSA-3j9m-hcv9-rpj8,"@@ -40,5 +40,5 @@ export function escapeHtml(str: string): string {
  }
  
@@ -4973,7 +4973,7 @@ The fix replaces replaceAll calls with global regex replace to ensure all occurr
 
 Weakness: CWE-79
 Severity: Medium
-CVSS: 5.4"
+CVSS: 5.4",0.17647058823529413,"[('#151', 'ISSUE', ''), ('sanitize', 'SECWORD', ''), ('sanitizing', 'secword', ''), ('8.2.3', 'VERSION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitization', 'secword', ''), ('sanitizeangularinterpolation', 'SECWORD', ''), ('sanitization', 'secword', ''), ('injection', 'secword', ''), ('attacks', 'FLAW', ''), ('unescaped', 'SECWORD', ''), ('fix', 'ACTION', ''), ('ensure', 'ACTION', ''), ('encoded', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 135,CWE-79,GHSA-hm45-mgqm-gjm4,"@@ -72,6 +72,7 @@ <h1>{{ _('Loading servers...') }}</h1>
                  } else {
                      var base_guild_url = ""{{ url_for('home_blueprint.guild', guild='123456789123456789') }}""
@@ -5008,7 +5008,7 @@ The fix defers setting text content using jQuery’s text() method, ensuring pro
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 6.1"
+CVSS: 6.1",0.11764705882352941,"[('fix', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('injection', 'secword', ''), ('escaping', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('malicious', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('escaping', 'SECWORD', ''), ('preventing', 'ACTION', ''), ('injection', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 136,CWE-79,GHSA-c53x-wwx2-pg96,"@@ -21,7 +21,7 @@ const liljs = (elem, data = {}) => {
       * @param {String} property Name of the property to render
       * @param {String} value (Optional) A value to use instead of a property (used in lil-list-text)
@@ -5035,7 +5035,7 @@ The fix replaces innerHTML assignments with textContent to safely insert text wi
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.4"
+CVSS: 7.4",0.17647058823529413,"[('untrusted', 'secword', ''), ('xss', 'SECWORD', ''), ('attack', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('untrusted data', 'secword', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 137,CWE-79,GHSA-vhm6-gw82-6f8j,"@@ -62,7 +62,7 @@
                              echo ""
                                  <tr>
@@ -5052,7 +5052,7 @@ The fix applies strip_tags before htmlentities to remove any HTML tags, ensuring
 
 Weakness: CWE-79  
 Severity: Medium  
-CVSS: 5.4"
+CVSS: 5.4",0.058823529411764705,"[('xss', 'SECWORD', ''), ('issue', 'FLAW', ''), ('#13805', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('xss', 'SECWORD', ''), ('removing', 'ACTION', ''), ('malicious', 'SECWORD', ''), ('cross-site scripting', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('steal', 'secword', ''), ('sensitive data', 'SECWORD', ''), ('fix', 'ACTION', ''), ('htmlentities', 'SECWORD', ''), ('remove', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('encoded', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 138,CWE-79,GHSA-mw75-qvfr-hpmr,"@@ -303,6 +303,7 @@ public function isDangerFilename($filename){
  			|| $isDangerStr($filename , "".shtm"")
  			|| $isDangerStr($filename , ""%"")
@@ -5077,7 +5077,7 @@ The patch adds a check for the .xxhtml extension to the list of dangerous filena
 
 Weakness: CWE-434
 Severity: Medium
-CVSS: 6.1"
+CVSS: 6.1",0.23529411764705882,"[('#1628', 'ISSUE', ''), ('update', 'ACTION', ''), ('attachmentmodel.class.php', 'URL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('bypass', 'secword', ''), ('security', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('malicious files', 'SECWORD', ''), ('code execution', 'SECWORD', ''), ('data exposure', 'SECWORD', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('improving', 'ACTION', ''), ('input validation', 'SECWORD', ''), ('attack surface', 'secword', ''), ('weakness', 'secword', ''), ('cwe-434', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 139,CWE-79,GHSA-h3vq-wv8j-36gw,"@@ -50,8 +50,21 @@ module.exports = function (svgString) {
      // Empty script tags and javascript executing
      svgString = svgString.replace(/<script[\s\S]*>[\s\S]*<\/script>/, '<script></script>');
@@ -5109,7 +5109,7 @@ The fix expands removal to a comprehensive list of event handler attributes usin
 
 Weakness: CWE-79
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('remove', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('remove', 'ACTION', ''), ('sanitizer', 'SECWORD', ''), ('removed', 'ACTION', ''), ('onerror', 'FLAW', ''), ('attackers', 'FLAW', ''), ('malicious', 'secword', ''), ('cross-site scripting', 'SECWORD', ''), ('xss', 'secword', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-79', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 140,CWE-79,GHSA-q6mp-562x-ggvv,"@@ -1154,11 +1154,11 @@ function get_allowed_files_extensions_for_upload($fileTypes = 'images', $returnA
                  break;
              case 'file':
@@ -5131,7 +5131,7 @@ The patch removes the PSD extension from the allowed list to tighten upload rest
 
 Weakness: CWE-434
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.11764705882352941,"[('update', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('malicious', 'SECWORD', ''), ('exploitation', 'SECWORD', ''), ('vulnerabilities', 'secword', ''), ('patch', 'ACTION', ''), ('removes', 'ACTION', ''), ('attack surface', 'secword', ''), ('weakness', 'secword', ''), ('cwe-434', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 0,CWE-125,GHSA-j47f-4232-hvv8,"@@ -21,6 +21,7 @@ limitations under the License.
  #include ""tensorflow/core/framework/register_types.h""
  #include ""tensorflow/core/framework/tensor.h""
@@ -5196,7 +5196,7 @@ The fix adds explicit boundary checks for all tensor list accesses and returns d
 
 Weakness: CWE-125
 Severity: High
-CVSS: 7.5"
+CVSS: 7.5",0.17647058823529413,"[('fix', 'ACTION', ''), ('out of bounds read', 'secword', ''), ('ragged_cross_op.cc', 'URL', ''), ('change', 'ACTION', ''), ('ie6e5d2c21513a8d56bf41fcf35960caf76e890f9', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('out-of-bounds reads', 'SECWORD', ''), ('memory corruption', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('disclosure', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('boundary checks', 'SECWORD', ''), ('errors', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 1,CWE-125,GHSA-h9px-9vqg-222h,"@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
  limitations under the License.
  ==============================================================================*/
@@ -5226,7 +5226,7 @@ The patch adds a check using OP_REQUIRES to ensure the axis is less than the inp
 
 Weakness: CWE-125
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.11764705882352941,"[('fix', 'ACTION', ''), ('change', 'ACTION', ''), ('ifeae64212f6bcd139435824fa2748d1329213c4c', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('exploitable', 'SECWORD', ''), ('denial of service', 'secword', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 2,CWE-125,GHSA-374m-jm66-3vj8,"@@ -405,6 +405,16 @@ class SparseBincountOp : public OpKernel {
        for (int64_t i = 0; i < indices_mat.dimension(0); ++i) {
          const int64_t batch = indices_mat(i, 0);
@@ -5254,7 +5254,7 @@ The fix adds explicit checks using OP_REQUIRES to ensure batch and bin indices a
 
 Weakness: CWE-125  
 Severity: High  
-CVSS: 7.8"
+CVSS: 7.8",0.17647058823529413,"[('prevent', 'ACTION', ''), ('out-of-bound', 'SECWORD', ''), ('change', 'ACTION', ''), ('i11d154f4444d3fde1f09c5c40628b8671791a30d', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('memory corruption', 'SECWORD', ''), ('denial-of-service', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 3,CWE-125,GHSA-9697-98pf-4rw7,"@@ -86,6 +86,10 @@ class UpperBoundOp : public OpKernel {
      const Tensor& sorted_inputs_t = ctx->input(0);
      const Tensor& values_t = ctx->input(1);
@@ -5287,7 +5287,7 @@ The fix adds explicit checks requiring input tensors to be matrices or higher-ra
 
 Weakness: CWE-125
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.11764705882352941,"[('prevent', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('iee74de95ddad18440d052a75a5a1cb67544f490a', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('verify', 'ACTION', ''), ('bypass', 'SECWORD', ''), ('out-of-bounds', 'SECWORD', ''), ('logic errors', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 4,"CWE-787', 'CWE-125",GHSA-4hvf-hxvg-f67v,"@@ -282,10 +282,12 @@ void FormatConverter<T>::InitSparseToDenseConverter(
    block_size_.resize(block_map_.size());
    for (int i = 0; i < original_rank; i++) {
@@ -5334,7 +5334,7 @@ The fix adds explicit boundary checks before indexing arrays and vectors to ensu
 
 Weakness: CWE-125
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('add', 'ACTION', ''), ('safety checks', 'SECWORD', ''), ('out of bound access', 'SECWORD', ''), ('change', 'ACTION', ''), ('ic0b4dc048dc4b5a6309c572b8c4c9f776e4db60a', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('add', 'ACTION', ''), ('bounds checks', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('bounds checking', 'SECWORD', ''), ('out-of-bounds reads', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('disclosure', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('boundary checks', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 5,"CWE-476', 'CWE-787', 'CWE-125",GHSA-9xh4-23q4-v6wr,"@@ -1282,6 +1282,32 @@ class FusedBatchNormOpBase : public OpKernel {
                    errors::InvalidArgument(""Error during tensor copy.""));
      }
@@ -5387,7 +5387,7 @@ The fix adds explicit checks ensuring these tensors have element counts equal to
 
 Weakness: CWE-125  
 Severity: Medium  
-CVSS: 6.1"
+CVSS: 6.1",0.17647058823529413,"[('add', 'ACTION', ''), ('change', 'ACTION', ''), ('ic8c4e4de67c58a741bd87f2e182bed07247d1126', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 6,CWE-125,GHSA-cgfm-62j4-v4rf,"@@ -219,7 +219,20 @@ class SparseReduceOp : public OpKernel {
      sp.Reorder<T>(reduction.reorder_dims);
      for (const auto &g : sp.group(reduction.group_by_dims)) {
@@ -5419,7 +5419,7 @@ The patch adds checks to ensure group sizes match output strides and that comput
 
 Weakness: CWE-125
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.17647058823529413,"[('prevent', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('i894aa30f1e454f09b471d565b4a325da49322c1a', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('out-of-bounds writes', 'SECWORD', ''), ('denial-of-service', 'SECWORD', ''), ('integrity', 'secword', ''), ('issues', 'FLAW', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 7,CWE-125,GHSA-q3g3-h9r4-prrc,"@@ -265,6 +265,11 @@ class SimpleBinaryOp : public OpKernel {
    void Compute(OpKernelContext* ctx) override {
      const Tensor& in0 = ctx->input(0);
@@ -5442,7 +5442,7 @@ The fix adds a runtime check that validates the element counts match and returns
 
 Weakness: CWE-125  
 Severity: Medium  
-CVSS: 6.1"
+CVSS: 6.1",0.11764705882352941,"[('fix', 'ACTION', ''), ('nullptr', 'SECWORD', ''), ('heap oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('i608b8074cec36a982cca622b7144cb2c43e6e19f', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('verify', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 8,CWE-125,GHSA-5hj3-vjjf-f5m7,"@@ -380,6 +380,11 @@ Status Examples::Initialize(OpKernelContext* const context,
    const Tensor* example_labels_t;
    TF_RETURN_IF_ERROR(context->input(""example_labels"", &example_labels_t));
@@ -5465,7 +5465,7 @@ The patch adds a size check that returns an error if the example labels count do
 
 Weakness: CWE-125  
 Severity: Medium  
-CVSS: 6.1"
+CVSS: 6.1",0.17647058823529413,"[('add', 'ACTION', ''), ('sdca_internal.cc', 'URL', ''), ('change', 'ACTION', ''), ('i28eedcfd87a53aaf34deb075acea1f8c95470808', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('initialization', 'SECWORD', ''), ('initialization', 'SECWORD', ''), ('verify', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('logic errors', 'SECWORD', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('size check', 'SECWORD', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 9,"CWE-787', 'CWE-125",GHSA-77gp-3h4r-6428,"@@ -100,7 +100,7 @@ StatusOr<FullTypeDef> SpecializeType(const AttrSlice& attrs,
      // verifications are needed, they should be done by separately, and in a
      // way that can be reused for type inference.
@@ -5485,7 +5485,7 @@ The fix replaces the fixed index with the loop variable to correctly iterate ove
 
 Weakness: CWE-125
 Severity: Medium
-CVSS: 6.1"
+CVSS: 6.1",0.17647058823529413,"[('fix', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('ifc9ffea49e5890f55fcb2c27568611052c3ddcfa', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('incorrectly used', 'SECWORD', ''), ('fixed', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('exploitable', 'SECWORD', ''), ('fix', 'ACTION', ''), ('fixed', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 10,CWE-125,GHSA-83rh-hx5x-q9p5,"@@ -101,10 +101,14 @@ bool HdrDecoder::readData(Mat& _img)
  
  bool HdrDecoder::checkSignature( const String& signature ) const
@@ -5511,7 +5511,7 @@ The fix separates the two memcmp checks into distinct if statements, ensuring ea
 
 Weakness: CWE-285
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.058823529411764705,"[('fix', 'ACTION', ''), ('bounds check', 'SECWORD', ''), ('hdrdecoder::checksignature', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('signature', 'secword', ''), ('prevent', 'ACTION', ''), ('signature', 'secword', ''), ('flaw', 'FLAW', ''), ('malicious', 'secword', ''), ('untrusted', 'secword', ''), ('security', 'secword', ''), ('issues', 'FLAW', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('signature', 'secword', ''), ('verified', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-285', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 11,CWE-125,GHSA-r4c4-5fpq-56wg,"@@ -1050,6 +1050,13 @@ class BoostedTreesSparseCalculateBestFeatureSplitOp : public OpKernel {
        const int32_t feature_dim = stats_summary_indices(idx, 1);
        const int32_t bucket_id = stats_summary_indices(idx, 2);
@@ -5536,7 +5536,7 @@ The fix adds an OP_REQUIRES check to ensure stat_dim is less than stats_dims, pr
 
 Weakness: CWE-125  
 Severity: High  
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('tf.raw_ops.boostedtreessparsecalculatebestfeaturesplit', 'URL', ''), ('change', 'ACTION', ''), ('i83ca8a75b22aa78c037e8b98779da6cced16bfaa', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('malicious', 'SECWORD', ''), ('denial-of-service', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 12,CWE-125,GHSA-23hm-7w47-xw72,"@@ -94,6 +94,11 @@ class DequantizeOp : public OpKernel {
      const Tensor& input_min_tensor = ctx->input(1);
      const Tensor& input_max_tensor = ctx->input(2);
@@ -5559,7 +5559,7 @@ The fix adds a check ensuring the axis is less than the input tensor’s dimensi
 
 Weakness: CWE-125  
 Severity: Medium  
-CVSS: 6.1"
+CVSS: 6.1",0.11764705882352941,"[('fix', 'ACTION', ''), ('out of bound access', 'secword', ''), ('adding', 'ACTION', ''), ('change', 'ACTION', ''), ('i3249d2a69ddc82f182c589a3a5bbfb71543f4b29', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('exploitable', 'SECWORD', ''), ('denial of service', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 13,CWE-125,GHSA-c45w-2wxr-pp53,"@@ -98,6 +98,18 @@ class DequantizeOp : public OpKernel {
      if (axis_ > -1) {
        num_slices = input.dim_size(axis_);
@@ -5591,7 +5591,7 @@ The fix adds checks using OP_REQUIRES to ensure these tensors have the expected 
 
 Weakness: CWE-125  
 Severity: Medium  
-CVSS: 5.9"
+CVSS: 5.9",0.23529411764705882,"[('fix', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('fixes', 'ACTION', ''), ('change', 'ACTION', ''), ('i135e94d360c2a1ce374c10f7e0fed1af603dbc02', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 14,"CWE-787', 'CWE-125",GHSA-cvpc-8phh-8f45,"@@ -601,7 +601,8 @@ TfLiteStatus SimpleStatefulOp::Prepare(TfLiteContext* context,
    OpData* data = reinterpret_cast<OpData*>(node->user_data);
  
@@ -5660,7 +5660,7 @@ The patch replaces direct tensor retrieval calls with safe accessor functions th
 
 Weakness: CWE-823
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('nullptr', 'SECWORD', ''), ('nullptr', 'SECWORD', ''), ('nullptr', 'SECWORD', ''), ('nullptr', 'SECWORD', ''), ('nullptr', 'SECWORD', ''), ('nullptr', 'SECWORD', ''), ('change', 'ACTION', ''), ('i92eb164a6101ac3cca66090061a9b56a97288236', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('safe', 'secword', ''), ('prevent', 'ACTION', ''), ('invalid memory access', 'secword', ''), ('null pointer dereferences', 'SECWORD', ''), ('out-of-bounds', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('disclosure', 'secword', ''), ('patch', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-823', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 15,CWE-125,GHSA-545v-42p7-98fq,"@@ -1014,6 +1014,9 @@ struct LaunchMaxPoolingGradWithArgmax<CPUDevice, T> {
          const int input_start = start * input_size_per_batch;
          const int input_end = limit * input_size_per_batch;
@@ -5681,7 +5681,7 @@ The fix adds a boundary check to break the loop if the index is beyond the numbe
 
 Weakness: CWE-125
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.17647058823529413,"[('fix', 'ACTION', ''), ('buffer overflow', 'secword', ''), ('change', 'ACTION', ''), ('idef9895efaf145f2b1c23d31983601ec980cd5e4', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('out-of-bounds', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('disclosure', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('boundary check', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 16,CWE-125,GHSA-4fg4-p75j-w5xj,"@@ -173,20 +173,50 @@ class QuantizedBatchNormOp : public OpKernel {
  
    void Compute(OpKernelContext* context) override {
@@ -5787,7 +5787,7 @@ The fix adds checks to ensure scalar tensors have one element and that mean, var
 
 Weakness: CWE-125  
 Severity: Medium  
-CVSS: 6.1"
+CVSS: 6.1",0.11764705882352941,"[('add', 'ACTION', ''), ('missing validation', 'SECWORD', ''), ('change', 'ACTION', ''), ('id234d6dab1ec21230bb8e503dba30f899af87f33', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('logic errors', 'secword', ''), ('exploitable', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 17,"CWE-908', 'CWE-125",GHSA-q263-fvxm-m5mw,"@@ -44,6 +44,7 @@ limitations under the License.
  #include ""tensorflow/core/lib/gtl/inlined_vector.h""
  #include ""tensorflow/core/lib/strings/scanner.h""
@@ -5826,7 +5826,7 @@ The patch adds explicit checks that input and output indices do not exceed the n
 
 Weakness: CWE-125
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.17647058823529413,"[('prevent', 'ACTION', ''), ('out of bounds', 'SECWORD', ''), ('malicious', 'secword', ''), ('manipulate', 'ACTION', ''), ('information leakage', 'SECWORD', ''), ('exploits', 'SECWORD', ''), ('change', 'ACTION', ''), ('i2127da27c2023d27f26efd39afa6c853385cab6f', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('errors', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 18,CWE-125,GHSA-9c8h-vvrj-w2p8,"@@ -58,15 +58,21 @@ class RaggedGatherOpBase : public OpKernel {
  
    void Compute(OpKernelContext* context) override {
@@ -5859,7 +5859,7 @@ The fix adds explicit checks to ensure the nested splits list is non-empty and t
 
 Weakness: CWE-125
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.17647058823529413,"[('fix', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('tf.raw_ops.raggedgather', 'URL', ''), ('change', 'ACTION', ''), ('if14d96231d1cd7aad7c4d1c22c1bab1576b75717', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('invalid memory access', 'SECWORD', ''), ('out-of-bounds reads', 'SECWORD', ''), ('denial-of-service', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 19,CWE-125,GHSA-c545-c4f9-rf6v,"@@ -37,6 +37,7 @@ TfLiteStatus ExpandTensorDim(TfLiteContext* context, const TfLiteTensor& input,
      axis = input_dims.size + 1 + axis;
    }
@@ -5880,7 +5880,7 @@ The patch adds a lower bound check ensuring axis is greater than or equal to zer
 
 Weakness: CWE-125  
 Severity: Medium  
-CVSS: 5.9"
+CVSS: 5.9",0.23529411764705882,"[('prevent', 'ACTION', ''), ('oob', 'SECWORD', ''), ('expand_dims.cc', 'URL', ''), ('input_dims.size', 'URL', ''), ('change', 'ACTION', ''), ('i162f4feba12d547c3a4340833ae682016a2ebfab', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('bypass', 'secword', ''), ('out-of-bounds', 'SECWORD', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('bound check', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 20,CWE-125,GHSA-3h8m-483j-7xxm,"@@ -46,6 +46,10 @@ class RequantizationRangeOp : public OpKernel {
  
    void Compute(OpKernelContext* ctx) override {
@@ -5902,7 +5902,7 @@ The fix adds checks to ensure these input tensors are not empty before dereferen
 
 Weakness: CWE-125  
 Severity: Medium  
-CVSS: 5.0"
+CVSS: 5.0",0.11764705882352941,"[('fix', 'ACTION', ''), ('out of bound read', 'secword', ''), ('requantization_range_op.cc', 'URL', ''), ('change', 'ACTION', ''), ('ie684ab98a3840c5186ead3eafffc0e0ed0e8030d', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('disclosure', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 21,CWE-125,GHSA-cvgx-3v3q-m36c,"@@ -2559,6 +2559,9 @@ Status QuantizeV2Shape(InferenceContext* c) {
    if (!s.ok() && s.code() != error::NOT_FOUND) {
      return s;
@@ -5923,7 +5923,7 @@ The patch adds a validation step that returns an error if axis is less than -1, 
 
 Weakness: CWE-20
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.17647058823529413,"[('prevent', 'ACTION', ''), ('oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('i31412c71b05b4f21b677f7fa715a61499cbee39d', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('out-of-bounds', 'SECWORD', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('preventing', 'ACTION', ''), ('errors', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 22,CWE-125,GHSA-7fvx-3jfc-2cpc,"@@ -955,11 +955,12 @@ class ResourceScatterUpdateOp : public OpKernel {
                          params->dim_size(0), "")""));
        } else {
@@ -5952,7 +5952,7 @@ The fix replaces the modulo check with a strict prefix shape validation using Te
 
 Weakness: CWE-125  
 Severity: Medium  
-CVSS: 6.1"
+CVSS: 6.1",0.11764705882352941,"[('fix', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('id9bd7244d98d41b1517d4771850b32782c0cc949', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('update', 'ACTION', ''), ('update', 'ACTION', ''), ('verify', 'ACTION', ''), ('updates', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('updates', 'ACTION', ''), ('integrity', 'secword', ''), ('issues', 'FLAW', ''), ('fix', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 23,CWE-125,GHSA-59q2-x2qc-4c97,"@@ -533,6 +533,17 @@ class UnicodeEncodeOp : public OpKernel {
      const Tensor& input_splits = context->input(1);
      const auto input_splits_flat = input_splits.flat<SPLITS_TYPE>();
@@ -5996,7 +5996,7 @@ The fix adds explicit checks to ensure input_splits begin with zero, end with th
 
 Weakness: CWE-125
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('fix', 'ACTION', ''), ('buffer overflow', 'secword', ''), ('tf.raw_ops.unicodeencode', 'URL', ''), ('change', 'ACTION', ''), ('if33443b28f158e58078f1268f6b92f2728d219e0', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('unicodeencodeop', 'SECWORD', ''), ('unicodeencodeop', 'SECWORD', ''), ('verify', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('disclosure', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 24,CWE-125,GHSA-jwf9-w5xm-f437,"@@ -123,6 +123,17 @@ TfLiteStatus GatherNdString(const TfLiteTensor* params,
  template <typename IndicesT>
  TfLiteStatus EvalGatherNd(TfLiteContext* context, const TfLiteTensor* params,
@@ -6027,7 +6027,7 @@ The patch adds a validation loop that ensures all indices are non-negative befor
 
 Weakness: CWE-125
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.23529411764705882,"[('prevent', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('gather_nd.cc', 'URL', ''), ('missing check', 'secword', ''), ('oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('i6b7a8a62d3e7c13a16d81619e5bc23ae2cdbc7fd', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('disclosure', 'secword', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensures', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 25,"CWE-787', 'CWE-125",GHSA-cvpc-8phh-8f45,"@@ -75,12 +75,7 @@ TfLiteTensor* GetOutput(TfLiteContext* context, const TfLiteNode* node,
  
  const TfLiteTensor* GetOptionalInputTensor(const TfLiteContext* context,
@@ -6054,7 +6054,7 @@ The fix replaces the conditional logic with a direct call to GetInput, ensuring 
 
 Weakness: CWE-823
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.17647058823529413,"[('change', 'ACTION', ''), ('change', 'ACTION', ''), ('id7110271c25ebd6126ad8c82a493e37e0e0756b3', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('incorrectly checked', 'SECWORD', ''), ('invalid memory access', 'SECWORD', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-823', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 26,"CWE-787', 'CWE-125",GHSA-8gv3-57p6-g35r,"@@ -313,6 +313,12 @@ class RaggedTensorToTensorBaseOp : public OpKernel {
              output_index_multiplier, output_size, result);
          return tensorflow::Status::OK();
@@ -6078,7 +6078,7 @@ The fix adds a check that returns an error if the row partition size exceeds the
 
 Weakness: CWE-125
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.11764705882352941,"[('fix', 'ACTION', ''), ('overflow', 'SECWORD', ''), ('issue', 'FLAW', ''), ('tf.raw_ops.raggedtensortotensor', 'URL', ''), ('change', 'ACTION', ''), ('i79ab962a22c5867f36f7f45b780a1ac881b1dbdd', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('logic errors', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 27,CWE-125,GHSA-2r8p-fg3c-wcj4,"@@ -660,6 +660,11 @@ class ResourceGatherOp : public OpKernel {
      OP_REQUIRES(
          c, TensorShapeUtils::IsVectorOrHigher(params.shape()),
@@ -6101,7 +6101,7 @@ The fix adds a check ensuring the input tensor's rank is at least batch_dims_, r
 
 Weakness: CWE-125
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.11764705882352941,"[('prevent', 'ACTION', ''), ('heap oob', 'SECWORD', ''), ('resource_variable_ops.cc', 'URL', ''), ('change', 'ACTION', ''), ('i9e71ddaa8dbd51ec6afbf163a6b3b591f193b4f6', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('verify', 'ACTION', ''), ('bypass', 'SECWORD', ''), ('out-of-bounds', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 28,CWE-125,GHSA-h4pc-gx2w-f2xv,"@@ -96,6 +96,8 @@ TfLiteStatus ResizeOutputTensors(TfLiteContext* context, TfLiteNode* node,
      }
    }
@@ -6121,7 +6121,7 @@ The patch adds explicit checks to ensure the axis value is non-negative and less
 
 Weakness: CWE-125  
 Severity: Medium  
-CVSS: 6.1"
+CVSS: 6.1",0.17647058823529413,"[('prevent', 'ACTION', ''), ('oob', 'SECWORD', ''), ('change', 'ACTION', ''), ('i26ac6372c87246e03c7eb8c94e84c84d86054b36', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('memory corruption', 'SECWORD', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 29,CWE-125,GHSA-vqw6-72r7-fgw7,"@@ -162,6 +162,9 @@ class BaseMatrixTriangularSolveOp : public OpKernel {
      const Tensor& in1 = ctx->input(1);
  
@@ -6168,7 +6168,7 @@ The fix adds an early return if validation fails and enforces that input tensors
 
 Weakness: CWE-834
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.11764705882352941,"[('validate', 'secword', ''), ('ensure', 'ACTION', ''), ('change', 'ACTION', ''), ('iaed61a0b0727cc42c830658b72eb69f785f48dc5', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('memory corruption', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-834', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 30,"CWE-400', 'CWE-125",GHSA-8g7p-74h8-hg48,"@@ -204,7 +204,7 @@ HttpsProxyAgent.prototype.callback = function connect(req, opts, fn) {
    var headers = Object.assign({}, proxy.headers);
    if (proxy.auth) {
@@ -6187,7 +6187,7 @@ The patch replaces the deprecated 'new Buffer()' with the safer 'Buffer.from()' 
 
 Weakness: CWE-676
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.23529411764705882,"[('buffer.from', 'URL', ''), ('unsafe', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('security', 'SECWORD', ''), ('uninitialized memory', 'SECWORD', ''), ('authentication', 'secword', ''), ('security', 'secword', ''), ('sensitive data', 'SECWORD', ''), ('patch', 'ACTION', ''), (""safer 'buffer.from"", 'SECWORD', ''), ('securely', 'SECWORD', ''), ('encode', 'secword', ''), ('authentication', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-676', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 31,"CWE-787', 'CWE-125",GHSA-hpv4-7p9c-mvfr,"@@ -271,6 +271,18 @@ class FractionalAvgPoolGradOp : public OpKernel {
      const int64_t in_rows = orig_input_tensor_shape_flat(1);
      const int64_t in_cols = orig_input_tensor_shape_flat(2);
@@ -6217,7 +6217,7 @@ The fix adds explicit checks that batch, rows, columns, and depth dimensions are
 
 Weakness: CWE-835
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.11764705882352941,"[('validate', 'secword', ''), ('change', 'ACTION', ''), ('ieb7566155e92acc8993a2212c76deacadc0edc8a', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('verify', 'ACTION', ''), ('memory corruption', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('errors', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-835', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 32,CWE-125,GHSA-qpw2-xchm-655q,"@@ -28,7 +28,7 @@ StringStream.prototype.write = function(data) {
      return false
    }
@@ -6236,7 +6236,7 @@ The fix adds a type check to convert numbers to strings before buffer creation, 
 
 Weakness: CWE-20
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.17647058823529413,"[('#9', 'ISSUE', ''), ('fix', 'ACTION', ''), ('ensure', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('flaw', 'FLAW', ''), ('memory corruption', 'SECWORD', ''), ('encodings', 'SECWORD', ''), ('denial of service', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 33,CWE-125,GHSA-6gmv-pjp9-p8w8,"@@ -1653,11 +1653,21 @@ REGISTER_OP(""ReverseSequence"")
          return errors::InvalidArgument(
              ""batch_dim must be < input rank: "", batch_dim, "" vs. "", input_rank);
@@ -6269,7 +6269,7 @@ The fix adds a strict check to reject negative batch_dim values, ensuring only v
 
 Weakness: CWE-125  
 Severity: Medium  
-CVSS: 6.1"
+CVSS: 6.1",0.11764705882352941,"[('fix', 'ACTION', ''), ('out of bound', 'SECWORD', ''), ('error', 'FLAW', ''), ('change', 'ACTION', ''), ('i7e59a38e2f960886edf2b6c54ed5a84e86a9b193', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-125', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 0,CWE-89,GHSA-h2fw-93qx-vrcq,"@@ -39,6 +39,26 @@ class award_criteria_profile extends award_criteria {
      public $required_param = 'field';
      public $optional_params = array();
@@ -6327,7 +6327,7 @@ The fix restricts allowed fields to a predefined safe list, validating fields ag
 
 Weakness: CWE-639
 Severity: Medium
-CVSS: 6.1"
+CVSS: 6.1",0.058823529411764705,"[('ensure', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('attackers', 'SECWORD', ''), ('exploit', 'secword', ''), ('sensitive', 'SECWORD', ''), ('disclosure', 'secword', ''), ('privilege escalation', 'secword', ''), ('fix', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-639', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 1,CWE-89,GHSA-rr8m-29g8-8cgc,"@@ -501,7 +501,7 @@ public static function getComments(array $ids): array
              'SELECT *
               FROM blog_comments AS i
@@ -6343,7 +6343,7 @@ The fix applies array_map('intval') to ensure all IDs are integers before inclus
 
 Weakness: CWE-89  
 Severity: High  
-CVSS: 7.5"
+CVSS: 7.5",0.058823529411764705,"[('prevent', 'ACTION', ''), ('sql injection', 'SECWORD', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'secword', ''), ('sanitization', 'secword', ''), ('attackers', 'SECWORD', ''), ('inject', 'secword', ''), ('malicious', 'SECWORD', ''), ('fix', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-89', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 2,CWE-89,GHSA-gvmf-wcx6-p974,"@@ -235,7 +235,7 @@ public function setOrderKey($orderKey, $quote = true)
                  if ($quote === false) {
                      $this->orderKey[] = $o;
@@ -6404,7 +6404,7 @@ The fix replaces manual quoting with a dedicated quoteIdentifier method that use
 
 Weakness: CWE-89  
 Severity: High  
-CVSS: 7.5"
+CVSS: 7.5",0.35294117647058826,"[('security', 'SECWORD', ''), ('sql injection', 'secword', ''), ('#12444', 'ISSUE', ''), ('security', 'SECWORD', ''), ('sql injection', 'secword', ''), ('update', 'ACTION', ''), ('abstractlisting.php', 'URL', ''), ('j.dreesen@neusta.de', 'EMAIL', ''), ('89011527+mcop1@users.noreply.github.com', 'EMAIL', ''), ('j.dreesen@neusta.de', 'EMAIL', ''), ('brusch@users.noreply.github.com', 'EMAIL', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('injection', 'SECWORD', ''), ('manual', 'DETECTION', ''), ('inject', 'secword', ''), ('sql injection', 'secword', ''), ('attacks', 'FLAW', ''), ('manipulating', 'ACTION', ''), ('escaped', 'SECWORD', ''), ('fix', 'ACTION', ''), ('manual', 'DETECTION', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-89', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 3,"CWE-89', 'CWE-95",GHSA-hrgx-p36p-89q4,"@@ -25,6 +25,14 @@
   */
  class Smarty_CacheResource_Mysql extends Smarty_CacheResource_Custom
@@ -6447,7 +6447,7 @@ The patch introduces encryption and decryption of cached content using a PhpEncr
 
 Weakness: CWE-311
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.23529411764705882,"[('ghsa', 'VULNID', 'GHSA'), ('crypt', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('encrypt', 'secword', ''), ('sensitive data', 'SECWORD', ''), ('disclosure', 'secword', ''), ('attackers', 'FLAW', ''), ('exploitation', 'SECWORD', ''), ('patch', 'ACTION', ''), ('initialized', 'SECWORD', ''), ('key', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-311', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 4,CWE-89,GHSA-7hmh-8gwv-mfvq,"@@ -71,6 +71,7 @@
  import org.apache.kylin.metadata.project.RealizationEntry;
  import org.apache.kylin.metadata.realization.RealizationStatusEnum;
@@ -6627,7 +6627,7 @@ The fix replaces string concatenation with prepared statements using parameter b
 
 Weakness: CWE-89
 Severity: High
-CVSS: 7.5"
+CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('sql injection', 'SECWORD', ''), ('issue', 'FLAW', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('sql injection', 'secword', ''), ('attackers', 'FLAW', ''), ('sql injection', 'SECWORD', ''), ('attacks', 'SECWORD', ''), ('malicious', 'secword', ''), ('fix', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-89', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 5,CWE-89,GHSA-q9p4-qfc8-fvpp,"@@ -500,6 +500,11 @@ protected function typeMap($value, $type)
  
  	protected function columnQuote($string)
@@ -6647,7 +6647,7 @@ The fix adds a strict regex check to ensure column names contain only alphanumer
 
 Weakness: CWE-89  
 Severity: High  
-CVSS: 7.5"
+CVSS: 7.5",0.058823529411764705,"[('fix', 'ACTION', ''), ('fix', 'ACTION', ''), ('\x08security', 'SECWORD', ''), ('issue', 'FLAW', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('injection', 'SECWORD', ''), ('validate', 'secword', ''), ('inject', 'secword', ''), ('malicious', 'secword', ''), ('sql injection', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('manipulating', 'ACTION', ''), ('untrusted', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-89', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 6,"CWE-89', 'CWE-79",GHSA-x92h-wmg2-6hp7,"@@ -1346,22 +1346,37 @@ public function setMethod($method)
       */
      public function getMethod()
@@ -6707,7 +6707,7 @@ The fix enforces a whitelist of allowed HTTP methods and rejects invalid overrid
 
 Weakness: CWE-20
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.11764705882352941,[],0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('security', 'SECWORD', ''), ('issues', 'FLAW', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 7,CWE-89,GHSA-9cq5-xgg4-x477,"@@ -76,7 +76,7 @@ public function addUser(){
          $this->checkAdmin();
          $username = I(""post.username"");
@@ -6724,7 +6724,7 @@ The patch applies integer casting to the uid parameter using the framework’s "
 
 Weakness: CWE-20
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.11764705882352941,"[('bug', 'FLAW', '')]",0.47058823529411764,"[('fix', 'ACTION', ''), ('integer casting', 'SECWORD', ''), ('injection', 'secword', ''), ('logic errors', 'secword', ''), ('integrity', 'secword', ''), ('patch', 'ACTION', ''), ('integer casting', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 8,CWE-89,GHSA-2598-2f59-rmhq,"@@ -2198,7 +2198,8 @@ var QueryGenerator = {
              path[path.length - 1] = $tmp[0];
            }
@@ -6742,7 +6742,7 @@ The fix replaces manual string assembly with a dedicated escape function to safe
 
 Weakness: CWE-89  
 Severity: High  
-CVSS: 7.5"
+CVSS: 7.5",0.11764705882352941,"[('fix(postgres', 'ACTION', ''), ('key', 'secword', ''), ('#11088', 'ISSUE', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('escaping', 'secword', ''), ('escaping', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('manipulate', 'ACTION', ''), ('inject', 'secword', ''), ('malicious', 'SECWORD', ''), ('fix', 'ACTION', ''), ('manual', 'DETECTION', ''), ('escape', 'secword', ''), ('encode', 'secword', ''), ('weakness', 'secword', ''), ('cwe-89', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 9,CWE-89,GHSA-x2jc-pwfj-h9p3,"@@ -37,8 +37,9 @@ SqlString.escape = function(val, stringifyObjects, timeZone, dialect) {
      }
    }
@@ -6765,7 +6765,7 @@ The patch adds SQLite to the dialect check, applying the same escaping logic to 
 
 Weakness: CWE-89  
 Severity: High  
-CVSS: 7.5"
+CVSS: 7.5",0.23529411764705882,"[('fix', 'ACTION', ''), ('escaping', 'secword', ''), ('escaped', 'SECWORD', ''), ('escaping', 'secword', ''), ('injection', 'SECWORD', ''), ('vulnerability', 'secword', '')]",0.47058823529411764,"[('fix', 'ACTION', ''), ('escaping', 'secword', ''), ('escaping', 'SECWORD', ''), ('escaped', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('inject', 'secword', ''), ('malicious', 'SECWORD', ''), ('unescaped', 'SECWORD', ''), ('sql injection', 'SECWORD', ''), ('vulnerabilities', 'secword', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('escaping', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('injection', 'secword', ''), ('attacks', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-89', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 10,CWE-89,GHSA-2v7p-f4qm-r5pc,"@@ -332,12 +332,13 @@ public function getFilterCondition($filterJson, ClassDefinition $class, $tablePr
                          } elseif ($filterField == 'id') {
                              $conditionPartsFilters[] = 'oo_id ' . $operator . ' ' . $db->quote($filter['value']);
@@ -6798,7 +6798,7 @@ The fix applies database-specific identifier quoting to all filter field names b
 
 Weakness: CWE-89  
 Severity: High  
-CVSS: 7.5"
+CVSS: 7.5",0.11764705882352941,"[('fixed', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('injection', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('inject', 'secword', ''), ('malicious', 'SECWORD', ''), ('sql injection', 'secword', ''), ('manipulated', 'ACTION', ''), ('fix', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-89', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 11,CWE-89,GHSA-2jx3-5j9v-prpp,"@@ -35,6 +35,7 @@
  use Product;
  use Shop;
@@ -6827,7 +6827,7 @@ The patch adds validation checks using Validate::isOrderBy and Validate::isOrder
 
 Weakness: CWE-89  
 Severity: High  
-CVSS: 7.5"
+CVSS: 7.5",0.23529411764705882,"[('ghsa-2jx3', 'VULNID', 'GHSA'), ('validate', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('validate', 'secword', ''), ('attackers', 'FLAW', ''), ('inject', 'secword', ''), ('sql injection', 'SECWORD', ''), ('vulnerabilities', 'secword', ''), ('patch', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-89', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 12,"CWE-89', 'CWE-287",GHSA-79mg-4w23-4fqc,"@@ -34,10 +34,11 @@ public function scopeSearch(Builder $query, array $search = [])
              return $query;
          }
@@ -6849,7 +6849,7 @@ The fix filters the input array to include only keys present in the searchable w
 
 Weakness: CWE-200
 Severity: Medium
-CVSS: 6.1"
+CVSS: 6.1",0.058823529411764705,"[('ensure', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('keys', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('sensitive data', 'secword', ''), ('fix', 'ACTION', ''), ('keys', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-200', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 13,CWE-89,GHSA-v3mr-gp7j-pw5w,"@@ -407,9 +407,9 @@ protected function prepareWhere()
  
          // Filter those that have already been chosen
@@ -6869,7 +6869,7 @@ The fix applies integer casting and array_map with intval to ensure all input va
 
 Weakness: CWE-89  
 Severity: High  
-CVSS: 7.5"
+CVSS: 7.5",0.11764705882352941,"[('fixed', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'secword', ''), ('sanitization', 'secword', ''), ('attackers', 'SECWORD', ''), ('inject', 'secword', ''), ('malicious', 'SECWORD', ''), ('sql injection', 'secword', ''), ('vulnerabilities', 'secword', ''), ('fix', 'ACTION', ''), ('integer casting', 'SECWORD', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-89', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 14,CWE-89,GHSA-vj9x-w7ch-f46p,"@@ -1242,7 +1242,7 @@ public function propertiesGetAction(Request $request)
          }
  
@@ -6886,7 +6886,7 @@ The fix applies the database quote method to properly escape the storeId value b
 
 Weakness: CWE-89  
 Severity: High  
-CVSS: 7.5"
+CVSS: 7.5",0.11764705882352941,[],0.4117647058823529,"[('fix', 'ACTION', ''), ('sanitize', 'secword', ''), ('sanitization', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('inject', 'secword', ''), ('malicious', 'secword', ''), ('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-89', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 15,CWE-89,GHSA-6gm7-j668-w6h9,"@@ -119,7 +119,7 @@ public function listAction(Request $request)
                          $condition = $field . ' BETWEEN ' . $db->quote($value) . ' AND ' . $db->quote($maxTime);
                          $conditionFilters[] = $condition;
@@ -6903,7 +6903,7 @@ The fix replaces string concatenation with the database quote method to safely e
 
 Weakness: CWE-89  
 Severity: High  
-CVSS: 7.5"
+CVSS: 7.5",0.11764705882352941,[],0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('sql injection', 'secword', ''), ('escaping', 'secword', ''), ('attackers', 'SECWORD', ''), ('inject', 'secword', ''), ('malicious', 'SECWORD', ''), ('integrity', 'secword', ''), ('sensitive data', 'secword', ''), ('fix', 'ACTION', ''), ('escape', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-89', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 16,CWE-89,GHSA-864j-6qpp-cmrr,"@@ -44,13 +44,13 @@ def approx_distance(latitude, longitude, lat_attr, lon_attr, options = {})
      end
  
@@ -6928,7 +6928,7 @@ The fix enforces floating-point casting on all coordinate inputs before embeddin
 
 Weakness: CWE-89
 Severity: High
-CVSS: 7.5"
+CVSS: 7.5",0.11764705882352941,"[('sanitize', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('injection', 'SECWORD', ''), ('malicious', 'secword', ''), ('sql injection', 'secword', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('point casting', 'SECWORD', ''), ('preventing', 'ACTION', ''), ('injection', 'secword', ''), ('weakness', 'secword', ''), ('cwe-89', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 0,"CWE-918', 'CWE-20",GHSA-2h63-qp69-fwvw,"@@ -847,8 +847,10 @@ private Element parseXml(String xmlString) {
          Document doc = null;
          DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -6951,7 +6951,7 @@ The fix disables external-general-entities, external-parameter-entities, and ext
 
 Weakness: CWE-611
 Severity: High
-CVSS: 7.5"
+CVSS: 7.5",0.17647058823529413,"[('https://svn.apache.org/repos/asf/xmlgraphics/batik/trunk@1878396', 'URL', ''), ('ffa450edef68', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('external entity', 'SECWORD', ''), ('xml external entity', 'SECWORD', ''), ('xxe', 'secword', ''), ('attacks', 'FLAW', ''), ('security', 'secword', ''), ('attackers', 'SECWORD', ''), ('ssrf', 'secword', ''), ('denial of service', 'secword', ''), ('fix', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-611', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 1,"CWE-400', 'CWE-918",GHSA-7q4h-pj78-j7vg,"@@ -21,9 +21,11 @@
  import java.security.cert.X509Certificate;
  import java.util.List;
@@ -7004,7 +7004,7 @@ The fix adds a check that logs a warning and throws a SecurityException if both 
 
 Weakness: CWE-285
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.058823529411764705,[],0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('exploited', 'SECWORD', ''), ('bypass', 'secword', ''), ('security', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('warning', 'FLAW', ''), ('securityexception', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-285', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 2,CWE-918,GHSA-4wpp-w5r4-7v5v,"@@ -10,6 +10,7 @@ import (
  	""io/ioutil""
  	""log""
@@ -7047,7 +7047,7 @@ The fix applies filepath.Clean to normalize and sanitize all file path inputs be
 
 Weakness: CWE-22
 Severity: High
-CVSS: 7.5"
+CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('directory traversal', 'secword', ''), ('sanitize', 'SECWORD', ''), ('escape', 'secword', ''), ('security', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('filepath.clean', 'URL', ''), ('sanitize', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-22', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 3,"CWE-400', 'CWE-918",GHSA-7q4h-pj78-j7vg,"@@ -42,6 +42,7 @@
  import org.apache.cxf.rt.security.crypto.CryptoUtils;
  
@@ -7093,7 +7093,7 @@ The fix enforces rejection of all request_uri values by default and requires exp
 
 Weakness: CWE-918  
 Severity: High  
-CVSS: 7.5"
+CVSS: 7.5",0.11764705882352941,[],0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('ssrf', 'SECWORD', ''), ('attacks', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('server', 'SECWORD', ''), ('server-side request forgery', 'SECWORD', ''), ('ssrf', 'secword', ''), ('sensitive data', 'SECWORD', ''), ('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-918', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 4,CWE-918,GHSA-rv87-vcv4-fjvr,"@@ -743,21 +743,8 @@ public FormValidation doCheckURL(@QueryParameter String value) {
              if ( value.contains( ""$"" ) ) {
              	return FormValidation.warning( ""URL is parameterised and cannot be fully validated"" ) ;
@@ -7128,7 +7128,7 @@ The fix removes the network calls and returns a generic OK validation result, pr
 
 Weakness: CWE-918
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.17647058823529413,"[('change', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('remove', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('url validation', 'SECWORD', ''), ('ssrf', 'SECWORD', ''), ('url validation', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('server-side request forgery', 'SECWORD', ''), ('ssrf', 'secword', ''), ('sensitive', 'SECWORD', ''), ('server', 'secword', ''), ('fix', 'ACTION', ''), ('removes', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-918', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 5,CWE-918,GHSA-wc9w-wvq2-ffm9,"@@ -15,14 +15,14 @@ import (
  	""net/http""
  	""net/url""
@@ -7174,7 +7174,7 @@ The fix adds strict validation ensuring the hash parameter is exactly 32 hexadec
 
 Weakness: CWE-20
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.17647058823529413,"[('hash', 'secword', ''), ('#25322', 'ISSUE', ''), ('7a9c0e31eca4958f5fba053cfea9e64a2ea58509', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('hash', 'secword', ''), ('hash', 'secword', ''), ('poisoning', 'secword', ''), ('errors', 'FLAW', ''), ('disclosure', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('hash', 'secword', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 6,CWE-918,GHSA-hhr9-7xvh-8xgc,"@@ -15,7 +15,13 @@
      $browse = erLhcoreClassCoBrowse::getBrowseInstance($chat);
  }
@@ -7205,7 +7205,7 @@ The fix adds FILTER_VALIDATE_URL checks to ensure only well-formed URLs are acce
 
 Weakness: CWE-918
 Severity: Medium
-CVSS: 5.3"
+CVSS: 5.3",0.11764705882352941,"[('fix', 'ACTION', ''), ('#1752', 'ISSUE', '')]",0.47058823529411764,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('validate', 'secword', ''), ('malicious', 'SECWORD', ''), ('bypass', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('ssrf', 'secword', ''), ('inject', 'secword', ''), ('attacks', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-918', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
 7,CWE-918,GHSA-2647-c639-qv2j,"@@ -734,10 +734,10 @@ def save_cover_from_url(url, book_path):
          if not cli.allow_localhost:
              # 127.0.x.x, localhost, [::1], [::ffff:7f00:1]
@@ -7226,7 +7226,7 @@ The fix extends localhost IP checks to include 0.0.0.0 and disables HTTP redirec
 
 Weakness: CWE-918
 Severity: High
-CVSS: 7.8"
+CVSS: 7.8",0.058823529411764705,[],0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('ssrf', 'SECWORD', ''), ('server-side request forgery', 'secword', ''), ('ssrf', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('metadata exposure', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('0.0.0.0', 'VERSION', ''), ('requests.get', 'URL', ''), ('prevent', 'ACTION', ''), ('bypassing', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-918', 'CWEID', ''), ('high', 'SEVERITY', '')]"
 8,CWE-918,GHSA-38rv-5jqc-m2cv,"@@ -12,8 +12,7 @@
  import recurly.errors
  from recurly.link_header import parse_link_value
@@ -7281,4 +7281,4 @@ The fix applies URL encoding to the UUID using quote() before concatenation, ens
 
 Weakness: CWE-74
 Severity: Medium
-CVSS: 5.9"
+CVSS: 5.9",0.11764705882352941,"[('fix', 'ACTION', ''), ('ssrf', 'SECWORD', '')]",0.47058823529411764,"[('fix', 'ACTION', ''), ('encode', 'SECWORD', ''), ('encoding', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('manipulate', 'ACTION', ''), ('request smuggling', 'SECWORD', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('malicious', 'SECWORD', ''), ('bypass', 'secword', ''), ('fix', 'ACTION', ''), ('encoding', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-74', 'CWEID', ''), ('medium', 'SEVERITY', '')]"

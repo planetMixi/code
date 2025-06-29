@@ -14,8 +14,8 @@ if not api_key:
     raise ValueError("OPENAI_API_KEY not found in environment variables. Please check your .env file.")
 client = OpenAI(api_key=api_key)
 
-input_file = "by_weakness/cwe-125_samples.json"
-output_file = "secom_few_shot_cwe125.csv"
+input_file = "by_weakness/cwe-918_samples.json"
+output_file = "secom_few_shot_cwe918.csv"
 results = []
 
 df = pd.read_json(input_file, orient='table')

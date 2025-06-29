@@ -33,13 +33,22 @@ def extract_vuln_id(text):
     match = re.search(r"(cve-\d{4}-\d+|ghsa-[\w]{4}-[\w]{4}-[\w]{4})", str(text).lower())
     return match.group(0) if match else None
 
-# --- Load data entries from all subsets ---
+# --------- load data entries in the right order ---------------
+file_order = [
+    "cwe-617_samples.json",
+    "cwe-79_samples.json",
+    "cwe-125_samples.json",
+    "cwe-89_samples.json",
+    "cwe-918_samples.json"
+]
+
 data_entries = []
-for i in range(1, 6):
-    with open(f"subsets/subset_{i}.json", "r") as f:
+for filename in file_order:
+    with open(os.path.join("by_weakness", filename), "r") as f:
         data_entries.extend(json.load(f)["data"])
 
 entries_by_vuln_id = {entry["vuln_id"]: entry for entry in data_entries}
+
 
 # --- Load RQ2 generation output ---
 df = pd.read_csv("secom_zero_shot_rq2_results.csv")

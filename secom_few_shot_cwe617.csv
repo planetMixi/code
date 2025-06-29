@@ -1,0 +1,340 @@
+id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message
+0,CWE-617,GHSA-fq86-3f29-px2c,"@@ -1741,14 +1741,16 @@ Status ConstantFolding::IsSimplifiableReshape(
+       int32_t dim = outputs[0]->flat<int32>()(i);
+       shp.push_back(dim);
+     }
+-    TF_CHECK_OK(TensorShapeUtils::MakeShape(shp, &new_dims));
++    s = TensorShapeUtils::MakeShape(shp, &new_dims);
++    if (!s.ok()) return s;
+   } else {
+     std::vector<int64_t> shp;
+     for (int i = 0; i < outputs[0]->NumElements(); ++i) {
+       int64_t dim = outputs[0]->flat<int64_t>()(i);
+       shp.push_back(dim);
+     }
+-    TF_CHECK_OK(TensorShapeUtils::MakeShape(shp, &new_dims));
++    s = TensorShapeUtils::MakeShape(shp, &new_dims);
++    if (!s.ok()) return s;
+   }
+ 
+   if (!shape.IsCompatibleWith(new_dims)) {","Eliminate `CHECK`-fails from `IsSimplifiableReshape` via `MakeShape(<invalid shape>)`
+
+PiperOrigin-RevId: 409166738
+Change-Id: I7f0a3590b8acae3f3e3e2fe636e1f5ef285693cf","vuln-fix: Handle errors in tensor shape construction safely
+
+The code did not check the status returned by TensorShapeUtils::MakeShape, ignoring potential errors during tensor shape creation.
+This could lead to unchecked invalid tensor shapes causing undefined behavior or crashes, enabling denial-of-service attacks.
+The fix captures the status and returns early if shape construction fails, preventing further processing of invalid shapes.
+
+Weakness: CWE-703
+Severity: Medium
+CVSS: 5.9"
+1,CWE-617,GHSA-jhq9-wm9m-cf89,"@@ -90,6 +90,8 @@ class UnsortedSegmentJoinOp : public OpKernel {
+     const int32 segment_dims = segment_id_shape.dims();
+ 
+     const Tensor& num_segments_tensor = context->input(2);
++    OP_REQUIRES(context, num_segments_tensor.NumElements() != 0,
++                errors::InvalidArgument(""Number of segments cannot be empty.""));
+     auto num_segments = num_segments_tensor.scalar<NUM_SEGMENTS_TYPE>()();
+ 
+     OP_REQUIRES(context, segment_dims != 0,","Fix overflow CHECK issue with `tf.raw_ops.UnsortedSegmentJoin`.
+
+PiperOrigin-RevId: 370766155
+Change-Id: I33e7c6626224e1060a8a4ab51ad5d861c6d4c63e","vuln-fix: Validate non-empty num_segments tensor in UnsortedSegmentJoinOp
+
+The operation did not verify that the num_segments input tensor contained any elements before accessing its scalar value.
+This could lead to out-of-bounds memory access or undefined behavior, potentially causing crashes or data corruption.
+The fix adds a check to ensure the num_segments tensor is not empty before dereferencing its scalar value.
+
+Weakness: CWE-125
+Severity: Medium
+CVSS: 5.9"
+2,CWE-617,GHSA-27j5-4p9v-pp67,"@@ -302,6 +302,10 @@ class TensorListReserve : public OpKernel {
+     PartialTensorShape element_shape;
+     OP_REQUIRES_OK(c, TensorShapeFromTensor(c->input(0), &element_shape));
+     int32 num_elements = c->input(1).scalar<int32>()();
++    OP_REQUIRES(c, num_elements >= 0,
++                errors::InvalidArgument(""The num_elements to reserve must be a ""
++                                        ""non negative number, but got "",
++                                        num_elements));
+     TensorList output;
+     output.element_shape = element_shape;
+     output.element_dtype = element_dtype_;","Validate num_elements input in tf.raw_ops.TensorListReserve
+
+PiperOrigin-RevId: 383954564
+Change-Id: I454bd78eff85bc4f16ddb7e608596971cca47f8f","vuln-fix: Validate non-negative reservation size in TensorListReserve
+
+The TensorListReserve operation did not check if the requested number of elements to reserve was negative, allowing invalid tensor list sizes.
+This could lead to undefined behavior or memory corruption when negative sizes are used, posing a risk of crashes or data integrity issues.
+The fix adds a validation step that rejects negative num_elements values with an InvalidArgument error before proceeding.
+
+Weakness: CWE-704
+Severity: Medium
+CVSS: 5.9"
+3,CWE-617,GHSA-j3mj-fhpq-qqjj,"@@ -983,6 +983,15 @@ bool Tensor::FromProto(Allocator* a, const TensorProto& proto) {
+                          dtype_error = true, dtype_error = true);
+     }
+     if (dtype_error || p == nullptr) return false;
++  } else {
++    // Handle the case of empty tensors (N = 0) or tensors with incomplete shape
++    // (N = -1). All other values of `shape.num_elements()` should be invalid by
++    // construction.
++    // Here, we just need to validate that the `proto.dtype()` value is valid.
++    bool dtype_error = false;
++    CASES_WITH_DEFAULT(proto.dtype(), break, dtype_error = true,
++                       dtype_error = true);
++    if (dtype_error) return false;
+   }
+   shape_ = shape;
+   set_dtype(proto.dtype());","Validate `proto.dtype()` before calling `set_dtype()`.
+
+This prevents a `DCHECK`-fail when the proto contains an invalid dtype for a tensor shape with 0 elements or for an incomplete tensor shape.
+
+PiperOrigin-RevId: 408369083
+Change-Id: Ia21a3e3d62a90d642a4561f08f3b543e5ad00c46","vuln-fix: Validate data type for empty or incomplete tensors
+
+The tensor deserialization code did not validate the data type for empty tensors or tensors with incomplete shapes, allowing invalid or malformed proto data to be accepted.
+This could lead to undefined behavior or memory corruption when downstream code assumes valid tensor types, posing a risk of crashes or data integrity issues.
+The fix adds explicit validation of the proto data type for these special cases, rejecting invalid types before further processing.
+
+Weakness: CWE-20
+Severity: Medium
+CVSS: 5.9"
+4,CWE-617,GHSA-5f2r-qp73-37mr,"@@ -75,8 +75,10 @@ bool DependencyOptimizer::SafeToRemoveIdentity(const NodeDef& node) const {
+   }
+ 
+   const NodeDef* input = node_map_->GetNode(NodeName(node.input(0)));
+-  CHECK(input != nullptr) << ""node = "" << node.name()
+-                          << "" input = "" << node.input(0);
++  if (input == nullptr) {
++    VLOG(1) << ""node = "" << node.name() << "" input = "" << node.input(0);
++    return false;
++  }
+   // Don't remove Identity nodes corresponding to Variable reads or following
+   // Recv.
+   if (IsVariable(*input) || IsRecv(*input)) {","Prevent a null-pointer dereference / `CHECK`-fail in grappler.
+
+PiperOrigin-RevId: 409187354
+Change-Id: I369c249cca32e6c56ec193f0ebbf2f2768fc7d43","vuln-fix: Handle null input node in SafeToRemoveIdentity
+
+The function assumed the input node pointer was always valid, causing a CHECK failure and process termination if the input was missing.
+This unchecked assumption allowed crafted graphs to trigger denial-of-service by crashing the optimizer during graph transformations.
+The fix replaces the CHECK with a null check that logs the issue and safely returns false, preventing crashes from invalid input references.
+
+Weakness: CWE-617
+Severity: Medium
+CVSS: 6.5"
+5,CWE-617,GHSA-43jf-985q-588j,"@@ -181,7 +181,9 @@ class FunctionInstantiationHelper {
+     DataTypeVector dtypes;
+     TF_RETURN_IF_ERROR(
+         ArgNumType(attr_values, arg_def, &is_type_list, &dtypes));
+-    CHECK_GE(dtypes.size(), size_t{1});
++    if (dtypes.size() < size_t{1}) {
++      return errors::Internal(""Expected a list of at least one dtype"");
++    }
+     int arg_index = result_.nodes.size();
+     TF_RETURN_IF_ERROR(
+         AddItem(arg_def.name(), {true, arg_index, 0, is_type_list, dtypes}));","Eliminate `CHECK`-fail from `function.cc`.
+
+PiperOrigin-RevId: 409414744
+Change-Id: Ic854e12ab2edb88b165d32e2d632c4ee654d71ad","vuln-fix: Validate non-empty dtype list in function instantiation
+
+The function instantiation helper did not verify that the dtype list contained at least one element, allowing empty lists to pass unchecked.
+This could cause unchecked assumptions leading to undefined behavior or crashes during graph construction, potentially destabilizing the system.
+The patch replaces a CHECK assertion with a runtime error return when the dtype list is empty, ensuring proper validation and error handling.
+
+Weakness: CWE-617
+Severity: Medium
+CVSS: 6.5"
+6,CWE-617,GHSA-fphq-gw9m-ghrv,"@@ -232,6 +232,8 @@ class CTCGreedyDecoderOp : public OpKernel {
+         int prev_indices = -1;
+         for (int t = 0; t < seq_len_t(b); ++t) {
+           int max_class_indices;
++          OP_REQUIRES(ctx, input_list_t[t].dimension(1) > 0,
++                      errors::InvalidArgument(""Invalid input dimensions.""));
+           log_prob_t(b, 0) +=
+               -RowMax<T>(input_list_t[t], b, &max_class_indices);
+           if (max_class_indices != blank_index &&","Fix `tf.raw_ops.CTCGreedyDecoder` CHECK failure.
+
+PiperOrigin-RevId: 369960465
+Change-Id: If0b8b3264d5a47a24ac0970ed7b81ce6b4921fae","vuln-fix: Validate input tensor dimensions in CTC decoder
+
+The CTCGreedyDecoderOp did not verify that input tensors had valid non-zero dimensions before processing.
+This could lead to out-of-bounds memory access or undefined behavior when accessing tensor elements, risking crashes or data corruption.
+The fix adds a runtime check using OP_REQUIRES to ensure input tensors have positive dimension sizes before proceeding.
+
+Weakness: CWE-125  
+Severity: Medium  
+CVSS: 5.9"
+7,CWE-617,GHSA-36vm-xw34-x4pj,"@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
+ limitations under the License.
+ ==============================================================================*/
+ 
++#include ""tensorflow/core/platform/errors.h""
+ #define EIGEN_USE_THREADS
+ 
+ // See docs in ../ops/fft_ops.cc.
+@@ -261,6 +262,9 @@ class FFTCPU : public FFTBase {
+           i == FFTRank ? fft_shape[i - 1] / 2 + 1 : fft_shape[i - 1];
+       full_fft_shape.AddDim(fft_shape[i - 1]);
+     }
++    OP_REQUIRES(ctx, full_fft_shape.num_elements() > 0,
++                errors::InvalidArgument(""Obtained a FFT shape of 0 elements: "",
++                                        full_fft_shape.DebugString()));
+ 
+     Tensor temp;
+     OP_REQUIRES_OK(ctx, ctx->allocate_temp(DataTypeToEnum<ComplexT>::v(),","Fix a check fail in Fast Fourier implementation
+
+PiperOrigin-RevId: 372026629
+Change-Id: Id05c3362aa575271bc3e06b16316c9037085fc11","vuln-fix: Validate FFT shape size before allocation
+
+The FFT implementation did not verify that the computed FFT shape contained a positive number of elements before tensor allocation.
+This could lead to zero-sized tensor allocations causing undefined behavior or crashes, potentially exploitable for denial of service.
+The patch adds a check that the FFT shape has more than zero elements and returns an invalid argument error if not.
+
+Weakness: CWE-704
+Severity: Medium
+CVSS: 5.9"
+8,CWE-617,GHSA-ph87-fvjr-v33w,"@@ -222,6 +222,9 @@ class FFTCPU : public FFTBase {
+       input_slice_sizes[i] = fft_shape[i - 1];
+       temp_shape.AddDim(fft_shape[i - 1]);
+     }
++    OP_REQUIRES(ctx, temp_shape.num_elements() > 0,
++                errors::InvalidArgument(""Obtained a FFT shape of 0 elements: "",
++                                        temp_shape.DebugString()));
+ 
+     auto output = out->flat_inner_dims<ComplexT, FFTRank + 1>();
+     const Eigen::DSizes<Eigen::DenseIndex, FFTRank + 1> zero_start_indices;","Prevent check fail in FFT
+
+PiperOrigin-RevId: 372031044
+Change-Id: I50994e3e8a5d1342d01bde80256f6bf2730ca299","vuln-fix: Validate FFT shape to prevent zero-element tensors
+
+The FFT computation did not verify that the calculated FFT shape contained a positive number of elements, allowing zero-element shapes to proceed unchecked.
+This could lead to invalid memory accesses or crashes during tensor operations, causing denial-of-service conditions.
+The fix adds a validation check that rejects FFT shapes with zero elements by enforcing a runtime error with a descriptive message.
+
+Weakness: CWE-125
+Severity: Medium
+CVSS: 5.9"
+9,CWE-617,GHSA-4j82-5ccr-4r8v,"@@ -45,7 +45,7 @@ constexpr int kMaxTensorNestDepth = 100;
+ // not fully defined return -1.
+ int64_t TensorByteSize(const TensorProto& t) {
+   // num_elements returns -1 if shape is not fully defined.
+-  int64_t num_elems = TensorShape(t.tensor_shape()).num_elements();
++  int64_t num_elems = PartialTensorShape(t.tensor_shape()).num_elements();
+   return num_elems < 0 ? -1 : num_elems * DataTypeSize(t.dtype());
+ }","Use `PartialTensorShape` instead of `TensorShape`.
+
+`TensorShape` constructor throws a CHECK-fail if shape is partial/overflows which the other doesn't. We are only determining the number of elements in the shape and partial shape should be used as it returns negative number when needed.
+
+PiperOrigin-RevId: 409205384
+Change-Id: Ia56542ff9ec758f2c9ffc7e4dcc9fa7eecd86e7b","vuln-fix: Use partial shape to compute tensor byte size safely
+
+The original code used TensorShape which requires fully defined shapes, causing incorrect byte size calculations for partially defined tensors.
+This could lead to integer underflows or incorrect memory allocations, potentially causing crashes or memory corruption.
+The fix replaces TensorShape with PartialTensorShape to correctly handle partially defined shapes and avoid negative element counts.
+
+Weakness: CWE-190
+Severity: Medium
+CVSS: 5.9"
+10,CWE-617,GHSA-4v5p-v5h9-6xjx,"@@ -821,9 +821,10 @@ bool RepeatedAttrDefEqual(
+     const protobuf::RepeatedPtrField<OpDef::AttrDef>& a2) {
+   std::unordered_map<string, const OpDef::AttrDef*> a1_set;
+   for (const OpDef::AttrDef& def : a1) {
+-    DCHECK(a1_set.find(def.name()) == a1_set.end())
+-        << ""AttrDef names must be unique, but '"" << def.name()
+-        << ""' appears more than once"";
++    if (a1_set.find(def.name()) != a1_set.end()) {
++      LOG(ERROR) << ""AttrDef names must be unique, but '"" << def.name()
++                 << ""' appears more than once"";
++    }
+     a1_set[def.name()] = &def;
+   }
+   for (const OpDef::AttrDef& def : a2) {","Remove a `DCHECK`-fail, log an error instead.
+
+`DCHECK` in debug mode results in crashes. TensorFlow has had multiple vulnerabilities due to this.
+
+Outside of debug mode, `DCHECK` is a no-op.
+
+A better alternative is to report an error to the log buffer and continue. This should happen both in debug mode and in prod mode.
+
+PiperOrigin-RevId: 408375925
+Change-Id: Id5b3e19c73f3fbe0cc4bba26ca44ff9607bb6356","vuln-fix: Replace DCHECK with runtime check for duplicate AttrDef names
+
+The code used DCHECK to verify uniqueness of AttrDef names, which only triggers in debug builds and can be bypassed in production.
+This allowed duplicate attribute definitions to go unnoticed, potentially causing inconsistent behavior or logic errors exploitable by crafted inputs.
+The fix replaces DCHECK with a runtime error log to ensure duplicate AttrDef names are detected and reported in all build configurations.
+
+Weakness: CWE-250
+Severity: Medium
+CVSS: 5.9"
+11,CWE-617,GHSA-wp3c-xw9g-gpcg,"@@ -78,6 +78,11 @@ class SparseDenseBinaryOpShared : public OpKernel {
+                     ""but received shapes: "",
+                     values_t->shape().DebugString(), "" and "",
+                     shape_t->shape().DebugString()));
++    OP_REQUIRES(
++        ctx, values_t->dim_size(0) == indices_t->dim_size(0),
++        errors::InvalidArgument(
++            ""The first dimension of values and indices should match. ("",
++            values_t->dim_size(0), "" vs. "", indices_t->dim_size(0), "")""));
+ 
+     const auto indices_mat = indices_t->matrix<int64>();
+     const auto shape_vec = shape_t->vec<int64>();","Fix heap-buffer-overflow issue with `tf.raw_ops.SparseDenseCwiseMul`.
+
+PiperOrigin-RevId: 372054410
+Change-Id: Ifcce0491e2e3816838c87e73be30a1e61b65174d","vuln-fix: Validate matching dimensions of sparse tensor inputs
+
+The operation did not verify that the first dimension sizes of values and indices tensors matched, allowing inconsistent tensor shapes to be processed.
+This could lead to out-of-bounds memory access or corrupted computations, causing crashes or data integrity issues.
+The fix adds a runtime check that enforces the first dimension of values and indices tensors to be equal, returning an error if they differ.
+
+Weakness: CWE-125  
+Severity: Medium  
+CVSS: 6.1"
+12,CWE-617,GHSA-gvm4-h8j3-rjrq,"@@ -123,6 +123,11 @@ class LoadAndRemapMatrixOp : public OpKernel {
+     // Processes the checkpoint source and the provided Tensor name.
+     const Tensor* ckpt_path_t;
+     OP_REQUIRES_OK(context, context->input(""ckpt_path"", &ckpt_path_t));
++    OP_REQUIRES(
++        context, ckpt_path_t->NumElements() == 1,
++        errors::InvalidArgument(""The `ckpt_path` tensor must have exactly one ""
++                                ""element, got tensor of shape "",
++                                ckpt_path_t->shape().DebugString()));
+     const string& ckpt_path = ckpt_path_t->scalar<tstring>()();
+     const Tensor* old_tensor_name_t;
+     OP_REQUIRES_OK(context,","Fix a check fail
+
+PiperOrigin-RevId: 372011072
+Change-Id: I1062cfaed0aa16884e9a16312483794d188db76f","vuln-fix: Enforce single-element tensor for checkpoint path input
+
+The checkpoint path input tensor was not validated for size, allowing multi-element tensors that could cause unexpected behavior or memory access errors.
+This posed a risk of out-of-bounds reads or logic errors when interpreting the checkpoint path, potentially leading to crashes or data corruption.
+The fix adds a check to ensure the checkpoint path tensor contains exactly one element, rejecting inputs with invalid shapes early.
+
+Weakness: CWE-125  
+Severity: Medium  
+CVSS: 5.9"
+13,CWE-617,GHSA-43jf-985q-588j,"@@ -191,7 +191,11 @@ class FunctionInstantiationHelper {
+     for (size_t i = 0; i < dtypes.size(); ++i) {
+       TF_RETURN_IF_ERROR(AddItem(strings::StrCat(arg_def.name(), "":"", i),
+                                  {true, arg_index, 0, false, {dtypes[i]}}));
+-      DCHECK_EQ(arg_index, result_.nodes.size());
++      if (arg_index != result_.nodes.size()) {
++        return errors::Internal(
++            ""Expected arg_index to be equal to the number of nodes in result."",
++            "" Got "", arg_index, "" and "", result_.nodes.size());
++      }
+       string name = arg_def.name();
+       if (dtypes.size() > 1) {
+         strings::StrAppend(&name, ""_"", i);","Eliminate debug `CHECK`-fail from `function.cc`
+
+PiperOrigin-RevId: 409416119
+Change-Id: I8376ee464d434e9b970ff0ad49edfdaa2a273cfe","vuln-fix: Validate argument index consistency in function instantiation
+
+The function instantiation helper did not verify that the argument index matched the expected number of nodes, allowing inconsistent internal state to propagate unnoticed.
+This could lead to out-of-bounds accesses or corrupted graph construction, potentially causing crashes or undefined behavior exploitable for denial of service.
+The patch adds a runtime check that returns an internal error if the argument index does not equal the current node count, preventing further inconsistent processing.
+
+Weakness: CWE-617
+Severity: Medium
+CVSS: 6.5"

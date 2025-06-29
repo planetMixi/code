@@ -1,0 +1,18 @@
+vuln_id,generated_vuln_id,vuln_id_match,original_weakness,generated_weakness,weakness_match,original_severity,generated_severity,severity_match,original_cvss,generated_cvss,cvss_match
+GHSA-h2fw-93qx-vrcq,,False,cwe-89,cwe-639,False,high,medium,False,8.8,6.1,False
+GHSA-rr8m-29g8-8cgc,,False,cwe-89,cwe-89,True,high,high,True,8.8,7.5,False
+GHSA-gvmf-wcx6-p974,,False,cwe-89,cwe-89,True,high,high,True,8.1,7.5,False
+GHSA-hrgx-p36p-89q4,,False,"cwe-89', 'cwe-95",cwe-311,False,critical,high,False,9.8,7.8,False
+GHSA-7hmh-8gwv-mfvq,,False,cwe-89,cwe-89,True,medium,high,False,6.5,7.5,False
+GHSA-q9p4-qfc8-fvpp,,False,cwe-89,cwe-89,True,critical,high,False,9.8,7.5,False
+GHSA-x92h-wmg2-6hp7,,False,"cwe-89', 'cwe-79",cwe-20,False,critical,medium,False,9.8,5.9,False
+GHSA-9cq5-xgg4-x477,,False,cwe-89,cwe-20,False,medium,medium,True,6.7,5.9,False
+GHSA-2598-2f59-rmhq,,False,cwe-89,cwe-89,True,critical,high,False,9.8,7.5,False
+GHSA-x2jc-pwfj-h9p3,,False,cwe-89,cwe-89,True,low,high,False,0.0,7.5,False
+GHSA-2v7p-f4qm-r5pc,,False,cwe-89,cwe-89,True,high,high,True,7.5,7.5,True
+GHSA-2jx3-5j9v-prpp,,False,cwe-89,cwe-89,True,high,high,True,8.1,7.5,False
+GHSA-79mg-4w23-4fqc,,False,"cwe-89', 'cwe-287",cwe-200,False,high,medium,False,8.1,6.1,False
+GHSA-v3mr-gp7j-pw5w,,False,cwe-89,cwe-89,True,low,high,False,0.0,7.5,False
+GHSA-vj9x-w7ch-f46p,,False,cwe-89,cwe-89,True,high,high,True,8.3,7.5,False
+GHSA-6gm7-j668-w6h9,,False,cwe-89,cwe-89,True,high,high,True,7.5,7.5,True
+GHSA-864j-6qpp-cmrr,,False,cwe-89,cwe-89,True,critical,high,False,9.8,7.5,False

@@ -1,0 +1,354 @@
+id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message,original_message_score,original_message_entities,generated_secom_message_score,generated_secom_message_entities
+0,"CWE-918', 'CWE-20",GHSA-2h63-qp69-fwvw,"@@ -847,8 +847,10 @@ private Element parseXml(String xmlString) {
+         Document doc = null;
+         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+         try {
+-            javax.xml.parsers.DocumentBuilder parser = factory
+-                    .newDocumentBuilder();
++            factory.setFeature(""http://xml.org/sax/features/external-general-entities"", false);
++            factory.setFeature(""http://xml.org/sax/features/external-parameter-entities"", false);
++            factory.setFeature(""http://apache.org/xml/features/nonvalidating/load-external-dtd"", false);
++            javax.xml.parsers.DocumentBuilder parser = factory.newDocumentBuilder();
+             parser.setErrorHandler(new ErrorHandler() {
+                 public void error(SAXParseException exception)
+                         throws SAXException {","BATIK-1284: Dont load DTDs in NodePickerPanel
+
+git-svn-id: https://svn.apache.org/repos/asf/xmlgraphics/batik/trunk@1878396 13f79535-47bb-0310-9956-ffa450edef68","vuln-fix: Disable external entity processing in XML parser
+
+The XML parser allowed processing of external entities and DTDs, enabling XML External Entity (XXE) attacks.
+This posed a security risk by allowing attackers to read local files, perform SSRF, or cause denial of service via crafted XML input.
+The fix disables external-general-entities, external-parameter-entities, and external DTD loading features on the DocumentBuilderFactory before parsing.
+
+Weakness: CWE-611
+Severity: High
+CVSS: 7.5",0.17647058823529413,"[('https://svn.apache.org/repos/asf/xmlgraphics/batik/trunk@1878396', 'URL', ''), ('ffa450edef68', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('external entity', 'SECWORD', ''), ('xml external entity', 'SECWORD', ''), ('xxe', 'secword', ''), ('attacks', 'FLAW', ''), ('security', 'secword', ''), ('attackers', 'SECWORD', ''), ('ssrf', 'secword', ''), ('denial of service', 'secword', ''), ('fix', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-611', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+1,"CWE-400', 'CWE-918",GHSA-7q4h-pj78-j7vg,"@@ -21,9 +21,11 @@
+ import java.security.cert.X509Certificate;
+ import java.util.List;
+ import java.util.Map;
++import java.util.logging.Logger;
+ 
+ import javax.ws.rs.core.MultivaluedMap;
+ 
++import org.apache.cxf.common.logging.LogUtils;
+ import org.apache.cxf.helpers.CastUtils;
+ import org.apache.cxf.jaxrs.client.WebClient;
+ import org.apache.cxf.jaxrs.impl.MetadataMap;
+@@ -42,23 +44,31 @@
+ import org.apache.cxf.rt.security.crypto.CryptoUtils;
+ 
+ public class JwtRequestCodeFilter extends OAuthJoseJwtConsumer implements AuthorizationRequestFilter {
++    protected static final Logger LOG = LogUtils.getL7dLogger(JwtRequestCodeFilter.class);
+     private static final String REQUEST_URI_CONTENT_TYPE = ""application/oauth-authz-req+jwt"";
+     private static final String REQUEST_PARAM = ""request"";
+     private static final String REQUEST_URI_PARAM = ""request_uri"";
++
+     private boolean verifyWithClientCertificates;
+     private String issuer;
+     private JsonMapObjectReaderWriter jsonHandler = new JsonMapObjectReaderWriter();
++
+     @Override
+     public MultivaluedMap<String, String> process(MultivaluedMap<String, String> params,
+                                                   UserSubject endUser,
+                                                   Client client) {
+         String requestToken = params.getFirst(REQUEST_PARAM);
++        String requestUri = params.getFirst(REQUEST_URI_PARAM);
++
+         if (requestToken == null) {
+-            String requestUri = params.getFirst(REQUEST_URI_PARAM);
+             if (isRequestUriValid(client, requestUri)) {
+                 requestToken = WebClient.create(requestUri).accept(REQUEST_URI_CONTENT_TYPE).get(String.class);
+             }
++        } else if (requestUri != null) {
++            LOG.warning(""It is not valid to specify both a request and request_uri value"");
++            throw new SecurityException();
+         }
++
+         if (requestToken != null) {
+             JweDecryptionProvider theDecryptor = super.getInitializedDecryptionProvider(client.getClientSecret());
+             JwsSignatureVerifier theSigVerifier = getInitializedSigVerifier(client);",Make sure both a request + request_uri can't be specified,"vuln-fix: Prevent simultaneous use of request and request_uri parameters
+
+The filter allowed both 'request' and 'request_uri' parameters to be specified simultaneously, which could cause ambiguous or conflicting authorization processing.
+This ambiguity could be exploited to bypass security checks or cause unexpected behavior in JWT request handling.
+The fix adds a check that logs a warning and throws a SecurityException if both parameters are present, enforcing mutual exclusivity.
+
+Weakness: CWE-285
+Severity: Medium
+CVSS: 5.9",0.058823529411764705,[],0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('exploited', 'SECWORD', ''), ('bypass', 'secword', ''), ('security', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('warning', 'FLAW', ''), ('securityexception', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-285', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+2,CWE-918,GHSA-4wpp-w5r4-7v5v,"@@ -10,6 +10,7 @@ import (
+ 	""io/ioutil""
+ 	""log""
+ 	""net/http""
++	""path/filepath""
+ 	""strconv""
+ 	""strings""
+ 
+@@ -279,7 +280,7 @@ func (s *HTTPServer) handlePostSeq(w http.ResponseWriter, r *http.Request) {
+ 
+ func (s *HTTPServer) handlePostFile(w http.ResponseWriter, r *http.Request) {
+ 	u := s.charmUserFromRequest(w, r)
+-	path := pattern.Path(r.Context())
++	path := filepath.Clean(pattern.Path(r.Context()))
+ 	ms := r.URL.Query().Get(""mode"")
+ 	m, err := strconv.ParseUint(ms, 10, 32)
+ 	if err != nil {
+@@ -316,7 +317,7 @@ func (s *HTTPServer) handlePostFile(w http.ResponseWriter, r *http.Request) {
+ 
+ func (s *HTTPServer) handleGetFile(w http.ResponseWriter, r *http.Request) {
+ 	u := s.charmUserFromRequest(w, r)
+-	path := pattern.Path(r.Context())
++	path := filepath.Clean(pattern.Path(r.Context()))
+ 	f, err := s.cfg.FileStore.Get(u.CharmID, path)
+ 	if errors.Is(err, fs.ErrNotExist) {
+ 		s.renderCustomError(w, ""file not found"", http.StatusNotFound)
+@@ -353,7 +354,7 @@ func (s *HTTPServer) handleGetFile(w http.ResponseWriter, r *http.Request) {
+ 
+ func (s *HTTPServer) handleDeleteFile(w http.ResponseWriter, r *http.Request) {
+ 	u := s.charmUserFromRequest(w, r)
+-	path := pattern.Path(r.Context())
++	path := filepath.Clean(pattern.Path(r.Context()))
+ 	err := s.cfg.FileStore.Delete(u.CharmID, path)
+ 	if err != nil {
+ 		log.Printf(""cannot delete file: %s"", err)",fix: clean path before accessing file store,"vuln-fix: Normalize file paths to prevent directory traversal
+
+The file handling endpoints did not sanitize user-supplied file paths, allowing crafted paths to escape intended directories via traversal sequences.
+This posed a security risk by enabling attackers to access, modify, or delete arbitrary files outside the permitted scope.
+The fix applies filepath.Clean to normalize and sanitize all file path inputs before processing them.
+
+Weakness: CWE-22
+Severity: High
+CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('directory traversal', 'secword', ''), ('sanitize', 'SECWORD', ''), ('escape', 'secword', ''), ('security', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('filepath.clean', 'URL', ''), ('sanitize', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-22', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+3,"CWE-400', 'CWE-918",GHSA-7q4h-pj78-j7vg,"@@ -42,6 +42,7 @@
+ import org.apache.cxf.rt.security.crypto.CryptoUtils;
+ 
+ public class JwtRequestCodeFilter extends OAuthJoseJwtConsumer implements AuthorizationRequestFilter {
++    private static final String REQUEST_URI_CONTENT_TYPE = ""application/oauth-authz-req+jwt"";
+     private static final String REQUEST_PARAM = ""request"";
+     private static final String REQUEST_URI_PARAM = ""request_uri"";
+     private boolean verifyWithClientCertificates;
+@@ -55,7 +56,7 @@ public MultivaluedMap<String, String> process(MultivaluedMap<String, String> par
+         if (requestToken == null) {
+             String requestUri = params.getFirst(REQUEST_URI_PARAM);
+             if (isRequestUriValid(client, requestUri)) {
+-                requestToken = WebClient.create(requestUri).get(String.class);
++                requestToken = WebClient.create(requestUri).accept(REQUEST_URI_CONTENT_TYPE).get(String.class);
+             }
+         }
+         if (requestToken != null) {
+@@ -101,9 +102,17 @@ public MultivaluedMap<String, String> process(MultivaluedMap<String, String> par
+         }
+         return params;
+     }
+-    private boolean isRequestUriValid(Client client, String requestUri) {
+-        //TODO: consider restricting to specific hosts
+-        return requestUri != null && requestUri.startsWith(""https://"");
++
++    /**
++     * This method must be overridden to support request_uri. Take care to validate the request_uri properly,
++     * as otherwise it could lead to a security problem
++     * (https://tools.ietf.org/html/draft-ietf-oauth-jwsreq-30#section-10.4)
++     * @param client the Client object
++     * @param requestUri the request_uri parameter to validate
++     * @return whether the requestUri is permitted or not
++     */
++    protected boolean isRequestUriValid(Client client, String requestUri) {
++        return false;
+     }
+     protected JwsSignatureVerifier getInitializedSigVerifier(Client c) {
+         if (verifyWithClientCertificates) {",Disallow OAuth2 request_uri by default,"vuln-fix: Restrict request_uri usage to prevent SSRF attacks
+
+The code fetched JWT request objects from arbitrary request_uri values without strict validation, allowing attackers to trigger server-side HTTP requests to unintended locations.  
+This posed a server-side request forgery (SSRF) risk, potentially exposing internal services or sensitive data to unauthorized parties.  
+The fix enforces rejection of all request_uri values by default and requires explicit overriding with proper validation to prevent unsafe external requests.
+
+Weakness: CWE-918  
+Severity: High  
+CVSS: 7.5",0.11764705882352941,[],0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('ssrf', 'SECWORD', ''), ('attacks', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('server', 'SECWORD', ''), ('server-side request forgery', 'SECWORD', ''), ('ssrf', 'secword', ''), ('sensitive data', 'SECWORD', ''), ('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-918', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+4,CWE-918,GHSA-rv87-vcv4-fjvr,"@@ -743,21 +743,8 @@ public FormValidation doCheckURL(@QueryParameter String value) {
+             if ( value.contains( ""$"" ) ) {
+             	return FormValidation.warning( ""URL is parameterised and cannot be fully validated"" ) ;
+             }
+-
+-            try {
+-                URI uri = new URI(value);
+-                if (uri.getScheme().equals(""ftp"")) {
+-                    FTPClient ftpClient = getFTPClientObject(value, null, null);
+-                    ftpClient.getModificationTime(uri.getPath());
+-                } else {
+-                    ClientConfig cc = new DefaultClientConfig();
+-                    Client client = Client.create(cc);
+-                    client.resource(value).get(ClientResponse.class);
+-                }
+-                return FormValidation.ok();
+-            } catch (Exception e) {
+-                return FormValidation.error(e.getMessage());
+-            }
++            
++            return FormValidation.ok();
+         }
+ 
+         public FormValidation doCheckTimeout(@QueryParameter String value) {","Given that the URL is polled, may be valid at poll-time but not at
+configuration-time and may contain environment variables that could
+change the URL at poll-time, validating it during configuration is
+pointless.","vuln-fix: Remove unsafe URL validation causing SSRF risk
+
+The original URL validation method performed live network calls to arbitrary URLs, enabling attackers to trigger server-side request forgery (SSRF) by submitting crafted URLs.
+This allowed unauthorized internal network scanning or access to sensitive resources through the server’s network privileges.
+The fix removes the network calls and returns a generic OK validation result, preventing external requests during validation.
+
+Weakness: CWE-918
+Severity: High
+CVSS: 7.8",0.17647058823529413,"[('change', 'ACTION', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('remove', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('url validation', 'SECWORD', ''), ('ssrf', 'SECWORD', ''), ('url validation', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('server-side request forgery', 'SECWORD', ''), ('ssrf', 'secword', ''), ('sensitive', 'SECWORD', ''), ('server', 'secword', ''), ('fix', 'ACTION', ''), ('removes', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-918', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+5,CWE-918,GHSA-wc9w-wvq2-ffm9,"@@ -15,14 +15,14 @@ import (
+ 	""net/http""
+ 	""net/url""
+ 	""path/filepath""
++	""regexp""
+ 	""strconv""
+-	""strings""
+ 	""sync""
+ 	""time""
+ 
+ 	""github.com/grafana/grafana/pkg/infra/log""
++	""github.com/grafana/grafana/pkg/models""
+ 	""github.com/grafana/grafana/pkg/setting""
+-	""gopkg.in/macaron.v1""
+ 
+ 	gocache ""github.com/patrickmn/go-cache""
+ )
+@@ -73,9 +73,15 @@ type CacheServer struct {
+ 	cache    *gocache.Cache
+ }
+ 
+-func (this *CacheServer) Handler(ctx *macaron.Context) {
+-	urlPath := ctx.Req.URL.Path
+-	hash := urlPath[strings.LastIndex(urlPath, ""/"")+1:]
++var validMD5 = regexp.MustCompile(""^[a-fA-F0-9]{32}$"")
++
++func (this *CacheServer) Handler(ctx *models.ReqContext) {
++	hash := ctx.Params(""hash"")
++
++	if len(hash) != 32 || !validMD5.MatchString(hash) {
++		ctx.JsonApiErr(404, ""Avatar not found"", nil)
++		return
++	}
+ 
+ 	var avatar *Avatar
+ 	obj, exists := this.cache.Get(hash)","Only allow 32 hexadecimal digits for the avatar hash (#25322)
+
+(cherry picked from commit 7a9c0e31eca4958f5fba053cfea9e64a2ea58509)","vuln-fix: Validate avatar hash parameter format in cache handler
+
+The cache handler accepted arbitrary hash strings without validating their format, allowing malformed or unexpected input to be processed.
+This could lead to cache poisoning, unexpected errors, or information disclosure by accessing unintended cache entries.
+The fix adds strict validation ensuring the hash parameter is exactly 32 hexadecimal characters, returning a 404 error for invalid inputs.
+
+Weakness: CWE-20
+Severity: Medium
+CVSS: 5.9",0.17647058823529413,"[('hash', 'secword', ''), ('#25322', 'ISSUE', ''), ('7a9c0e31eca4958f5fba053cfea9e64a2ea58509', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('hash', 'secword', ''), ('hash', 'secword', ''), ('poisoning', 'secword', ''), ('errors', 'FLAW', ''), ('disclosure', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('hash', 'secword', ''), ('error', 'FLAW', ''), ('weakness', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+6,CWE-918,GHSA-hhr9-7xvh-8xgc,"@@ -15,7 +15,13 @@
+     $browse = erLhcoreClassCoBrowse::getBrowseInstance($chat);
+ }
+ 
+-$url = parse_url($_GET['base']);
++$base = trim($_GET['base']);
++
++if (!filter_var($base, FILTER_VALIDATE_URL)) {
++    exit;
++}
++
++$url = parse_url($base);
+ 
+ // Only http/https supported
+ if (!in_array($url['scheme'],['http','https']) || (isset($url['port']) && !in_array($url['port'],[80,443]))) {
+@@ -42,7 +48,7 @@
+         }
+     } else {
+ 
+-        if (!in_array($urlCSS['scheme'],['http','https']) || (isset($urlCSS['port']) && !in_array($urlCSS['port'],[80,443]))) {
++        if (!filter_var($_GET['css'], FILTER_VALIDATE_URL) || !in_array($urlCSS['scheme'],['http','https']) || (isset($urlCSS['port']) && !in_array($urlCSS['port'],[80,443]))) {
+             exit;
+         }",fix #1752,"vuln-fix: Validate URLs in base and css parameters
+
+The code did not properly validate user-supplied URLs before parsing and using them, allowing malformed or malicious URLs to bypass scheme and port checks.
+This could enable attackers to perform SSRF or inject unexpected URLs leading to unauthorized internal resource access or other attacks.
+The fix adds FILTER_VALIDATE_URL checks to ensure only well-formed URLs are accepted before further processing.
+
+Weakness: CWE-918
+Severity: Medium
+CVSS: 5.3",0.11764705882352941,"[('fix', 'ACTION', ''), ('#1752', 'ISSUE', '')]",0.47058823529411764,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('validate', 'secword', ''), ('malicious', 'SECWORD', ''), ('bypass', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('ssrf', 'secword', ''), ('inject', 'secword', ''), ('attacks', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('weakness', 'secword', ''), ('cwe-918', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+7,CWE-918,GHSA-2647-c639-qv2j,"@@ -734,10 +734,10 @@ def save_cover_from_url(url, book_path):
+         if not cli.allow_localhost:
+             # 127.0.x.x, localhost, [::1], [::ffff:7f00:1]
+             ip = socket.getaddrinfo(urlparse(url).hostname, 0)[0][4][0]
+-            if ip.startswith(""127."") or ip.startswith('::ffff:7f') or ip == ""::1"":
++            if ip.startswith(""127."") or ip.startswith('::ffff:7f') or ip == ""::1"" or ip == ""0.0.0.0"" or ip == ""::"":
+                 log.error(""Localhost was accessed for cover upload"")
+                 return False, _(""You are not allowed to access localhost for cover uploads"")
+-        img = requests.get(url, timeout=(10, 200))      # ToDo: Error Handling
++        img = requests.get(url, timeout=(10, 200), allow_redirects=False)      # ToDo: Error Handling
+         img.raise_for_status()
+         return save_cover(img, book_path)
+     except (socket.gaierror,","Don't allow redirects on cover uploads, catch more addresses which resolve to localhost","vuln-fix: Prevent SSRF by blocking localhost and disabling redirects
+
+The cover image download function did not fully block requests to localhost addresses and allowed HTTP redirects, enabling server-side request forgery (SSRF) attacks.
+This risked unauthorized internal network access or metadata exposure by letting attackers fetch internal resources via crafted URLs.
+The fix extends localhost IP checks to include 0.0.0.0 and disables HTTP redirects in requests.get to prevent bypassing the IP restrictions.
+
+Weakness: CWE-918
+Severity: High
+CVSS: 7.8",0.058823529411764705,[],0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('ssrf', 'SECWORD', ''), ('server-side request forgery', 'secword', ''), ('ssrf', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('metadata exposure', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('0.0.0.0', 'VERSION', ''), ('requests.get', 'URL', ''), ('prevent', 'ACTION', ''), ('bypassing', 'SECWORD', ''), ('weakness', 'secword', ''), ('cwe-918', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+8,CWE-918,GHSA-38rv-5jqc-m2cv,"@@ -12,8 +12,7 @@
+ import recurly.errors
+ from recurly.link_header import parse_link_value
+ from six.moves import http_client
+-from six.moves.urllib.parse import urlencode, urljoin, urlsplit
+-
++from six.moves.urllib.parse import urlencode, urlsplit, quote
+ 
+ class Money(object):
+ 
+@@ -338,7 +337,8 @@ def get(cls, uuid):
+         can be directly requested with this method.
+ 
+         """"""
+-        url = urljoin(recurly.base_uri(), cls.member_path % (uuid,))
++        uuid = quote(str(uuid))
++        url = recurly.base_uri() + (cls.member_path % (uuid,))
+         resp, elem = cls.element_for_url(url)
+         return cls.from_element(elem)
+ 
+@@ -606,7 +606,7 @@ def all(cls, **kwargs):
+         parameters.
+ 
+         """"""
+-        url = urljoin(recurly.base_uri(), cls.collection_path)
++        url = recurly.base_uri() + cls.collection_path
+         if kwargs:
+             url = '%s?%s' % (url, urlencode(kwargs))
+         return Page.page_for_url(url)
+@@ -616,7 +616,7 @@ def count(cls, **kwargs):
+         """"""Return a count of server side resources given
+         filtering arguments in kwargs.
+         """"""
+-        url = urljoin(recurly.base_uri(), cls.collection_path)
++        url = recurly.base_uri() + cls.collection_path
+         if kwargs:
+             url = '%s?%s' % (url, urlencode(kwargs))
+         return Page.count_for_url(url)
+@@ -638,7 +638,7 @@ def _update(self):
+         return self.put(self._url)
+ 
+     def _create(self):
+-        url = urljoin(recurly.base_uri(), self.collection_path)
++        url = recurly.base_uri() + self.collection_path
+         return self.post(url)
+ 
+     def put(self, url):","Fix SSRF: do not use urljoin, quote uuids","vuln-fix: Properly encode UUID in URL construction
+
+The code constructed URLs by concatenating raw UUID strings without encoding, allowing injection of special characters that could manipulate URL structure or cause request smuggling.
+This posed a security risk by enabling attackers to craft malicious UUIDs that alter request targets or bypass access controls.
+The fix applies URL encoding to the UUID using quote() before concatenation, ensuring safe and correct URL formation.
+
+Weakness: CWE-74
+Severity: Medium
+CVSS: 5.9",0.11764705882352941,"[('fix', 'ACTION', ''), ('ssrf', 'SECWORD', '')]",0.47058823529411764,"[('fix', 'ACTION', ''), ('encode', 'SECWORD', ''), ('encoding', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('manipulate', 'ACTION', ''), ('request smuggling', 'SECWORD', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('malicious', 'SECWORD', ''), ('bypass', 'secword', ''), ('fix', 'ACTION', ''), ('encoding', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'secword', ''), ('cwe-74', 'CWEID', ''), ('medium', 'SEVERITY', '')]"

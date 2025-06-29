@@ -1,0 +1,316 @@
+id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message,original_message_score,original_message_entities,generated_secom_message_score,generated_secom_message_entities
+0,{'CWE-617'},GHSA-fq86-3f29-px2c,"@@ -1741,14 +1741,16 @@ Status ConstantFolding::IsSimplifiableReshape(
+       int32_t dim = outputs[0]->flat<int32>()(i);
+       shp.push_back(dim);
+     }
+-    TF_CHECK_OK(TensorShapeUtils::MakeShape(shp, &new_dims));
++    s = TensorShapeUtils::MakeShape(shp, &new_dims);
++    if (!s.ok()) return s;
+   } else {
+     std::vector<int64_t> shp;
+     for (int i = 0; i < outputs[0]->NumElements(); ++i) {
+       int64_t dim = outputs[0]->flat<int64_t>()(i);
+       shp.push_back(dim);
+     }
+-    TF_CHECK_OK(TensorShapeUtils::MakeShape(shp, &new_dims));
++    s = TensorShapeUtils::MakeShape(shp, &new_dims);
++    if (!s.ok()) return s;
+   }
+ 
+   if (!shape.IsCompatibleWith(new_dims)) {","Eliminate `CHECK`-fails from `IsSimplifiableReshape` via `MakeShape(<invalid shape>)`
+
+PiperOrigin-RevId: 409166738
+Change-Id: I7f0a3590b8acae3f3e3e2fe636e1f5ef285693cf","vuln-fix: Prevent unchecked errors in shape construction causing potential crashes
+
+The code did not verify the status returned by TensorShapeUtils::MakeShape, allowing unchecked errors during shape creation to propagate silently. This could lead to undefined behavior or crashes if invalid shapes were processed, posing a denial of service risk. The fix adds explicit status checks after shape creation and returns errors immediately to prevent further unsafe execution.
+
+Weakness: Improper Error Handling (CWE-391)  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('change', 'ACTION', ''), ('i7f0a3590b8acae3f3e3e2fe636e1f5ef285693cf', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('unchecked errors', 'SECWORD', ''), ('verify', 'ACTION', ''), ('unchecked errors', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('errors', 'FLAW', ''), ('prevent', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('improper error handling', 'secword', ''), ('cwe-391', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+1,{'CWE-617'},GHSA-jhq9-wm9m-cf89,"@@ -90,6 +90,8 @@ class UnsortedSegmentJoinOp : public OpKernel {
+     const int32 segment_dims = segment_id_shape.dims();
+ 
+     const Tensor& num_segments_tensor = context->input(2);
++    OP_REQUIRES(context, num_segments_tensor.NumElements() != 0,
++                errors::InvalidArgument(""Number of segments cannot be empty.""));
+     auto num_segments = num_segments_tensor.scalar<NUM_SEGMENTS_TYPE>()();
+ 
+     OP_REQUIRES(context, segment_dims != 0,","Fix overflow CHECK issue with `tf.raw_ops.UnsortedSegmentJoin`.
+
+PiperOrigin-RevId: 370766155
+Change-Id: I33e7c6626224e1060a8a4ab51ad5d861c6d4c63e","vuln-fix: Prevent empty num_segments input in UnsortedSegmentJoinOp
+
+The vulnerability allowed an empty tensor for the number of segments, which could cause undefined behavior or crashes during operation execution. This is a security risk because it may lead to denial of service or memory corruption when processing invalid inputs. The fix adds a validation check to reject empty num_segments tensors, ensuring only valid inputs proceed. 
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('fix', 'ACTION', ''), ('overflow', 'SECWORD', ''), ('issue', 'FLAW', ''), ('tf.raw_ops.unsortedsegmentjoin', 'URL', ''), ('change', 'ACTION', ''), ('i33e7c6626224e1060a8a4ab51ad5d861c6d4c63e', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('security', 'secword', ''), ('denial of service', 'SECWORD', ''), ('memory corruption', 'secword', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+2,{'CWE-617'},GHSA-27j5-4p9v-pp67,"@@ -302,6 +302,10 @@ class TensorListReserve : public OpKernel {
+     PartialTensorShape element_shape;
+     OP_REQUIRES_OK(c, TensorShapeFromTensor(c->input(0), &element_shape));
+     int32 num_elements = c->input(1).scalar<int32>()();
++    OP_REQUIRES(c, num_elements >= 0,
++                errors::InvalidArgument(""The num_elements to reserve must be a ""
++                                        ""non negative number, but got "",
++                                        num_elements));
+     TensorList output;
+     output.element_shape = element_shape;
+     output.element_dtype = element_dtype_;","Validate num_elements input in tf.raw_ops.TensorListReserve
+
+PiperOrigin-RevId: 383954564
+Change-Id: I454bd78eff85bc4f16ddb7e608596971cca47f8f","vuln-fix: Validate non-negative input for tensor list reservation
+
+The vulnerability was that the number of elements to reserve in a tensor list could be negative, leading to undefined behavior or memory corruption during allocation. This is a security risk because it can cause crashes or exploitable conditions in memory management routines. The fix adds a check to ensure the number of elements is non-negative and returns an error if this condition is violated.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.11764705882352941,"[('validate', 'secword', ''), ('tf.raw_ops.tensorlistreserve', 'URL', ''), ('change', 'ACTION', ''), ('i454bd78eff85bc4f16ddb7e608596971cca47f8f', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('memory corruption', 'SECWORD', ''), ('security', 'secword', ''), ('exploitable', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensure', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+3,{'CWE-617'},GHSA-j3mj-fhpq-qqjj,"@@ -983,6 +983,15 @@ bool Tensor::FromProto(Allocator* a, const TensorProto& proto) {
+                          dtype_error = true, dtype_error = true);
+     }
+     if (dtype_error || p == nullptr) return false;
++  } else {
++    // Handle the case of empty tensors (N = 0) or tensors with incomplete shape
++    // (N = -1). All other values of `shape.num_elements()` should be invalid by
++    // construction.
++    // Here, we just need to validate that the `proto.dtype()` value is valid.
++    bool dtype_error = false;
++    CASES_WITH_DEFAULT(proto.dtype(), break, dtype_error = true,
++                       dtype_error = true);
++    if (dtype_error) return false;
+   }
+   shape_ = shape;
+   set_dtype(proto.dtype());","Validate `proto.dtype()` before calling `set_dtype()`.
+
+This prevents a `DCHECK`-fail when the proto contains an invalid dtype for a tensor shape with 0 elements or for an incomplete tensor shape.
+
+PiperOrigin-RevId: 408369083
+Change-Id: Ia21a3e3d62a90d642a4561f08f3b543e5ad00c46","vuln-fix: Validate tensor dtype for empty or incomplete shapes
+
+The vulnerability occurs when tensors with empty or incomplete shapes bypass dtype validation, allowing invalid data types to be processed without error. This poses a security risk by potentially enabling malformed or malicious tensor data to corrupt memory or cause undefined behavior. The fix enforces explicit dtype validation for tensors with zero or unknown element counts, rejecting invalid data types before further processing.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.17647058823529413,"[('validate', 'secword', ''), ('proto.dtype', 'URL', ''), ('prevents', 'ACTION', ''), ('change', 'ACTION', ''), ('ia21a3e3d62a90d642a4561f08f3b543e5ad00c46', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('bypass', 'SECWORD', ''), ('error', 'FLAW', ''), ('security', 'secword', ''), ('malicious', 'secword', ''), ('fix', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+4,{'CWE-617'},GHSA-5f2r-qp73-37mr,"@@ -75,8 +75,10 @@ bool DependencyOptimizer::SafeToRemoveIdentity(const NodeDef& node) const {
+   }
+ 
+   const NodeDef* input = node_map_->GetNode(NodeName(node.input(0)));
+-  CHECK(input != nullptr) << ""node = "" << node.name()
+-                          << "" input = "" << node.input(0);
++  if (input == nullptr) {
++    VLOG(1) << ""node = "" << node.name() << "" input = "" << node.input(0);
++    return false;
++  }
+   // Don't remove Identity nodes corresponding to Variable reads or following
+   // Recv.
+   if (IsVariable(*input) || IsRecv(*input)) {","Prevent a null-pointer dereference / `CHECK`-fail in grappler.
+
+PiperOrigin-RevId: 409187354
+Change-Id: I369c249cca32e6c56ec193f0ebbf2f2768fc7d43","vuln-fix: Prevent null pointer dereference in dependency optimizer
+
+The vulnerability is a null pointer dereference when accessing input nodes without verifying their existence, which can cause crashes or undefined behavior during graph optimization. This is a security risk because it may lead to denial of service or exploitable instability in the system. The fix adds a null check for the input node and safely returns false if the input is missing, preventing dereferencing null pointers.
+
+Weakness: CWE-476: NULL Pointer Dereference  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('prevent', 'ACTION', ''), ('null-pointer dereference', 'secword', ''), ('change', 'ACTION', ''), ('i369c249cca32e6c56ec193f0ebbf2f2768fc7d43', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('null pointer dereference', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('null pointer dereference', 'SECWORD', ''), ('security', 'secword', ''), ('denial of service', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('cwe-476', 'CWEID', ''), ('null pointer dereference', 'SECWORD', ''), ('medium', 'SEVERITY', '')]"
+5,{'CWE-617'},GHSA-43jf-985q-588j,"@@ -181,7 +181,9 @@ class FunctionInstantiationHelper {
+     DataTypeVector dtypes;
+     TF_RETURN_IF_ERROR(
+         ArgNumType(attr_values, arg_def, &is_type_list, &dtypes));
+-    CHECK_GE(dtypes.size(), size_t{1});
++    if (dtypes.size() < size_t{1}) {
++      return errors::Internal(""Expected a list of at least one dtype"");
++    }
+     int arg_index = result_.nodes.size();
+     TF_RETURN_IF_ERROR(
+         AddItem(arg_def.name(), {true, arg_index, 0, is_type_list, dtypes}));","Eliminate `CHECK`-fail from `function.cc`.
+
+PiperOrigin-RevId: 409414744
+Change-Id: Ic854e12ab2edb88b165d32e2d632c4ee654d71ad","vuln-fix: Prevent unchecked empty dtype list causing crash
+
+The code did not properly handle empty dtype lists, leading to unchecked assumptions that caused crashes or undefined behavior during function instantiation. This is a security risk because it can be exploited to cause denial of service or destabilize the system by triggering internal errors. The fix adds explicit validation to return an error when the dtype list is empty, preventing unsafe operations and improving robustness.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.17647058823529413,"[('function.cc', 'URL', ''), ('change', 'ACTION', ''), ('ic854e12ab2edb88b165d32e2d632c4ee654d71ad', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('security', 'secword', ''), ('exploited', 'SECWORD', ''), ('denial of service', 'SECWORD', ''), ('errors', 'FLAW', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('preventing', 'ACTION', ''), ('unsafe', 'SECWORD', ''), ('improving', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+6,{'CWE-617'},GHSA-fphq-gw9m-ghrv,"@@ -232,6 +232,8 @@ class CTCGreedyDecoderOp : public OpKernel {
+         int prev_indices = -1;
+         for (int t = 0; t < seq_len_t(b); ++t) {
+           int max_class_indices;
++          OP_REQUIRES(ctx, input_list_t[t].dimension(1) > 0,
++                      errors::InvalidArgument(""Invalid input dimensions.""));
+           log_prob_t(b, 0) +=
+               -RowMax<T>(input_list_t[t], b, &max_class_indices);
+           if (max_class_indices != blank_index &&","Fix `tf.raw_ops.CTCGreedyDecoder` CHECK failure.
+
+PiperOrigin-RevId: 369960465
+Change-Id: If0b8b3264d5a47a24ac0970ed7b81ce6b4921fae","vuln-fix: Validate input dimensions in CTCGreedyDecoderOp to prevent errors
+
+The vulnerability was missing validation of input tensor dimensions before processing, which could lead to out-of-bounds access or undefined behavior during decoding. This poses a security risk by potentially causing crashes or memory corruption exploitable by attackers. The fix adds a dimension check that rejects inputs with invalid shapes, ensuring safe and predictable operation.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.17647058823529413,"[('fix', 'ACTION', ''), ('tf.raw_ops.ctcgreedydecoder', 'URL', ''), ('change', 'ACTION', ''), ('if0b8b3264d5a47a24ac0970ed7b81ce6b4921fae', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('ctcgreedydecoderop', 'SECWORD', ''), ('prevent', 'ACTION', ''), ('errors', 'FLAW', ''), ('vulnerability', 'SECWORD', ''), ('missing validation', 'secword', ''), ('out-of-bounds', 'secword', ''), ('decoding', 'SECWORD', ''), ('security', 'secword', ''), ('memory corruption', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+7,{'CWE-617'},GHSA-36vm-xw34-x4pj,"@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
+ limitations under the License.
+ ==============================================================================*/
+ 
++#include ""tensorflow/core/platform/errors.h""
+ #define EIGEN_USE_THREADS
+ 
+ // See docs in ../ops/fft_ops.cc.
+@@ -261,6 +262,9 @@ class FFTCPU : public FFTBase {
+           i == FFTRank ? fft_shape[i - 1] / 2 + 1 : fft_shape[i - 1];
+       full_fft_shape.AddDim(fft_shape[i - 1]);
+     }
++    OP_REQUIRES(ctx, full_fft_shape.num_elements() > 0,
++                errors::InvalidArgument(""Obtained a FFT shape of 0 elements: "",
++                                        full_fft_shape.DebugString()));
+ 
+     Tensor temp;
+     OP_REQUIRES_OK(ctx, ctx->allocate_temp(DataTypeToEnum<ComplexT>::v(),","Fix a check fail in Fast Fourier implementation
+
+PiperOrigin-RevId: 372026629
+Change-Id: Id05c3362aa575271bc3e06b16316c9037085fc11","vuln-fix: Prevent zero-element FFT shape causing invalid memory access
+
+The vulnerability occurs when the FFT shape has zero elements, leading to potential invalid memory access during tensor allocation and processing. This is a security risk because it can cause crashes or undefined behavior, which attackers might exploit to cause denial of service or memory corruption. The fix adds a validation check that rejects zero-element FFT shapes by returning an InvalidArgument error before proceeding with tensor allocation.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.17647058823529413,"[('fix', 'ACTION', ''), ('change', 'ACTION', ''), ('id05c3362aa575271bc3e06b16316c9037085fc11', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('invalid memory access', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('invalid memory access', 'secword', ''), ('security', 'secword', ''), ('attackers', 'SECWORD', ''), ('exploit', 'secword', ''), ('denial of service', 'SECWORD', ''), ('memory corruption', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+8,{'CWE-617'},GHSA-ph87-fvjr-v33w,"@@ -222,6 +222,9 @@ class FFTCPU : public FFTBase {
+       input_slice_sizes[i] = fft_shape[i - 1];
+       temp_shape.AddDim(fft_shape[i - 1]);
+     }
++    OP_REQUIRES(ctx, temp_shape.num_elements() > 0,
++                errors::InvalidArgument(""Obtained a FFT shape of 0 elements: "",
++                                        temp_shape.DebugString()));
+ 
+     auto output = out->flat_inner_dims<ComplexT, FFTRank + 1>();
+     const Eigen::DSizes<Eigen::DenseIndex, FFTRank + 1> zero_start_indices;","Prevent check fail in FFT
+
+PiperOrigin-RevId: 372031044
+Change-Id: I50994e3e8a5d1342d01bde80256f6bf2730ca299","vuln-fix: Prevent zero-element FFT shape causing invalid operations
+
+The vulnerability occurs when the FFT shape has zero elements, leading to invalid tensor operations and potential crashes during execution. This is a security risk because it can cause denial of service or undefined behavior exploitable by crafted inputs. The fix adds a validation check that rejects FFT shapes with zero elements, ensuring only valid tensor shapes proceed. 
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.17647058823529413,"[('prevent', 'ACTION', ''), ('change', 'ACTION', ''), ('i50994e3e8a5d1342d01bde80256f6bf2730ca299', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('security', 'SECWORD', ''), ('denial of service', 'secword', ''), ('exploitable', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('ensuring', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+9,{'CWE-617'},GHSA-4j82-5ccr-4r8v,"@@ -45,7 +45,7 @@ constexpr int kMaxTensorNestDepth = 100;
+ // not fully defined return -1.
+ int64_t TensorByteSize(const TensorProto& t) {
+   // num_elements returns -1 if shape is not fully defined.
+-  int64_t num_elems = TensorShape(t.tensor_shape()).num_elements();
++  int64_t num_elems = PartialTensorShape(t.tensor_shape()).num_elements();
+   return num_elems < 0 ? -1 : num_elems * DataTypeSize(t.dtype());
+ }","Use `PartialTensorShape` instead of `TensorShape`.
+
+`TensorShape` constructor throws a CHECK-fail if shape is partial/overflows which the other doesn't. We are only determining the number of elements in the shape and partial shape should be used as it returns negative number when needed.
+
+PiperOrigin-RevId: 409205384
+Change-Id: Ia56542ff9ec758f2c9ffc7e4dcc9fa7eecd86e7b","vuln-fix: Prevent incorrect tensor size calculation from malformed shapes
+
+The vulnerability arises from using TensorShape which returns -1 for undefined shapes, potentially causing incorrect size computations and unchecked memory operations. This can lead to buffer overflows or memory corruption when processing malformed tensor data. The fix replaces TensorShape with PartialTensorShape to safely handle partially defined shapes and avoid negative element counts in size calculations.
+
+Weakness: CWE-119: Improper Restriction of Operations within the Bounds of a Memory Buffer  
+Severity: High  
+CVSS: 7.5",0.23529411764705882,"[('overflows', 'secword', ''), ('change', 'ACTION', ''), ('ia56542ff9ec758f2c9ffc7e4dcc9fa7eecd86e7b', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('buffer overflows', 'secword', ''), ('memory corruption', 'secword', ''), ('fix', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('cwe-119', 'CWEID', ''), ('improper restriction', 'secword', ''), ('high', 'SEVERITY', '')]"
+10,{'CWE-617'},GHSA-4v5p-v5h9-6xjx,"@@ -821,9 +821,10 @@ bool RepeatedAttrDefEqual(
+     const protobuf::RepeatedPtrField<OpDef::AttrDef>& a2) {
+   std::unordered_map<string, const OpDef::AttrDef*> a1_set;
+   for (const OpDef::AttrDef& def : a1) {
+-    DCHECK(a1_set.find(def.name()) == a1_set.end())
+-        << ""AttrDef names must be unique, but '"" << def.name()
+-        << ""' appears more than once"";
++    if (a1_set.find(def.name()) != a1_set.end()) {
++      LOG(ERROR) << ""AttrDef names must be unique, but '"" << def.name()
++                 << ""' appears more than once"";
++    }
+     a1_set[def.name()] = &def;
+   }
+   for (const OpDef::AttrDef& def : a2) {","Remove a `DCHECK`-fail, log an error instead.
+
+`DCHECK` in debug mode results in crashes. TensorFlow has had multiple vulnerabilities due to this.
+
+Outside of debug mode, `DCHECK` is a no-op.
+
+A better alternative is to report an error to the log buffer and continue. This should happen both in debug mode and in prod mode.
+
+PiperOrigin-RevId: 408375925
+Change-Id: Id5b3e19c73f3fbe0cc4bba26ca44ff9607bb6356","vuln-fix: Prevent crash on duplicate AttrDef names by logging error
+
+The code previously used DCHECK to enforce unique AttrDef names, which causes a crash in release builds if duplicates occur. This is a security risk because it can lead to denial of service by crashing the application when processing malformed inputs. The fix replaces DCHECK with error logging to handle duplicates gracefully without terminating the process.
+
+Weakness: Improper Handling of Exceptional Conditions (CWE-754)  
+Severity: Medium  
+CVSS: 5.3",0.17647058823529413,"[('remove', 'ACTION', ''), ('error', 'FLAW', ''), ('vulnerabilities', 'secword', ''), ('error', 'FLAW', ''), ('change', 'ACTION', ''), ('id5b3e19c73f3fbe0cc4bba26ca44ff9607bb6356', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('error', 'FLAW', ''), ('security', 'SECWORD', ''), ('denial of service', 'secword', ''), ('fix', 'ACTION', ''), ('error', 'FLAW', ''), ('weakness', 'SECWORD', ''), ('improper handling', 'secword', ''), ('cwe-754', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+11,{'CWE-617'},GHSA-wp3c-xw9g-gpcg,"@@ -78,6 +78,11 @@ class SparseDenseBinaryOpShared : public OpKernel {
+                     ""but received shapes: "",
+                     values_t->shape().DebugString(), "" and "",
+                     shape_t->shape().DebugString()));
++    OP_REQUIRES(
++        ctx, values_t->dim_size(0) == indices_t->dim_size(0),
++        errors::InvalidArgument(
++            ""The first dimension of values and indices should match. ("",
++            values_t->dim_size(0), "" vs. "", indices_t->dim_size(0), "")""));
+ 
+     const auto indices_mat = indices_t->matrix<int64>();
+     const auto shape_vec = shape_t->vec<int64>();","Fix heap-buffer-overflow issue with `tf.raw_ops.SparseDenseCwiseMul`.
+
+PiperOrigin-RevId: 372054410
+Change-Id: Ifcce0491e2e3816838c87e73be30a1e61b65174d","vuln-fix: Validate matching first dimension of values and indices tensors
+
+The vulnerability was a missing check ensuring the first dimension of values and indices tensors matched before processing sparse-dense operations.  
+This mismatch could lead to out-of-bounds memory access or data corruption, posing a risk of crashes or arbitrary code execution.  
+The fix adds a validation step that enforces the first dimension sizes of values and indices tensors to be equal, preventing invalid inputs.  
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.11764705882352941,"[('fix', 'ACTION', ''), ('overflow', 'SECWORD', ''), ('issue', 'FLAW', ''), ('tf.raw_ops.sparsedensecwisemul', 'URL', ''), ('change', 'ACTION', ''), ('ifcce0491e2e3816838c87e73be30a1e61b65174d', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('missing check', 'secword', ''), ('ensuring', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+12,{'CWE-617'},GHSA-gvm4-h8j3-rjrq,"@@ -123,6 +123,11 @@ class LoadAndRemapMatrixOp : public OpKernel {
+     // Processes the checkpoint source and the provided Tensor name.
+     const Tensor* ckpt_path_t;
+     OP_REQUIRES_OK(context, context->input(""ckpt_path"", &ckpt_path_t));
++    OP_REQUIRES(
++        context, ckpt_path_t->NumElements() == 1,
++        errors::InvalidArgument(""The `ckpt_path` tensor must have exactly one ""
++                                ""element, got tensor of shape "",
++                                ckpt_path_t->shape().DebugString()));
+     const string& ckpt_path = ckpt_path_t->scalar<tstring>()();
+     const Tensor* old_tensor_name_t;
+     OP_REQUIRES_OK(context,","Fix a check fail
+
+PiperOrigin-RevId: 372011072
+Change-Id: I1062cfaed0aa16884e9a16312483794d188db76f","vuln-fix: Validate single-element tensor for checkpoint path input
+
+The vulnerability was caused by missing validation on the checkpoint path tensor, allowing tensors with multiple elements to be processed incorrectly. This posed a security risk by potentially enabling malformed input to cause unexpected behavior or memory access issues. The fix enforces that the checkpoint path tensor must contain exactly one element, rejecting inputs that do not meet this requirement.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.17647058823529413,"[('fix', 'ACTION', ''), ('change', 'ACTION', ''), ('i1062cfaed0aa16884e9a16312483794d188db76f', 'SHA', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('missing validation', 'SECWORD', ''), ('security', 'secword', ''), ('issues', 'FLAW', ''), ('fix', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+13,{'CWE-617'},GHSA-43jf-985q-588j,"@@ -191,7 +191,11 @@ class FunctionInstantiationHelper {
+     for (size_t i = 0; i < dtypes.size(); ++i) {
+       TF_RETURN_IF_ERROR(AddItem(strings::StrCat(arg_def.name(), "":"", i),
+                                  {true, arg_index, 0, false, {dtypes[i]}}));
+-      DCHECK_EQ(arg_index, result_.nodes.size());
++      if (arg_index != result_.nodes.size()) {
++        return errors::Internal(
++            ""Expected arg_index to be equal to the number of nodes in result."",
++            "" Got "", arg_index, "" and "", result_.nodes.size());
++      }
+       string name = arg_def.name();
+       if (dtypes.size() > 1) {
+         strings::StrAppend(&name, ""_"", i);","Eliminate debug `CHECK`-fail from `function.cc`
+
+PiperOrigin-RevId: 409416119
+Change-Id: I8376ee464d434e9b970ff0ad49edfdaa2a273cfe","vuln-fix: Prevent out-of-bounds access in function instantiation
+
+The code lacked a runtime check ensuring arg_index matched the number of nodes, risking out-of-bounds access or inconsistent state during function instantiation.
+This could lead to memory corruption or crashes, potentially exploitable for denial of service or arbitrary code execution.
+The fix adds a runtime error return when arg_index and node count mismatch, preventing unsafe operations and preserving internal consistency.
+
+Weakness: CWE-125: Out-of-bounds Read
+Severity: High
+CVSS: 7.5",0.17647058823529413,"[('function.cc', 'URL', ''), ('change', 'ACTION', ''), ('i8376ee464d434e9b970ff0ad49edfdaa2a273cfe', 'SHA', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('out-of-bounds', 'secword', ''), ('ensuring', 'ACTION', ''), ('out-of-bounds', 'SECWORD', ''), ('memory corruption', 'SECWORD', ''), ('exploitable', 'SECWORD', ''), ('denial of service', 'secword', ''), ('code execution', 'SECWORD', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('error', 'FLAW', ''), ('preventing', 'ACTION', ''), ('unsafe', 'secword', ''), ('weakness', 'SECWORD', ''), ('cwe-125', 'CWEID', ''), ('out-of-bounds read', 'SECWORD', ''), ('high', 'SEVERITY', '')]"

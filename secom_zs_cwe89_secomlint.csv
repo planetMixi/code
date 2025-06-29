@@ -1,0 +1,632 @@
+id,cwe_id,vuln_id,code_diff,original_message,generated_secom_message,original_message_score,original_message_entities,generated_secom_message_score,generated_secom_message_entities
+0,{'CWE-89'},GHSA-h2fw-93qx-vrcq,"@@ -39,6 +39,26 @@ class award_criteria_profile extends award_criteria {
+     public $required_param = 'field';
+     public $optional_params = array();
+ 
++    /* @var array The default profile fields allowed to be used as award criteria.
++     *
++     * Note: This is used instead of user_get_default_fields(), because it is not possible to
++     * determine which fields the user can modify.
++     */
++    protected $allowed_default_fields = [
++        'firstname',
++        'lastname',
++        'email',
++        'address',
++        'phone1',
++        'phone2',
++        'department',
++        'institution',
++        'description',
++        'picture',
++        'city',
++        'country',
++    ];
++
+     /**
+      * Add appropriate new criteria options to the form
+      *
+@@ -50,10 +70,7 @@ public function get_options(&$mform) {
+         $none = true;
+         $existing = array();
+         $missing = array();
+-
+-        // Note: cannot use user_get_default_fields() here because it is not possible to decide which fields user can modify.
+-        $dfields = array('firstname', 'lastname', 'email', 'address', 'phone1', 'phone2',
+-                         'department', 'institution', 'description', 'picture', 'city', 'country');
++        $dfields = $this->allowed_default_fields;
+ 
+         // Get custom fields.
+         $cfields = array_filter(profile_get_custom_fields(), function($field) {
+@@ -230,8 +247,8 @@ public function get_completed_criteria_sql() {
+                 $join .= "" LEFT JOIN {user_info_data} uid{$idx} ON uid{$idx}.userid = u.id AND uid{$idx}.fieldid = :fieldid{$idx} "";
+                 $params[""fieldid{$idx}""] = $param['field'];
+                 $whereparts[] = ""uid{$idx}.id IS NOT NULL"";
+-            } else {
+-                // This is a field from {user} table.
++            } else if (in_array($param['field'], $this->allowed_default_fields)) {
++                // This is a valid field from {user} table.
+                 if ($param['field'] == 'picture') {
+                     // The picture field is numeric and requires special handling.
+                     $whereparts[] = ""u.{$param['field']} != 0"";",MDL-74074 badges: Ensure profile criteria exists before completion check,"vuln-fix: Restrict allowed profile fields for award criteria
+
+The vulnerability allowed arbitrary user profile fields to be used as award criteria without validation, potentially exposing sensitive or unauthorized data. This posed a security risk by enabling attackers to query or manipulate fields that users should not access or modify. The fix restricts award criteria to a predefined whitelist of safe default profile fields, preventing unauthorized field usage.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.058823529411764705,"[('ensure', 'ACTION', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('sensitive', 'SECWORD', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('manipulate', 'ACTION', ''), ('fix', 'ACTION', ''), ('safe', 'secword', ''), ('preventing', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+1,{'CWE-89'},GHSA-rr8m-29g8-8cgc,"@@ -501,7 +501,7 @@ public static function getComments(array $ids): array
+             'SELECT *
+              FROM blog_comments AS i
+              WHERE i.id IN (' . implode(', ', array_fill(0, count($ids), '?')) . ')',
+-            $ids
++            array_map('intval', $ids)
+         );
+     }",Prevent sql injection through the ids of the blog comments,"vuln-fix: Prevent SQL injection by sanitizing comment IDs
+
+The vulnerability allowed unsanitized input IDs to be directly embedded in SQL queries, risking injection attacks through maliciously crafted input arrays. This posed a critical security risk by enabling attackers to manipulate database queries and access or modify unauthorized data. The fix ensures all IDs are explicitly cast to integers before query execution, preventing injection by sanitizing input values. 
+
+Weakness: CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')  
+Severity: Critical  
+CVSS: 9.8",0.058823529411764705,"[('prevent', 'ACTION', ''), ('sql injection', 'SECWORD', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('sql injection', 'SECWORD', ''), ('sanitizing', 'secword', ''), ('vulnerability', 'secword', ''), ('unsanitized', 'SECWORD', ''), ('injection', 'secword', ''), ('attacks', 'SECWORD', ''), ('maliciously', 'SECWORD', ''), ('critical', 'SEVERITY', ''), ('security', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('manipulate', 'ACTION', ''), ('fix', 'ACTION', ''), ('ensures', 'ACTION', ''), ('preventing', 'ACTION', ''), ('injection', 'SECWORD', ''), ('sanitizing', 'secword', ''), ('weakness', 'SECWORD', ''), ('cwe-89', 'CWEID', ''), ('improper neutralization', 'secword', ''), ('sql injection', 'secword', ''), ('critical', 'SEVERITY', '')]"
+2,{'CWE-89'},GHSA-gvmf-wcx6-p974,"@@ -235,7 +235,7 @@ public function setOrderKey($orderKey, $quote = true)
+                 if ($quote === false) {
+                     $this->orderKey[] = $o;
+                 } elseif ($this->isValidOrderKey($o)) {
+-                    $this->orderKey[] = '`' . $o . '`';
++                    $this->orderKey[] = $this->quoteIdentifier($o);
+                 }
+             }
+         }
+@@ -411,8 +411,14 @@ public function setGroupBy($groupBy, $qoute = true)
+         if ($groupBy) {
+             $this->groupBy = $groupBy;
+ 
+-            if ($qoute && strpos($groupBy, '`') !== 0) {
+-                $this->groupBy = '`' . $this->groupBy . '`';
++          if ($qoute) {
++                $quotedParts = [];
++                $parts = explode("","", trim($groupBy, '`'));
++                foreach($parts as $part) {
++                    $quotedParts[] = $this->quoteIdentifier(trim($part));
++                }
++
++                $this->groupBy = implode("", "", $quotedParts);
+             }
+         }
+ 
+@@ -431,6 +437,13 @@ public function setValidOrders($validOrders)
+         return $this;
+     }
+ 
++    public function quoteIdentifier(string $value): string
++    {
++        $db = Db::get();
++
++        return $db->quoteIdentifier($value);
++    }
++
+     /**
+      * @param mixed $value
+      * @param int|null $type","[Security] SQL Injection in Data Hub GraphQL (#12444)
+
+* [Security] SQL Injection in Data Hub GraphQL (AbstractListing)
+
+* Update lib/Model/Listing/AbstractListing.php
+
+Co-authored-by: Jacob Dreesen <j.dreesen@neusta.de>
+
+* Update lib/Model/Listing/AbstractListing.php
+
+Co-authored-by: mcop1 <89011527+mcop1@users.noreply.github.com>
+
+Co-authored-by: Jacob Dreesen <j.dreesen@neusta.de>
+Co-authored-by: Bernhard Rusch <brusch@users.noreply.github.com>","vuln-fix: Prevent SQL injection by proper identifier quoting
+
+The code previously concatenated raw input into SQL identifiers without consistent quoting, allowing injection of malicious SQL through crafted order or group by keys. This posed a critical risk of unauthorized data access or manipulation by attackers exploiting unescaped identifiers. The fix centralizes identifier quoting using a dedicated method that safely escapes all parts, preventing injection via order and group by clauses.
+
+Weakness: SQL Injection (CWE-89)  
+Severity: Critical  
+CVSS: 9.8",0.35294117647058826,"[('security', 'SECWORD', ''), ('sql injection', 'secword', ''), ('#12444', 'ISSUE', ''), ('security', 'SECWORD', ''), ('sql injection', 'secword', ''), ('update', 'ACTION', ''), ('abstractlisting.php', 'URL', ''), ('j.dreesen@neusta.de', 'EMAIL', ''), ('89011527+mcop1@users.noreply.github.com', 'EMAIL', ''), ('j.dreesen@neusta.de', 'EMAIL', ''), ('brusch@users.noreply.github.com', 'EMAIL', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('sql injection', 'SECWORD', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('keys', 'SECWORD', ''), ('critical', 'SEVERITY', ''), ('attackers', 'FLAW', ''), ('exploiting', 'SECWORD', ''), ('unescaped', 'SECWORD', ''), ('fix', 'ACTION', ''), ('escapes', 'SECWORD', ''), ('preventing', 'ACTION', ''), ('injection', 'secword', ''), ('weakness', 'SECWORD', ''), ('sql injection', 'secword', ''), ('cwe-89', 'CWEID', ''), ('critical', 'SEVERITY', '')]"
+3,"{'CWE-89', 'CWE-95'}",GHSA-hrgx-p36p-89q4,"@@ -25,6 +25,14 @@
+  */
+ class Smarty_CacheResource_Mysql extends Smarty_CacheResource_Custom
+ {
++    /** @var PhpEncryption */
++    private $phpEncryption;
++
++    public function __construct()
++    {
++        $this->phpEncryption = new PhpEncryption(_NEW_COOKIE_KEY_);
++    }
++
+     /**
+      * fetch cached content and its modification time from data source.
+      *
+@@ -39,7 +47,7 @@ protected function fetch($id, $name, $cache_id, $compile_id, &$content, &$mtime)
+     {
+         $row = Db::getInstance()->getRow('SELECT modified, content FROM ' . _DB_PREFIX_ . 'smarty_cache WHERE id_smarty_cache = ""' . pSQL($id, true) . '""');
+         if ($row) {
+-            $content = $row['content'];
++            $content = $this->phpEncryption->decrypt($row['content']);
+             $mtime = strtotime($row['modified']);
+         } else {
+             $content = null;
+@@ -87,7 +95,7 @@ protected function save($id, $name, $cache_id, $compile_id, $exp_time, $content)
+ 			""' . pSQL($id, true) . '"",
+ 			""' . pSQL(sha1($name)) . '"",
+ 			""' . pSQL($cache_id, true) . '"",
+-			""' . pSQL($content, true) . '""
++			""' . $this->phpEncryption->encrypt($content) . '""
+ 		)');
+ 
+         return (bool) Db::getInstance()->Affected_Rows();","Merge pull request from GHSA-hrgx-p36p-89q4
+
+Crypt/decrypt smarty cache in DB","vuln-fix: Encrypt cached content to prevent data exposure
+
+Cached content was stored in plaintext within the database, allowing attackers with database access to read sensitive cached data directly. This exposure risk could lead to information disclosure and compromise of application confidentiality. The fix encrypts cached content before storage and decrypts it upon retrieval using a secure encryption class initialized with a secret key.
+
+Weakness: CWE-312: Cleartext Storage of Sensitive Information  
+Severity: High  
+CVSS: 7.5",0.23529411764705882,"[('ghsa', 'VULNID', 'GHSA'), ('crypt', 'secword', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('encrypt', 'secword', ''), ('prevent', 'ACTION', ''), ('data exposure', 'secword', ''), ('attackers', 'FLAW', ''), ('sensitive', 'SECWORD', ''), ('disclosure', 'secword', ''), ('fix', 'ACTION', ''), ('secure', 'SECWORD', ''), ('initialized', 'SECWORD', ''), ('key', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('cwe-312', 'CWEID', ''), ('cleartext storage', 'secword', ''), ('sensitive information', 'secword', ''), ('high', 'SEVERITY', '')]"
+4,{'CWE-89'},GHSA-7hmh-8gwv-mfvq,"@@ -71,6 +71,7 @@
+ import org.apache.kylin.metadata.project.RealizationEntry;
+ import org.apache.kylin.metadata.realization.RealizationStatusEnum;
+ import org.apache.kylin.metadata.realization.RealizationType;
++import org.apache.kylin.metrics.MetricsManager;
+ import org.apache.kylin.metrics.property.QueryCubePropertyEnum;
+ import org.apache.kylin.rest.constant.Constant;
+ import org.apache.kylin.rest.exception.BadRequestException;
+@@ -79,6 +80,7 @@
+ import org.apache.kylin.rest.msg.Message;
+ import org.apache.kylin.rest.msg.MsgPicker;
+ import org.apache.kylin.rest.request.MetricsRequest;
++import org.apache.kylin.rest.request.PrepareSqlRequest;
+ import org.apache.kylin.rest.response.CubeInstanceResponse;
+ import org.apache.kylin.rest.response.CuboidTreeResponse;
+ import org.apache.kylin.rest.response.CuboidTreeResponse.NodeInfo;
+@@ -544,7 +546,8 @@ public HBaseResponse getHTableInfo(String cubeName, String tableName) throws IOE
+ 
+         hr = new HBaseResponse();
+         CubeInstance cube = CubeManager.getInstance(getConfig()).getCube(cubeName);
+-        if (cube.getStorageType() == IStorageAware.ID_HBASE || cube.getStorageType() == IStorageAware.ID_SHARDED_HBASE || cube.getStorageType() == IStorageAware.ID_REALTIME_AND_HBASE) {
++        if (cube.getStorageType() == IStorageAware.ID_HBASE || cube.getStorageType() == IStorageAware.ID_SHARDED_HBASE
++                || cube.getStorageType() == IStorageAware.ID_REALTIME_AND_HBASE) {
+             try {
+                 logger.debug(""Loading HTable info "" + cubeName + "", "" + tableName);
+ 
+@@ -633,7 +636,8 @@ private void cleanSegmentStorage(List<CubeSegment> toRemoveSegs) throws IOExcept
+             List<String> toDelHDFSPaths = Lists.newArrayListWithCapacity(toRemoveSegs.size());
+             for (CubeSegment seg : toRemoveSegs) {
+                 toDropHTables.add(seg.getStorageLocationIdentifier());
+-                toDelHDFSPaths.add(JobBuilderSupport.getJobWorkingDir(seg.getConfig().getHdfsWorkingDirectory(), seg.getLastBuildJobID()));
++                toDelHDFSPaths.add(JobBuilderSupport.getJobWorkingDir(seg.getConfig().getHdfsWorkingDirectory(),
++                        seg.getLastBuildJobID()));
+             }
+ 
+             StorageCleanUtil.dropHTables(new HBaseAdmin(HBaseConnection.getCurrentHBaseConfiguration()), toDropHTables);
+@@ -763,10 +767,12 @@ public String mergeCubeSegment(String cubeName) {
+     }
+ 
+     //Don't merge the job that has been discarded manually before
+-    private boolean isMergingJobBeenDiscarded(CubeInstance cubeInstance, String cubeName, String projectName, SegmentRange offsets) {
++    private boolean isMergingJobBeenDiscarded(CubeInstance cubeInstance, String cubeName, String projectName,
++            SegmentRange offsets) {
+         SegmentRange.TSRange tsRange = new SegmentRange.TSRange((Long) offsets.start.v, (Long) offsets.end.v);
+         String segmentName = CubeSegment.makeSegmentName(tsRange, null, cubeInstance.getModel());
+-        final List<CubingJob> jobInstanceList = jobService.listJobsByRealizationName(cubeName, projectName, EnumSet.of(ExecutableState.DISCARDED));
++        final List<CubingJob> jobInstanceList = jobService.listJobsByRealizationName(cubeName, projectName,
++                EnumSet.of(ExecutableState.DISCARDED));
+         for (CubingJob cubingJob : jobInstanceList) {
+             if (cubingJob.getSegmentName().equals(segmentName)) {
+                 logger.debug(""Merge job {} has been discarded before, will not merge."", segmentName);
+@@ -777,7 +783,6 @@ private boolean isMergingJobBeenDiscarded(CubeInstance cubeInstance, String cube
+         return false;
+     }
+ 
+-
+     public void validateCubeDesc(CubeDesc desc, boolean isDraft) {
+         Message msg = MsgPicker.getMsg();
+ 
+@@ -931,24 +936,6 @@ public void afterPropertiesSet() throws Exception {
+         Broadcaster.getInstance(getConfig()).registerStaticListener(new HTableInfoSyncListener(), ""cube"");
+     }
+ 
+-    private class HTableInfoSyncListener extends Broadcaster.Listener {
+-        @Override
+-        public void onClearAll(Broadcaster broadcaster) throws IOException {
+-            htableInfoCache.invalidateAll();
+-        }
+-
+-        @Override
+-        public void onEntityChange(Broadcaster broadcaster, String entity, Broadcaster.Event event, String cacheKey)
+-                throws IOException {
+-            String cubeName = cacheKey;
+-            String keyPrefix = cubeName + ""/"";
+-            for (String k : htableInfoCache.asMap().keySet()) {
+-                if (k.startsWith(keyPrefix))
+-                    htableInfoCache.invalidate(k);
+-            }
+-        }
+-    }
+-
+     public CubeInstanceResponse createCubeInstanceResponse(CubeInstance cube) {
+         return new CubeInstanceResponse(cube, projectService.getProjectOfCube(cube.getName()));
+     }
+@@ -995,7 +982,7 @@ private NodeInfo generateNodeInfo(long cuboidId, int dimensionCount, long cubeQu
+         long queryExactlyMatchCount = queryMatchMap == null || queryMatchMap.get(cuboidId) == null ? 0L
+                 : queryMatchMap.get(cuboidId);
+         boolean ifExist = currentCuboidSet.contains(cuboidId);
+-        long rowCount = rowCountMap == null ? 0L : rowCountMap.get(cuboidId);
++        long rowCount = (rowCountMap == null || rowCountMap.size() == 0) ? 0L : rowCountMap.get(cuboidId);
+ 
+         NodeInfo node = new NodeInfo();
+         node.setId(cuboidId);
+@@ -1044,9 +1031,10 @@ public Map<Long, Long> getCuboidHitFrequency(String cubeName, boolean isCuboidSo
+         String table = getMetricsManager().getSystemTableFromSubject(getConfig().getKylinMetricsSubjectQueryCube());
+         String sql = ""select "" + cuboidColumn + "", sum("" + hitMeasure + "")"" //
+                 + "" from "" + table//
+-                + "" where "" + QueryCubePropertyEnum.CUBE.toString() + "" = '"" + cubeName + ""'"" //
++                + "" where "" + QueryCubePropertyEnum.CUBE.toString() + "" = ?"" //
+                 + "" group by "" + cuboidColumn;
+-        List<List<String>> orgHitFrequency = queryService.querySystemCube(sql).getResults();
++
++        List<List<String>> orgHitFrequency = getPrepareQueryResult(cubeName, sql);
+         return formatQueryCount(orgHitFrequency);
+     }
+ 
+@@ -1058,9 +1046,10 @@ public Map<Long, Map<Long, Pair<Long, Long>>> getCuboidRollingUpStats(String cub
+         String table = getMetricsManager().getSystemTableFromSubject(getConfig().getKylinMetricsSubjectQueryCube());
+         String sql = ""select "" + cuboidSource + "", "" + cuboidTgt + "", avg("" + aggCount + ""), avg("" + returnCount + "")""//
+                 + "" from "" + table //
+-                + "" where "" + QueryCubePropertyEnum.CUBE.toString() + "" = '"" + cubeName + ""' "" //
++                + "" where "" + QueryCubePropertyEnum.CUBE.toString() + "" = ?"" //
+                 + "" group by "" + cuboidSource + "", "" + cuboidTgt;
+-        List<List<String>> orgRollingUpCount = queryService.querySystemCube(sql).getResults();
++
++        List<List<String>> orgRollingUpCount = getPrepareQueryResult(cubeName, sql);
+         return formatRollingUpStats(orgRollingUpCount);
+     }
+ 
+@@ -1070,13 +1059,27 @@ public Map<Long, Long> getCuboidQueryMatchCount(String cubeName) {
+         String table = getMetricsManager().getSystemTableFromSubject(getConfig().getKylinMetricsSubjectQueryCube());
+         String sql = ""select "" + cuboidSource + "", sum("" + hitMeasure + "")"" //
+                 + "" from "" + table //
+-                + "" where "" + QueryCubePropertyEnum.CUBE.toString() + "" = '"" + cubeName + ""'"" //
++                + "" where "" + QueryCubePropertyEnum.CUBE.toString() + "" = ?"" //
+                 + "" and "" + QueryCubePropertyEnum.IF_MATCH.toString() + "" = true"" //
+                 + "" group by "" + cuboidSource;
+-        List<List<String>> orgMatchHitFrequency = queryService.querySystemCube(sql).getResults();
++
++        List<List<String>> orgMatchHitFrequency = getPrepareQueryResult(cubeName, sql);
+         return formatQueryCount(orgMatchHitFrequency);
+     }
+ 
++    private List<List<String>> getPrepareQueryResult(String cubeName, String sql) {
++        PrepareSqlRequest sqlRequest = new PrepareSqlRequest();
++        sqlRequest.setProject(MetricsManager.SYSTEM_PROJECT);
++        PrepareSqlRequest.StateParam[] params = new PrepareSqlRequest.StateParam[1];
++        params[0] = new PrepareSqlRequest.StateParam();
++        params[0].setClassName(""java.lang.String"");
++        params[0].setValue(cubeName);
++        sqlRequest.setParams(params);
++        sqlRequest.setSql(sql);
++
++        return queryService.doQueryWithCache(sqlRequest, false).getResults();
++    }
++
+     @PreAuthorize(Constant.ACCESS_HAS_ROLE_ADMIN
+             + "" or hasPermission(#cube, 'ADMINISTRATION') or hasPermission(#cube, 'MANAGEMENT')"")
+     public void migrateCube(CubeInstance cube, String projectName) {
+@@ -1114,4 +1117,22 @@ public void migrateCube(CubeInstance cube, String projectName) {
+             throw new InternalErrorException(""Failed to perform one-click migrating"", e);
+         }
+     }
++
++    private class HTableInfoSyncListener extends Broadcaster.Listener {
++        @Override
++        public void onClearAll(Broadcaster broadcaster) throws IOException {
++            htableInfoCache.invalidateAll();
++        }
++
++        @Override
++        public void onEntityChange(Broadcaster broadcaster, String entity, Broadcaster.Event event, String cacheKey)
++                throws IOException {
++            String cubeName = cacheKey;
++            String keyPrefix = cubeName + ""/"";
++            for (String k : htableInfoCache.asMap().keySet()) {
++                if (k.startsWith(keyPrefix))
++                    htableInfoCache.invalidate(k);
++            }
++        }
++    }
+ }",Fix sql injection issue,"vuln-fix: Prevent SQL injection by using prepared statements for metrics queries
+
+The vulnerability was that SQL queries concatenated user input directly, allowing attackers to inject malicious SQL code via the cubeName parameter. This posed a critical risk of unauthorized data access or manipulation through SQL injection attacks. The fix replaces string concatenation with parameterized prepared statements, safely binding user input and preventing injection exploits.
+
+Weakness: CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')  
+Severity: Critical  
+CVSS: 9.8",0.11764705882352941,"[('fix', 'ACTION', ''), ('sql injection', 'SECWORD', ''), ('issue', 'FLAW', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('sql injection', 'SECWORD', ''), ('vulnerability', 'secword', ''), ('attackers', 'SECWORD', ''), ('inject', 'secword', ''), ('malicious', 'secword', ''), ('critical', 'SEVERITY', ''), ('sql injection', 'secword', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('preventing', 'ACTION', ''), ('injection', 'secword', ''), ('exploits', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('cwe-89', 'CWEID', ''), ('improper neutralization', 'secword', ''), ('sql injection', 'secword', ''), ('critical', 'SEVERITY', '')]"
+5,{'CWE-89'},GHSA-q9p4-qfc8-fvpp,"@@ -500,6 +500,11 @@ protected function typeMap($value, $type)
+ 
+ 	protected function columnQuote($string)
+ 	{
++		if (!preg_match('/^[a-zA-Z0-9]+(\.?[a-zA-Z0-9]+)?$/i', $string))
++		{
++			throw new InvalidArgumentException(""Incorrect column name \""$string\"""");
++		}
++
+ 		if (strpos($string, '.') !== false)
+ 		{
+ 			return '""' . $this->prefix . str_replace('.', '"".""', $string) . '""';",[fix] Fix columnQuote for security issue reported by Snyk,"vuln-fix: Validate column names to prevent injection attacks
+
+Column names were not validated, allowing potentially malicious input with special characters to be processed by the query builder. This posed a risk of SQL injection or query manipulation through crafted column identifiers. The fix enforces a strict regex pattern to allow only alphanumeric characters and optional single dots, rejecting invalid column names early.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.058823529411764705,"[('fix', 'ACTION', ''), ('fix', 'ACTION', ''), ('\x08security', 'SECWORD', ''), ('issue', 'FLAW', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('injection', 'SECWORD', ''), ('attacks', 'SECWORD', ''), ('malicious', 'secword', ''), ('sql injection', 'SECWORD', ''), ('fix', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+6,"{'CWE-89', 'CWE-79'}",GHSA-x92h-wmg2-6hp7,"@@ -1346,22 +1346,37 @@ public function setMethod($method)
+      */
+     public function getMethod()
+     {
+-        if (null === $this->method) {
+-            $this->method = strtoupper($this->server->get('REQUEST_METHOD', 'GET'));
+-
+-            if ('POST' === $this->method) {
+-                if ($method = $this->headers->get('X-HTTP-METHOD-OVERRIDE')) {
+-                    $this->method = strtoupper($method);
+-                } elseif (self::$httpMethodParameterOverride) {
+-                    $method = $this->request->get('_method', $this->query->get('_method', 'POST'));
+-                    if (\is_string($method)) {
+-                        $this->method = strtoupper($method);
+-                    }
+-                }
+-            }
++        if (null !== $this->method) {
++            return $this->method;
++        }
++
++        $this->method = strtoupper($this->server->get('REQUEST_METHOD', 'GET'));
++
++        if ('POST' !== $this->method) {
++            return $this->method;
++        }
++
++        $method = $this->headers->get('X-HTTP-METHOD-OVERRIDE');
++
++        if (!$method && self::$httpMethodParameterOverride) {
++            $method = $this->request->get('_method', $this->query->get('_method', 'POST'));
++        }
++
++        if (!\is_string($method)) {
++            return $this->method;
++        }
++
++        $method = strtoupper($method);
++
++        if (\in_array($method, ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'PATCH', 'PURGE', 'TRACE'], true)) {
++            return $this->method = $method;
++        }
++
++        if (!preg_match('/^[A-Z]++$/D', $method)) {
++            throw new SuspiciousOperationException(sprintf('Invalid method override ""%s"".', $method));
+         }
+ 
+-        return $this->method;
++        return $this->method = $method;
+     }
+ 
+     /**",[HttpFoundation] reject invalid method override,"vuln-fix: Validate HTTP method override to prevent injection
+
+The vulnerability allowed arbitrary HTTP methods to be set via the X-HTTP-METHOD-OVERRIDE header or _method parameter without strict validation. This could enable attackers to bypass method restrictions or trigger unexpected behavior by injecting invalid or malicious HTTP methods. The fix enforces a whitelist of allowed methods and validates the override string format, throwing an exception on invalid input to prevent misuse.
+
+Weakness: CWE-20: Improper Input Validation  
+Severity: High  
+CVSS: 7.5",0.11764705882352941,[],0.35294117647058826,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('injection', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('bypass', 'SECWORD', ''), ('malicious', 'secword', ''), ('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('cwe-20', 'CWEID', ''), ('improper input validation', 'SECWORD', ''), ('high', 'SEVERITY', '')]"
+7,{'CWE-89'},GHSA-9cq5-xgg4-x477,"@@ -76,7 +76,7 @@ public function addUser(){
+         $this->checkAdmin();
+         $username = I(""post.username"");
+         $password = I(""post.password"");
+-        $uid = I(""post.uid"");
++        $uid = I(""post.uid/d"");
+         $name = I(""post.name"");
+         if(!$username){
+             $this->sendError(10101,'用户名不允许为空');",bug,"vuln-fix: Enforce integer type for user ID input to prevent injection
+
+The vulnerability was that the user ID parameter was accepted without type enforcement, allowing non-integer input to be processed by the system. This posed a security risk by enabling injection attacks or unexpected behavior due to improper input handling. The fix enforces integer casting on the user ID input, ensuring only valid numeric values are accepted and processed safely.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: Medium  
+CVSS: 5.3",0.11764705882352941,"[('bug', 'FLAW', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('injection', 'secword', ''), ('vulnerability', 'SECWORD', ''), ('security', 'secword', ''), ('injection', 'secword', ''), ('attacks', 'SECWORD', ''), ('fix', 'ACTION', ''), ('integer casting', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('medium', 'SEVERITY', '')]"
+8,{'CWE-89'},GHSA-2598-2f59-rmhq,"@@ -2198,7 +2198,8 @@ var QueryGenerator = {
+             path[path.length - 1] = $tmp[0];
+           }
+ 
+-          $baseKey = self.quoteIdentifier(key)+'#>>\'{'+path.join(', ')+'}\'';
++          var pathKey = self.escape('{' + path.join(', ') + '}');
++          $baseKey = self.quoteIdentifier(key)+'#>>'+pathKey;
+ 
+           if (options.prefix) {
+             if (options.prefix instanceof Utils.literal) {",fix(postgres): json path key quoting (#11088),"vuln-fix: Prevent SQL injection via unsafe path concatenation in JSON queries
+
+The vulnerability involved unsafe string concatenation when constructing JSON path queries, allowing injection of malicious SQL through crafted path elements. This posed a risk of unauthorized data access or manipulation by attackers exploiting the query syntax. The fix properly escapes the JSON path using a dedicated escape function before concatenation, ensuring safe query construction and preventing injection attacks.
+
+Weakness: CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')
+Severity: High
+CVSS: 7.5",0.11764705882352941,"[('fix(postgres', 'ACTION', ''), ('key', 'secword', ''), ('#11088', 'ISSUE', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('sql injection', 'SECWORD', ''), ('unsafe', 'secword', ''), ('vulnerability', 'secword', ''), ('unsafe', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('malicious', 'secword', ''), ('attackers', 'FLAW', ''), ('exploiting', 'SECWORD', ''), ('fix', 'ACTION', ''), ('escapes', 'SECWORD', ''), ('escape', 'SECWORD', ''), ('ensuring', 'ACTION', ''), ('safe', 'secword', ''), ('preventing', 'ACTION', ''), ('injection', 'secword', ''), ('attacks', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('cwe-89', 'CWEID', ''), ('improper neutralization', 'secword', ''), ('sql injection', 'secword', ''), ('high', 'SEVERITY', '')]"
+9,{'CWE-89'},GHSA-x2jc-pwfj-h9p3,"@@ -37,8 +37,9 @@ SqlString.escape = function(val, stringifyObjects, timeZone, dialect) {
+     }
+   }
+ 
+-  if (dialect == ""postgres"") {
++  if (dialect === ""postgres"" || dialect === ""sqlite"") {
+     // http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS
++    // http://stackoverflow.com/q/603572/130598
+     val = val.replace(/'/g, ""''"");
+   } else {
+     val = val.replace(/[\0\n\r\b\t\\\'\""\x1a]/g, function(s) {","Fix string escaping for sqlite
+
+SQLite was defaulting to the MySQL backslash-escaped style, but it uses
+postgres-style escaping. This is a SQL-injection vulnerability, and
+shouldn't be taken lightly (although SQLite is mostly for testing).","vuln-fix: Strengthen SQL string escaping for SQLite dialect
+
+The SQL string escaping function did not properly handle the SQLite dialect, potentially allowing unescaped single quotes to cause SQL injection vulnerabilities. This is a security risk because attackers could exploit improper escaping to inject malicious SQL commands and compromise the database. The fix extends the existing PostgreSQL escaping logic to also cover SQLite, ensuring single quotes are correctly escaped in both dialects.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.23529411764705882,"[('fix', 'ACTION', ''), ('escaping', 'secword', ''), ('escaped', 'SECWORD', ''), ('escaping', 'secword', ''), ('injection', 'SECWORD', ''), ('vulnerability', 'secword', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('escaping', 'secword', ''), ('escaping', 'SECWORD', ''), ('unescaped', 'SECWORD', ''), ('sql injection', 'secword', ''), ('vulnerabilities', 'SECWORD', ''), ('security', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('exploit', 'SECWORD', ''), ('escaping', 'secword', ''), ('inject', 'secword', ''), ('malicious', 'secword', ''), ('fix', 'ACTION', ''), ('escaping', 'secword', ''), ('ensuring', 'ACTION', ''), ('escaped', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+10,{'CWE-89'},GHSA-2v7p-f4qm-r5pc,"@@ -332,12 +332,13 @@ public function getFilterCondition($filterJson, ClassDefinition $class, $tablePr
+                         } elseif ($filterField == 'id') {
+                             $conditionPartsFilters[] = 'oo_id ' . $operator . ' ' . $db->quote($filter['value']);
+                         } else {
++                            $filterField = $db->quoteIdentifier('o_' . $filterField);
+                             if ($filter['type'] == 'date' && $operator == '=') {
+                                 //if the equal operator is chosen with the date type, condition has to be changed
+                                 $maxTime = $filter['value'] + (86400 - 1); //specifies the top point of the range used in the condition
+-                                $conditionPartsFilters[] = '`o_' . $filterField . '` BETWEEN ' . $db->quote($filter['value']) . ' AND ' . $db->quote($maxTime);
++                                $conditionPartsFilters[] = $filterField . ' BETWEEN ' . $db->quote($filter['value']) . ' AND ' . $db->quote($maxTime);
+                             } else {
+-                                $conditionPartsFilters[] = '`o_' . $filterField . '` ' . $operator . ' ' . $db->quote($filter['value']);
++                                $conditionPartsFilters[] = $filterField . ' ' . $operator . ' ' . $db->quote($filter['value']);
+                             }
+                         }
+                     }
+@@ -780,6 +781,8 @@ public function prepareAssetListingForGrid($allParams, $adminUser)
+ 
+                 if ($filterField == 'fullpath') {
+                     $filterField = 'CONCAT(path,filename)';
++                }else {
++                    $filterField = $db->quoteIdentifier($filterField);
+                 }
+ 
+                 if (isset($filterDef[1]) && $filterDef[1] == 'system') {",Fixed column quoting in GridHelperService,"vuln-fix: Prevent SQL injection by quoting filter field identifiers
+
+The vulnerability was caused by unquoted filter field names being directly interpolated into SQL queries, allowing attackers to inject malicious SQL code through crafted filter inputs. This posed a critical risk of unauthorized data access or manipulation via SQL injection attacks. The fix ensures all filter field names are properly quoted as SQL identifiers before inclusion in query conditions, preventing injection through field names.
+
+Weakness: CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')
+Severity: Critical
+CVSS: 9.8",0.11764705882352941,"[('fixed', 'ACTION', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('sql injection', 'SECWORD', ''), ('vulnerability', 'secword', ''), ('attackers', 'SECWORD', ''), ('inject', 'secword', ''), ('malicious', 'secword', ''), ('critical', 'SEVERITY', ''), ('sql injection', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('fix', 'ACTION', ''), ('ensures', 'ACTION', ''), ('preventing', 'ACTION', ''), ('injection', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('cwe-89', 'CWEID', ''), ('improper neutralization', 'secword', ''), ('sql injection', 'secword', ''), ('critical', 'SEVERITY', '')]"
+11,{'CWE-89'},GHSA-2jx3-5j9v-prpp,"@@ -35,6 +35,7 @@
+ use Product;
+ use Shop;
+ use Symfony\Component\Translation\TranslatorInterface;
++use Validate;
+ use WishList;
+ 
+ /**
+@@ -167,7 +168,10 @@ private function getProductsOrCount(
+ 
+         if ('products' === $type) {
+             $sortOrder = $query->getSortOrder()->toLegacyOrderBy(true);
+-            $querySearch->orderBy($sortOrder . ' ' . $query->getSortOrder()->toLegacyOrderWay());
++            $sortWay = $query->getSortOrder()->toLegacyOrderWay();
++            if (Validate::isOrderBy($sortOrder) && Validate::isOrderWay($sortWay)) {
++                $querySearch->orderBy($sortOrder . ' ' . $sortWay);
++            }
+             $querySearch->limit((int) $query->getResultsPerPage(), ((int) $query->getPage() - 1) * (int) $query->getResultsPerPage());
+             $products = $this->db->executeS($querySearch);","Merge pull request from GHSA-2jx3-5j9v-prpp
+
+Validate order by and order way","vuln-fix: Validate SQL order parameters to prevent injection
+
+The vulnerability allowed unvalidated sorting parameters to be directly used in SQL queries, enabling potential SQL injection attacks.
+This posed a critical security risk as attackers could manipulate query sorting to execute arbitrary SQL commands on the database.
+The fix adds validation checks on both the order by field and order way parameters before applying them to the query, preventing injection.
+
+Weakness: CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')
+Severity: Critical
+CVSS: 9.8",0.23529411764705882,"[('ghsa-2jx3', 'VULNID', 'GHSA'), ('validate', 'secword', '')]",0.4117647058823529,"[('fix', 'ACTION', ''), ('validate', 'secword', ''), ('prevent', 'ACTION', ''), ('injection', 'SECWORD', ''), ('vulnerability', 'secword', ''), ('sql injection', 'secword', ''), ('attacks', 'FLAW', ''), ('critical', 'SEVERITY', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('manipulate', 'ACTION', ''), ('fix', 'ACTION', ''), ('adds', 'ACTION', ''), ('preventing', 'ACTION', ''), ('injection', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('cwe-89', 'CWEID', ''), ('improper neutralization', 'secword', ''), ('sql injection', 'secword', ''), ('critical', 'SEVERITY', '')]"
+12,"{'CWE-89', 'CWE-287'}",GHSA-79mg-4w23-4fqc,"@@ -34,10 +34,11 @@ public function scopeSearch(Builder $query, array $search = [])
+             return $query;
+         }
+ 
+-        if (!array_intersect(array_keys($search), $this->searchable)) {
++        $allowed_search = array_intersect_key($search, array_flip($this->searchable));
++        if (! $allowed_search) {
+             return $query;
+         }
+ 
+-        return $query->where($search);
++        return $query->where($allowed_search);
+     }
+ }",Ensure only allowed searchable columns are used in DB Query,"vuln-fix: Restrict query search to allowed fields only
+
+The vulnerability allowed arbitrary keys in the search array to be passed directly to the query builder, enabling injection of unintended query conditions. This posed a risk of unauthorized data access or manipulation through crafted search parameters. The fix restricts the search input to only predefined allowed fields before applying it to the query builder, preventing injection of unauthorized keys.
+
+Weakness: Improper Input Validation (CWE-20)  
+Severity: High  
+CVSS: 7.5",0.058823529411764705,"[('ensure', 'ACTION', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('vulnerability', 'SECWORD', ''), ('keys', 'SECWORD', ''), ('injection', 'SECWORD', ''), ('fix', 'ACTION', ''), ('preventing', 'ACTION', ''), ('injection', 'secword', ''), ('keys', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('improper input validation', 'secword', ''), ('cwe-20', 'CWEID', ''), ('high', 'SEVERITY', '')]"
+13,{'CWE-89'},GHSA-v3mr-gp7j-pw5w,"@@ -407,9 +407,9 @@ protected function prepareWhere()
+ 
+         // Filter those that have already been chosen
+         if ('checkbox' === $this->fieldType && \is_array($varData) && !empty($varData)) {
+-            $this->arrWhereProcedure[] = $this->foreignTable.'.id NOT IN ('.implode(',', $varData).')';
++            $this->arrWhereProcedure[] = $this->foreignTable.'.id NOT IN ('.implode(',', array_map('intval', $varData)).')';
+         } elseif ('radio' === $this->fieldType && '' !== $varData) {
+-            $this->arrWhereProcedure[] = ""{$this->foreignTable}.id!='$varData'"";
++            $this->arrWhereProcedure[] = $this->foreignTable.'.id!='.(int) $varData;
+         }
+ 
+         // If custom WHERE is set, add it to the statement",Fixed SQL query for current field value,"vuln-fix: Prevent SQL injection by sanitizing input in WHERE clause
+
+The vulnerability allowed unsanitized user input to be directly embedded in SQL queries, enabling potential SQL injection attacks. This posed a critical security risk by allowing attackers to manipulate database queries and access unauthorized data. The fix applies integer casting and mapping to sanitize inputs before inclusion in SQL statements, preventing injection vectors.
+
+Weakness: CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')
+Severity: Critical
+CVSS: 9.1",0.11764705882352941,"[('fixed', 'ACTION', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('sql injection', 'SECWORD', ''), ('sanitizing', 'secword', ''), ('vulnerability', 'secword', ''), ('unsanitized', 'SECWORD', ''), ('sql injection', 'secword', ''), ('attacks', 'FLAW', ''), ('critical', 'SEVERITY', ''), ('security', 'secword', ''), ('attackers', 'FLAW', ''), ('manipulate', 'ACTION', ''), ('fix', 'ACTION', ''), ('integer casting', 'SECWORD', ''), ('sanitize', 'secword', ''), ('preventing', 'ACTION', ''), ('injection', 'secword', ''), ('weakness', 'SECWORD', ''), ('cwe-89', 'CWEID', ''), ('improper neutralization', 'secword', ''), ('sql injection', 'secword', ''), ('critical', 'SEVERITY', '')]"
+14,{'CWE-89'},GHSA-vj9x-w7ch-f46p,"@@ -1242,7 +1242,7 @@ public function propertiesGetAction(Request $request)
+         }
+ 
+         if ($storeId) {
+-            $conditionParts[] = '(storeId = ' . $storeId . ')';
++            $conditionParts[] = '(storeId = '. $db->quote($storeId) . ')';
+         }
+ 
+         if ($request->get('filter')) {",[Data Object] Classification Store quote filtering,"vuln-fix: Prevent SQL injection by quoting storeId parameter
+
+The storeId parameter was directly concatenated into the SQL query without sanitization, allowing injection of malicious SQL code.
+This posed a critical security risk as attackers could manipulate queries to access or modify unauthorized data.
+The fix applies proper quoting of the storeId value using the database quote method to safely escape input before query execution.
+
+Weakness: CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')
+Severity: Critical
+CVSS: 9.8",0.11764705882352941,[],0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('sql injection', 'SECWORD', ''), ('sanitization', 'secword', ''), ('injection', 'secword', ''), ('malicious', 'secword', ''), ('critical', 'SEVERITY', ''), ('security', 'SECWORD', ''), ('attackers', 'SECWORD', ''), ('manipulate', 'ACTION', ''), ('fix', 'ACTION', ''), ('escape', 'secword', ''), ('weakness', 'SECWORD', ''), ('cwe-89', 'CWEID', ''), ('improper neutralization', 'secword', ''), ('sql injection', 'secword', ''), ('critical', 'SEVERITY', '')]"
+15,{'CWE-89'},GHSA-6gm7-j668-w6h9,"@@ -119,7 +119,7 @@ public function listAction(Request $request)
+                         $condition = $field . ' BETWEEN ' . $db->quote($value) . ' AND ' . $db->quote($maxTime);
+                         $conditionFilters[] = $condition;
+                     } else {
+-                        $conditionFilters[] = $field . $operator . "" '"" . $value . ""' "";
++                        $conditionFilters[] = $field . $operator . ' ' . $db->quote($value);
+                     }
+                 }
+             }",[Recyclebin] Quote condition filter,"vuln-fix: Prevent SQL injection by properly quoting query values
+
+The vulnerability was improper manual quoting of SQL query values, allowing injection through crafted input in listAction filters.  
+This posed a critical risk as attackers could manipulate queries to access or modify unauthorized data.  
+The fix uses the database quote method consistently to safely escape all query values, preventing injection attacks.  
+
+Weakness: CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')  
+Severity: Critical  
+CVSS: 9.8",0.11764705882352941,[],0.4117647058823529,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('sql injection', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('manual', 'DETECTION', ''), ('injection', 'SECWORD', ''), ('critical', 'SEVERITY', ''), ('attackers', 'FLAW', ''), ('manipulate', 'ACTION', ''), ('fix', 'ACTION', ''), ('escape', 'secword', ''), ('preventing', 'ACTION', ''), ('injection', 'SECWORD', ''), ('attacks', 'FLAW', ''), ('weakness', 'SECWORD', ''), ('cwe-89', 'CWEID', ''), ('improper neutralization', 'secword', ''), ('sql injection', 'secword', ''), ('critical', 'SEVERITY', '')]"
+16,{'CWE-89'},GHSA-864j-6qpp-cmrr,"@@ -44,13 +44,13 @@ def approx_distance(latitude, longitude, lat_attr, lon_attr, options = {})
+     end
+ 
+     def within_bounding_box(sw_lat, sw_lng, ne_lat, ne_lng, lat_attr, lon_attr)
+-      spans = ""#{lat_attr} BETWEEN #{sw_lat} AND #{ne_lat} AND ""
++      spans = ""#{lat_attr} BETWEEN #{sw_lat.to_f} AND #{ne_lat.to_f} AND ""
+       # handle box that spans 180 longitude
+       if sw_lng.to_f > ne_lng.to_f
+-        spans + ""(#{lon_attr} BETWEEN #{sw_lng} AND 180 OR "" +
+-        ""#{lon_attr} BETWEEN -180 AND #{ne_lng})""
++        spans + ""(#{lon_attr} BETWEEN #{sw_lng.to_f} AND 180 OR "" +
++        ""#{lon_attr} BETWEEN -180 AND #{ne_lng.to_f})""
+       else
+-        spans + ""#{lon_attr} BETWEEN #{sw_lng} AND #{ne_lng}""
++        spans + ""#{lon_attr} BETWEEN #{sw_lng.to_f} AND #{ne_lng.to_f}""
+       end
+     end",Sanitize lat/lon for SQL query.,"vuln-fix: Prevent SQL injection by enforcing float conversion in bounding box query
+
+The vulnerability was due to direct interpolation of user-supplied latitude and longitude values into SQL query strings without proper type enforcement. This posed a risk of SQL injection attacks, allowing attackers to execute arbitrary SQL commands via crafted input parameters. The fix ensures all coordinate inputs are explicitly converted to floats before interpolation, preventing injection of malicious SQL code.
+
+Weakness: CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')
+Severity: High
+CVSS: 7.5",0.11764705882352941,"[('sanitize', 'secword', '')]",0.35294117647058826,"[('fix', 'ACTION', ''), ('prevent', 'ACTION', ''), ('sql injection', 'SECWORD', ''), ('vulnerability', 'SECWORD', ''), ('sql injection', 'secword', ''), ('attacks', 'SECWORD', ''), ('attackers', 'FLAW', ''), ('fix', 'ACTION', ''), ('ensures', 'ACTION', ''), ('preventing', 'ACTION', ''), ('injection', 'secword', ''), ('malicious', 'SECWORD', ''), ('weakness', 'SECWORD', ''), ('cwe-89', 'CWEID', ''), ('improper neutralization', 'secword', ''), ('sql injection', 'secword', ''), ('high', 'SEVERITY', '')]"
